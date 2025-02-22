@@ -1,0 +1,536 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:300,400|Open+Sans:300,400');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css');
+
+legend {
+    margin-bottom: 0.5em;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.25em;
+}
+
+.group-color-0 {color: #aaa !important; }
+.group-color-1 {color: #000 !important; }
+.group-color-2 {color: #0000aa !important; }
+.group-color-3 {color: #00aa00 !important; }
+.group-color-4 {color: #00aaaa !important; }
+.group-color-5 {color: #aa0000 !important; }
+.group-color-6 {color: #aa00aa !important; }
+.group-color-7 {color: #ffaa00 !important; }
+.group-color-8 {color: #aaaaaa !important; }
+.group-color-9 {color: #555555 !important; }
+.group-color-10 {color: #5555ff !important; }
+.group-color-11 {color: #55ff55 !important; }
+.group-color-12 {color: #55ffff !important; }
+.group-color-13 {color: #ff5555 !important; }
+.group-color-14 {color: #ff55ff !important; }
+.group-color-15 {color: #ffff55 !important; }
+
+.social-link {
+	color: white;
+	padding: 8px;
+	font-size: 18pt;
+	margin: 4px;
+	border-radius: 5px;
+	display: inline-block;
+	height: 40px;
+	width: 40px;
+}
+.social-link:hover {
+	opacity: 0.5;
+	cursor: pointer
+}
+.social-link.social-xs {
+	width: 20px;
+	height: 20px;
+	font-size: 10pt;
+}
+.social-link.social-sm {
+	width: 30px;
+	height: 30px;
+	font-size: 14pt;
+}
+.social-link.social-md {
+	width: 40px;
+	height: 40px;
+	font-size: 18pt;
+}
+.social-link.social-lg {
+	width: 50px;
+	height: 50px;
+	font-size: 22pt;
+}
+.social-link.social-xl {
+	width: 64px;
+	height: 64px;
+	font-size: 35pt;
+}
+.social-facebook  { background-color: #4267b2; }
+.social-youtube   { background-color: #f00; }
+.social-twitter   { background-color: #1da1f2; }
+.social-twitch    { background-color: #9147ff; }
+.social-skype     { background-color: #28a8ea; }
+.social-discord   { background-color: #7289da; }
+.social-reddit    { background-color: #ff4500; }
+.social-pinterest { background-color: #e60023; }
+.social-linkedin  { background-color: #007bb6; }
+.social-rss       { background-color: #f9942a; }
+.social-instagram {
+	background: -moz-linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+	background: -webkit-linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+}
+
+.hide {
+	display: none !important;
+}
+
+.file-block {
+	margin: 0 5px;
+	padding: 1em;
+	max-width: 100%;
+	text-align: center;
+	border-radius: 0px;
+	font-size: inherit;
+	background: #fff;
+	border-color: #bbb;
+	border-style: solid;
+	border-width: 1px;
+}
+
+.file-block.no-frame {
+	border: none;
+}
+
+.file-block.no-frame figcaption {
+	display: none;
+}
+
+.file-block.right {
+	float: right;
+	margin-left: 1em;
+}
+
+.file-block.left {
+	float: left;
+	margin-right: 1em;
+}
+
+.flex-gallery {
+	text-align: center;
+	display: block;
+}
+
+.flex-gallery > * {
+	display: inline-block;
+	margin: 0.5em;
+}
+
+.file-list {
+	width: 100%;
+}
+
+.file-list-row > td {
+	padding: 0.5em;
+	border-top: 1px solid #ccc;
+}
+
+.cke_combo  .cke_combo_open {
+	margin-left: 0px;
+}
+
+.cke_combo  .cke_combo_text {
+	width: 48px;
+}
+
+.cke_button__source  .cke_button__source_label {
+	display: none;
+}
+
+.fancybox-overlay {
+	z-index: 1000;
+}
+
+#spinner {
+	z-index: 10000;
+	position : fixed;
+	width:100%;
+	left:0;
+	top: 50%;
+	text-align: center;
+	color:#52bcdc;
+	text-align:center;
+}
+
+
+.gallery-editor {
+	min-width: 400px;
+	max-height: 500px;
+	max-width: 1200px;
+	overflow-y: auto;
+}
+
+.gallery-editor  .gallery-en-container {
+	min-height: 190px;
+	vertical-align: middle;
+}
+
+.gallery-editor .container {
+	width: 185px;
+	margin: 3px;
+	height: 185px;
+	border: 1px solid #ccc;
+}
+
+
+
+
+/** Fixes for bootstrap 3 -> 4 **/
+
+[data-hover="dropdown"]:focus ~ .dropdown-menu,
+[data-hover="dropdown"]:hover ~ .dropdown-menu {
+    margin-top: 0px;
+    display:block;
+}
+
+[data-hover="dropdown"] ~ .dropdown-menu:hover {
+    display:block;
+}
+
+.pagination.paginator {
+	display: inline-flex;
+}
+
+.tab-pane {
+	background-color: #fff;
+}
+
+.card-header {
+	padding: .5rem 1rem;
+}
+
+.card-body {
+	padding: 1rem;
+}
+
+.bs-callout-danger {
+	background-color: #fdf7f7;
+	border-color: #d9534f;
+}
+.bs-callout-warning {
+	background-color: #fdf7f7;
+	border-color: #f0ad4e;
+}
+.bs-callout-info {
+	background-color: #fdf7f7;
+	border-color: #5bc0de;
+}
+.bs-callout-success {
+	background-color: #fdf7f7;
+	border-color: #67B823;
+}
+
+.bs-callout-danger h1,
+.bs-callout-danger h2,
+.bs-callout-danger h3,
+.bs-callout-danger h4 {
+	color: #B94A48;
+}
+
+.bs-callout-warning h1,
+.bs-callout-warning h2,
+.bs-callout-warning h3,
+.bs-callout-warning h4 {
+	color: #C09853;
+}
+
+.bs-callout-info h1,
+.bs-callout-info h2,
+.bs-callout-info h3,
+.bs-callout-info h4 {
+	color: #3A87AD;
+}
+
+.bs-callout-success h1,
+.bs-callout-success h2,
+.bs-callout-success h3,
+.bs-callout-success h4 {
+	color: #3C763D;
+}
+
+.bs-callout code,
+.bs-callout .highlight {
+	background-color: #fff;
+}
+
+
+/** Country flags **/
+.flag-icon {
+   display: inline-block;
+   width: 16px;
+   height: 11px;
+   line-height: 11px;
+   background-image: url("../img/flags.png");
+   background-position: -209px -188px;
+   background-repeat: no-repeat;
+   transform: scale(125%);
+   margin-right: 2px;
+   margin-left: 2px;
+}
+.flag-zw {background-position: 0px 0px;}
+.flag-zm {background-position: -16px 0px;}
+.flag-za {background-position: 0px -11px;}
+.flag-yt {background-position: -16px -11px;}
+.flag-ye {background-position: -32px 0px;}
+.flag-ws {background-position: -32px -11px;}
+.flag-wf {background-position: 0px -22px;}
+.flag-vu {background-position: -32px -22px;}
+.flag-vn {background-position: 0px -33px;}
+.flag-vi {background-position: -16px -33px;}
+.flag-vg {background-position: -32px -33px;}
+.flag-ve {background-position: -48px 0px;}
+.flag-vc {background-position: -48px -11px;}
+.flag-va {background-position: -48px -22px;}
+.flag-uz {background-position: -48px -33px;}
+.flag-uy {background-position: 0px -44px;}
+.flag-us {background-position: -16px -44px;}
+.flag-um {background-position: -16px -44px;}
+.flag-ug {background-position: -32px -44px;}
+.flag-ua {background-position: -48px -44px;}
+.flag-tz {background-position: -64px 0px;}
+.flag-tw {background-position: -64px -11px;}
+.flag-tv {background-position: -64px -22px;}
+.flag-tt {background-position: -64px -33px;}
+.flag-tr {background-position: -64px -44px;}
+.flag-to {background-position: 0px -55px;}
+.flag-tn {background-position: -16px -55px;}
+.flag-tm {background-position: -32px -55px;}
+.flag-tl {background-position: -48px -55px;}
+.flag-tk {background-position: -64px -55px;}
+.flag-tj {background-position: 0px -66px;}
+.flag-th {background-position: -16px -66px;}
+.flag-tg {background-position: -32px -66px;}
+.flag-tf {background-position: -48px -66px;}
+.flag-td {background-position: -64px -66px;}
+.flag-tc {background-position: -80px 0px;}
+.flag-sz {background-position: -80px -11px;}
+.flag-sy {background-position: -80px -22px;}
+.flag-sx {background-position: -80px -33px;}
+.flag-sv {background-position: -80px -44px;}
+.flag-st {background-position: -80px -55px;}
+.flag-ss {background-position: -80px -66px;}
+.flag-sr {background-position: 0px -77px;}
+.flag-so {background-position: -16px -77px;}
+.flag-sn {background-position: -32px -77px;}
+.flag-sm {background-position: -48px -77px;}
+.flag-sl {background-position: -64px -77px;}
+.flag-sk {background-position: -80px -77px;}
+.flag-si {background-position: -96px 0px;}
+.flag-sh {background-position: -96px -11px;}
+.flag-sg {background-position: -96px -22px;}
+.flag-se {background-position: -96px -33px;}
+.flag-sd {background-position: -96px -44px;}
+.flag-sc {background-position: -96px -66px;}
+.flag-sb {background-position: -96px -77px;}
+.flag-sa {background-position: 0px -88px;}
+.flag-rw {background-position: -16px -88px;}
+.flag-ru {background-position: -32px -88px;}
+.flag-rs {background-position: -48px -88px;}
+.flag-ro {background-position: -64px -88px;}
+.flag-qa {background-position: -80px -88px;}
+.flag-py {background-position: -96px -88px;}
+.flag-pw {background-position: 0px -99px;}
+.flag-pt {background-position: -16px -99px;}
+.flag-ps {background-position: -32px -99px;}
+.flag-pr {background-position: -48px -99px;}
+.flag-pn {background-position: -64px -99px;}
+.flag-pm {background-position: -80px -99px;}
+.flag-pl {background-position: -96px -99px;}
+.flag-pk {background-position: -112px 0px;}
+.flag-ph {background-position: -112px -11px;}
+.flag-pg {background-position: -112px -22px;}
+.flag-pf {background-position: -112px -33px;}
+.flag-pe {background-position: -112px -44px;}
+.flag-pa {background-position: -112px -55px;}
+.flag-om {background-position: -112px -66px;}
+.flag-nz {background-position: -112px -77px;}
+.flag-nu {background-position: -112px -88px;}
+.flag-nr {background-position: -112px -99px;}
+.flag-no {background-position: 0px -110px;}
+.flag-bv {background-position: 0px -110px;}
+.flag-sj {background-position: 0px -110px;}
+.flag-nl {background-position: -16px -110px;}
+.flag-ni {background-position: -32px -110px;}
+.flag-ng {background-position: -48px -110px;}
+.flag-nf {background-position: -64px -110px;}
+.flag-ne {background-position: -80px -110px;}
+.flag-nc {background-position: -96px -110px;}
+.flag-na {background-position: -112px -110px;}
+.flag-mz {background-position: -128px 0px;}
+.flag-my {background-position: -128px -11px;}
+.flag-mx {background-position: -128px -22px;}
+.flag-mw {background-position: -128px -33px;}
+.flag-mv {background-position: -128px -44px;}
+.flag-mu {background-position: -128px -55px;}
+.flag-mt {background-position: -128px -66px;}
+.flag-ms {background-position: -128px -77px;}
+.flag-mr {background-position: -128px -88px;}
+.flag-mq {background-position: -128px -99px;}
+.flag-mp {background-position: -128px -110px;}
+.flag-mo {background-position: 0px -121px;}
+.flag-mn {background-position: -16px -121px;}
+.flag-mm {background-position: -32px -121px;}
+.flag-ml {background-position: -48px -121px;}
+.flag-mk {background-position: -64px -121px;}
+.flag-mh {background-position: -80px -121px;}
+.flag-mg {background-position: -96px -121px;}
+.flag-me {background-position: 0px -132px;}
+.flag-md {background-position: -112px -121px;}
+.flag-mc {background-position: -128px -121px;}
+.flag-ma {background-position: -16px -132px;}
+.flag-ly {background-position: -32px -132px;}
+.flag-lv {background-position: -48px -132px;}
+.flag-lu {background-position: -64px -132px;}
+.flag-lt {background-position: -80px -132px;}
+.flag-ls {background-position: -96px -132px;}
+.flag-lr {background-position: -112px -132px;}
+.flag-lk {background-position: -128px -132px;}
+.flag-li {background-position: -144px 0px;}
+.flag-lc {background-position: -144px -11px;}
+.flag-lb {background-position: -144px -22px;}
+.flag-la {background-position: -144px -33px;}
+.flag-kz {background-position: -144px -44px;}
+.flag-ky {background-position: -144px -55px;}
+.flag-kw {background-position: -144px -66px;}
+.flag-kr {background-position: -144px -77px;}
+.flag-kp {background-position: -144px -88px;}
+.flag-kn {background-position: -144px -99px;}
+.flag-km {background-position: -144px -110px;}
+.flag-ki {background-position: -144px -121px;}
+.flag-kh {background-position: -144px -132px;}
+.flag-kg {background-position: 0px -144px;}
+.flag-ke {background-position: -16px -144px;}
+.flag-jp {background-position: -32px -144px;}
+.flag-jo {background-position: -48px -144px;}
+.flag-jm {background-position: -64px -144px;}
+.flag-je {background-position: -80px -144px;}
+.flag-it {background-position: -96px -144px;}
+.flag-is {background-position: -112px -144px;}
+.flag-ir {background-position: -128px -144px;}
+.flag-iq {background-position: -144px -144px;}
+.flag-io {background-position: -160px 0px;}
+.flag-in {background-position: -160px -11px;}
+.flag-im {background-position: -160px -22px;}
+.flag-il {background-position: -160px -31px;}
+.flag-ie {background-position: -160px -42px;}
+.flag-id {background-position: -160px -53px;}
+.flag-hu {background-position: -160px -64px;}
+.flag-ht {background-position: -160px -75px;}
+.flag-hr {background-position: -160px -86px;}
+.flag-hn {background-position: -160px -97px;}
+.flag-hk {background-position: -160px -108px;}
+.flag-gy {background-position: -160px -119px;}
+.flag-gw {background-position: -160px -130px;}
+.flag-gu {background-position: -160px -141px;}
+.flag-gt {background-position: 0px -155px;}
+.flag-gs {background-position: -16px -155px;}
+.flag-gr {background-position: -32px -155px;}
+.flag-gq {background-position: -48px -155px;}
+.flag-gp {background-position: -64px -155px;}
+.flag-gn {background-position: -80px -155px;}
+.flag-gm {background-position: -96px -155px;}
+.flag-gl {background-position: -112px -155px;}
+.flag-gi {background-position: -128px -155px;}
+.flag-gh {background-position: -144px -155px;}
+.flag-gg {background-position: -160px -155px;}
+.flag-ge {background-position: -176px 0px;}
+.flag-gd {background-position: -176px -11px;}
+.flag-gb {background-position: -176px -22px;}
+.flag-ga {background-position: -176px -33px;}
+.flag-fr {background-position: -176px -44px;}
+.flag-gf {background-position: -176px -44px;}
+.flag-re {background-position: -176px -44px;}
+.flag-mf {background-position: -176px -44px;}
+.flag-bl {background-position: -176px -44px;}
+.flag-fo {background-position: -176px -55px;}
+.flag-fm {background-position: -176px -66px;}
+.flag-fk {background-position: -176px -77px;}
+.flag-fj {background-position: -176px -88px;}
+.flag-fi {background-position: -176px -99px;}
+.flag-eu {background-position: -176px -121px;}
+.flag-et {background-position: -176px -132px;}
+.flag-es {background-position: -176px -143px;}
+.flag-er {background-position: -176px -154px;}
+.flag-eh {background-position: -16px -166px;}
+.flag-eg {background-position: -32px -166px;}
+.flag-ee {background-position: -48px -166px;}
+.flag-ec {background-position: -64px -166px;}
+.flag-dz {background-position: -80px -166px;}
+.flag-do {background-position: -96px -166px;}
+.flag-dm {background-position: -112px -166px;}
+.flag-dk {background-position: -128px -166px;}
+.flag-dj {background-position: -144px -166px;}
+.flag-de {background-position: -160px -166px;}
+.flag-cz {background-position: -176px -166px;}
+.flag-cy {background-position: 0px -177px;}
+.flag-cx {background-position: -16px -177px;}
+.flag-cw {background-position: -32px -177px;}
+.flag-cv {background-position: -48px -177px;}
+.flag-cu {background-position: -64px -177px;}
+.flag-cs {background-position: -80px -177px;}
+.flag-cr {background-position: -96px -177px;}
+.flag-co {background-position: -112px -177px;}
+.flag-cn {background-position: -128px -177px;}
+.flag-cm {background-position: -144px -177px;}
+.flag-cl {background-position: -160px -177px;}
+.flag-ck {background-position: -176px -177px;}
+.flag-ci {background-position: -192px 0px;}
+.flag-cg {background-position: -192px -11px;}
+.flag-cf {background-position: -192px -22px;}
+.flag-cd {background-position: -192px -33px;}
+.flag-cc {background-position: -192px -44px;}
+.flag-ca {background-position: -192px -66px;}
+.flag-bz {background-position: -192px -77px;}
+.flag-by {background-position: -192px -88px;}
+.flag-bw {background-position: -192px -99px;}
+.flag-bt {background-position: -192px -110px;}
+.flag-bs {background-position: -192px -121px;}
+.flag-br {background-position: -192px -132px;}
+.flag-bq {background-position: -192px -143px;}
+.flag-bo {background-position: -192px -154px;}
+.flag-bn {background-position: -192px -165px;}
+.flag-bm {background-position: -192px -176px;}
+.flag-bj {background-position: 0px -188px;}
+.flag-bi {background-position: -16px -188px;}
+.flag-bh {background-position: -32px -188px;}
+.flag-bg {background-position: -48px -188px;}
+.flag-bf {background-position: -64px -188px;}
+.flag-be {background-position: -80px -188px;}
+.flag-bd {background-position: -96px -188px;}
+.flag-bb {background-position: -112px -188px;}
+.flag-ba {background-position: -128px -188px;}
+.flag-az {background-position: -144px -188px;}
+.flag-ax {background-position: -160px -188px;}
+.flag-aw {background-position: -176px -188px;}
+.flag-au {background-position: -192px -188px;}
+.flag-hm {background-position: -192px -188px;}
+.flag-at {background-position: -208px 0px;}
+.flag-as {background-position: -208px -11px;}
+.flag-ar {background-position: -208px -22px;}
+.flag-ao {background-position: -208px -33px;}
+.flag-an {background-position: -208px -44px;}
+.flag-am {background-position: -208px -55px;}
+.flag-al {background-position: -208px -66px;}
+.flag-ai {background-position: -208px -77px;}
+.flag-ag {background-position: -208px -88px;}
+.flag-af {background-position: -208px -99px;}
+.flag-ae {background-position: -208px -110px;}
+.flag-ad {background-position: -208px -121px;}
+.flag-np {background-position: -208px -132px; width: 9px;}
+.flag-ch {background-position: -208px -143px; width: 11px;}
+
+
+/** Components **/
+
+/*! fancyBox v2.1.5 fancyapps.com | fancyapps.com/fancybox/#license */
+.fancybox-wrap,.fancybox-skin,.fancybox-outer,.fancybox-inner,.fancybox-image,.fancybox-wrap iframe,.fancybox-wrap object,.fancybox-nav,.fancybox-nav span,.fancybox-tmp{padding:0;margin:0;border:0;outline:none !important;vertical-align:top}.fancybox-wrap{position:absolute;top:0;left:0;z-index:8020}.fancybox-skin{position:relative;background:#f9f9f9;color:#444;text-shadow:none;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px}.fancybox-opened{z-index:8030}.fancybox-opened .fancybox-skin{-webkit-box-shadow:0 10px 25px rgba(0,0,0,0.5);-moz-box-shadow:0 10px 25px rgba(0,0,0,0.5);box-shadow:0 10px 25px rgba(0,0,0,0.5)}.fancybox-outer,.fancybox-inner{position:relative}.fancybox-inner{overflow:hidden}.fancybox-type-iframe .fancybox-inner{-webkit-overflow-scrolling:touch}.fancybox-error{color:#444;font:14px/20px "Helvetica Neue",Helvetica,Arial,sans-serif;margin:0;padding:15px;white-space:nowrap}.fancybox-image,.fancybox-iframe{display:block;width:100%;height:100%}.fancybox-image{max-width:100%;max-height:100%}#fancybox-loading,.fancybox-close,.fancybox-prev span,.fancybox-next span{background-image:url(../js/fancybox/fancybox_sprite.png)}#fancybox-loading{position:fixed;top:50%;left:50%;margin-top:-22px;margin-left:-22px;background-position:0 -108px;opacity:.8;cursor:pointer;z-index:8060}#fancybox-loading div{width:44px;height:44px;background:url(../js/fancybox/fancybox_loading.gif) center center no-repeat}.fancybox-close{position:absolute;top:-18px;right:-18px;width:36px;height:36px;cursor:pointer;z-index:8040}.fancybox-nav{position:absolute;top:0;width:40%;height:100%;cursor:pointer;text-decoration:none;background:transparent url(../js/fancybox/blank.gif);-webkit-tap-highlight-color:rgba(0,0,0,0);z-index:8040}.fancybox-prev{left:0}.fancybox-next{right:0}.fancybox-nav span{position:absolute;top:50%;width:36px;height:34px;margin-top:-18px;cursor:pointer;z-index:8040;visibility:hidden}.fancybox-prev span{left:10px;background-position:0 -36px}.fancybox-next span{right:10px;background-position:0 -72px}.fancybox-nav:hover span{visibility:visible}.fancybox-tmp{position:absolute;top:-99999px;left:-99999px;max-width:99999px;max-height:99999px;overflow:visible !important}.fancybox-margin{margin-right:0 !important}.fancybox-lock-test{overflow-y:hidden !important}.fancybox-overlay{position:absolute;top:0;left:0;overflow:hidden;display:none;z-index:8010;background:url(../js/fancybox/fancybox_overlay.png)}.fancybox-overlay-fixed{position:fixed;bottom:0;right:0}.fancybox-title{visibility:hidden;font:normal 13px/20px "Helvetica Neue",Helvetica,Arial,sans-serif;position:relative;text-shadow:none;z-index:8050}.fancybox-opened .fancybox-title{visibility:visible}.fancybox-title-float-wrap{position:absolute;bottom:0;right:50%;margin-bottom:-35px;z-index:8050;text-align:center}.fancybox-title-float-wrap .child{display:inline-block;margin-right:-100%;padding:2px 20px;background:transparent;background:rgba(0,0,0,0.8);-webkit-border-radius:15px;-moz-border-radius:15px;border-radius:15px;text-shadow:0 1px 2px #222;color:#FFF;font-weight:bold;line-height:24px;white-space:nowrap}.fancybox-title-outside-wrap{position:relative;margin-top:10px;color:#fff}.fancybox-title-inside-wrap{padding-top:10px}.fancybox-title-over-wrap{position:absolute;bottom:0;left:0;color:#fff;padding:10px;background:#000;background:rgba(0,0,0,.8)}@media only screen and (-webkit-min-device-pixel-ratio:1.5),only screen and (min--moz-device-pixel-ratio:1.5),only screen and (min-device-pixel-ratio:1.5){#fancybox-loading,.fancybox-close,.fancybox-prev span,.fancybox-next span{background-image:url(../js/fancybox/fancybox_sprite@2x.png);background-size:44px 152px}#fancybox-loading div{background-image:url(../js/fancybox/fancybox_loading@2x.gif);background-size:24px 24px}}
+
+/* PrismJS 1.17.1| https://prismjs.com/download.html#themes=prism&languages=markup+css+clike+javascript+c+asm6502+csharp+basic+cpp+markup-templating+go+php+json+jsonp+kotlin+typescript+python+vbnet&plugins=remove-initial-line-feed */
+code[class*=language-],pre[class*=language-]{color:#000;text-shadow:0 1px #fff;font-family:Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace;font-size:1em;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.5;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}@media print{code[class*=language-],pre[class*=language-]{text-shadow:none}}pre[class*=language-]{padding:1em;margin:.5em 0;overflow:auto}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal}.token.cdata,.token.comment,.token.doctype,.token.prolog{color:#708090}.token.punctuation{color:#999}.namespace{opacity:.7}.token.boolean,.token.constant,.token.deleted,.token.number,.token.property,.token.symbol,.token.tag{color:#905}.token.attr-name,.token.builtin,.token.char,.token.inserted,.token.selector,.token.string{color:#690}.language-css .token.string,.style .token.string,.token.entity,.token.operator,.token.url{color:#9a6e3a;background:hsla(0,0%,100%,.5)}.token.atrule,.token.attr-value,.token.keyword{color:#07a}.token.class-name,.token.function{color:#dd4a68}.token.important,.token.regex,.token.variable{color:#e90}.token.bold,.token.important{font-weight:700}.token.italic{font-style:italic}.token.entity{cursor:help}

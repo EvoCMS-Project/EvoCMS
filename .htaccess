@@ -1,0 +1,15 @@
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+	RewriteEngine on
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^(.*)$ index.php?p=$1 [QSA,L]
+	RewriteRule ^db-(.*).sqlite$ index.php?p=$1 [QSA,L]
+</IfModule>
+
+<IfModule mod_headers.c>
+	<FilesMatch ".(ttf|otf|eot|woff)$">
+		Header set Access-Control-Allow-Origin "*"
+	</FilesMatch>
+</IfModule>

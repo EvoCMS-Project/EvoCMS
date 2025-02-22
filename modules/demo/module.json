@@ -1,0 +1,31 @@
+{
+    "name": "demo",
+    "description": "Blah blah blah blah",
+    "version": "1.0.0",
+    "author": "You <your@email.com> (https://yourwebsite.com)",
+    "contributors": [
+        "Personne <personne@email.com> (https://php.net)"
+    ],
+    "exports": ["plugin"],
+
+    "homepage": "",
+    "manifest": "https://github.com/evocms-project/evocms/tree/master/modules/demo/module.json",
+    "download": "",
+
+    "changelog": [
+        { "version": "1.0.0", "date": "2018-02-01", "changes": "Blah blah blah" },
+        { "version": "0.9.0", "date": "2018-01-01", "changes": "Blah blah blah" }
+    ],
+
+    "settings": {
+		"a": {"type": "color", "label": "Couleur", "default": "#dddddd"},
+		"b": {"type": "image", "label": "Image"},
+		"c": {"type": "text",  "label": "say what?"},
+		"d": {"type": "enum",  "label": "page", "choices": [1,2,3]},
+		"e": {"type": "bool",  "label": "aaa"}
+    },
+
+    "permissions": {
+        "test123": "Test permission 123"
+    }
+}

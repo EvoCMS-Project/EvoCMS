@@ -1,0 +1,65 @@
+@import url("./shared.css");
+
+img, video {
+	max-width: 100% !important;
+}
+
+img[style*="float: left"] {
+  margin: 5px 10px 0px 0px;
+}
+
+img[style*="float: right"] {
+  margin: 5px 0px 0px 10px;
+}
+
+.gallery-container {
+	display: inline-block;
+	vertical-align: bottom;
+	position: relative;
+	height: 160px;
+	width: 32%;
+	margin:0px;
+	padding: 5px 5px 5px 0px;
+	text-align: center;
+}
+
+.gallery-container img {
+	border: 2px solid #CFCFCF;
+	max-height: 150px;
+	max-width: 100%;
+}
+
+.spoiler {
+	padding: 0px 10px;
+	border: 1px solid #aaa;
+	display: inline-block;
+	background-color: rgba(0,0,0,0.3);
+}
+
+.spoiler.visible {
+	background-color: inherit;
+}
+
+.spoiler > label {
+	font-weight: bold;
+	font-size: 90%;
+	cursor: pointer;
+	margin-bottom: 0px;
+}
+
+.spoiler > label::after {
+	content: ' Afficher';
+}
+
+.spoiler.visible > label::after {
+	content: ' Cacher';
+}
+
+.spoiler > div {
+	display: none;
+}
+
+blockquote {
+	border-left: 6px solid #aaa;
+	padding-left: 0.5em;
+}

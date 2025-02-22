@@ -1,0 +1,14 @@
+{
+    "name": "Default Theme",
+    "description": "Default Theme",
+	"author": "EvoCMS",
+    "version": "1.0",
+    "exports": ["theme"],
+
+    "settings": {
+        "theme.logo" 	:  {"type": "image", "label": "Logo"},
+        "theme.background":  {"type": "image", "label": "Background", "css": "body.website {background-image: url(%s) !important}"},
+        "theme.bg_color":  {"type": "color", "label": "Background color", "css": "body.website {background-color: %s !important}"},
+        "theme.text_color":  {"type": "color", "label": "Text color", "css": "body.website {color: %s !important}"}
+    }
+}

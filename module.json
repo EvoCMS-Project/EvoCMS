@@ -1,0 +1,10 @@
+{
+    "name": "Evo-CMS",
+    "description": "Content management system",
+    "version": "1.3.0-beta",
+    "time": "",
+    "author": "EvoCMS Team <> ()",
+    "homepage": "https://github.com/evocms-project/evocms",
+    "manifest": "https://raw.githubusercontent.com/evocms-project/evocms/master/module.json",
+    "download": ""
+}
