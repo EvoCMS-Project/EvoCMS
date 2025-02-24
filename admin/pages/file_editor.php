@@ -82,9 +82,9 @@ has_permission('admin.files', true);
     if ($file && App::POST('save') && App::POST('content') !== null) {
         $updated = file_put_contents($file, App::POST('content'));
 		if ($updated) {
-            App::setSuccess("L'écriture dans le fichier a réussie.");
+            App::setSuccess(__('admin/system.editor_alert_success_save'));
         } else {
-        	App::setWarning("Impossible d'écrire dans le fichier!");
+        	App::setWarning(__('admin/system.editor_alert_warning_save'));
         }
 	}
 
@@ -159,13 +159,13 @@ has_permission('admin.files', true);
 					</ol>
 					<div class='buttons'>
 						<?= Widgets::select('theme', $themes, App::getConfig('file_editor.theme'), true, '') ?>
-						<?php if (!is_writable($file)) { echo 'Ce fichier est en lecture seule'; } ?>
-						<button type='submit' name='save' value='1' class='btn btn-success' title='Enregistrer les modifications'><i class='fas fa-save'></i> Enregistrer</button>
-						<button type="button" name="fe-upload-file" class="btn btn-primary" data-toggle="modal" data-target="upload" title="Upload file in current repertory"><i class="fas fa-file-import"></i></button>
+						<?php if (!is_writable($file)) { echo __('admin/system.editor_alert_readonly'); } ?>
+						<button type='submit' name='save' value='1' class='btn btn-success' title='<?= __('admin/system.editor_btn_save_title') ?>'><i class='fas fa-save'></i> <?= __('admin/system.editor_btn_save') ?></button>
+						<button type="button" name="fe-upload-file" class="btn btn-primary" data-toggle="modal" data-target="upload" title="<?= __('admin/system.editor_btn_upload_title') ?>"><i class="fas fa-file-import"></i></button>
                         <div class="btn-group" role="group" aria-label="zoom">
-                          <button name="fe-zoom-in" class="btn btn-secondary" title="Zoom in"><i class="fas fa-search-plus"></i></button>
+                          <button name="fe-zoom-in" class="btn btn-secondary" title="<?= __('admin/system.editor_btn_zoomin') ?>"><i class="fas fa-search-plus"></i></button>
                           <span name="font-size" class="btn btn-secondary" disabled></span>
-                          <button name="fe-zoom-out" class="btn btn-secondary" title="Zoom Out"><i class="fas fa-search-minus"></i></button>
+                          <button name="fe-zoom-out" class="btn btn-secondary" title="<?= __('admin/system.editor_btn_zoomout') ?>"><i class="fas fa-search-minus"></i></button>
                         </div>
 					</div>
 				</div>
@@ -215,7 +215,7 @@ has_permission('admin.files', true);
 					});
 				</script>
 			<?php } else { ?>
-				Vous devez sélectionner un fichier dans l'arborescence.
+				<?= __('admin/system.editor_background_main') ?>
 			<?php } ?>
 		</form>
 	</div>

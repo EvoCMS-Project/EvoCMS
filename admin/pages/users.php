@@ -28,30 +28,30 @@ $users = Db::QueryAll("SELECT a.*, g.name as gname, g.color as color, b.reason a
 $ptotal = ceil(Db::Get('select count(*) from {users} as a left join {groups} as g on g.id = a.group_id where ' . $where, array_slice($args, 0, -2)) / $upp);
 ?>
 <form role="search" class="well" style="background:transparent" method="post">
-	<input id="filter" name="filter" type="text" class="form-control" value="<?php echo isset($_REQUEST['filter']) ? html_encode($_REQUEST['filter']) : '';?>" placeholder="rechercher un membre par pseudo / email / grade / état">
+	<input id="filter" name="filter" type="text" class="form-control" value="<?php echo isset($_REQUEST['filter']) ? html_encode($_REQUEST['filter']) : '';?>" placeholder="<?= __('admin/users.search_placeholder') ?>">
 </form>
 <form method="post">
 <div id="content">
 	<?php if (!$users): ?>
-		<div style="text-align: center;" class="alert alert-warning">Aucun membre trouvé!</div>
+		<div style="text-align: center;" class="alert alert-warning"><?= __('admin/users.alert_not_found') ?></div>
 	<?php else: ?>
 	<table class="table table-users">
 		<thead>
 			<th style="width:115px"> </th>
-			<th>Pseudo</th>
-			<th>Email</th>
-			<th>Grade</th>
-			<th>Pays</th>
-			<th>Gestion</th>
+			<th><?= __('admin/users.table_username') ?></th>
+			<th><?= __('admin/users.table_email') ?></th>
+			<th><?= __('admin/users.table_rank') ?></th>
+			<th><?= __('admin/users.table_country') ?></th>
+			<th><?= __('admin/users.table_management') ?></th>
 		</thead>
 		<tbody>
 		<?php
 		foreach($users as $member)
 			{
-				$vie = 'Signe de vie: ' . Format::today($member['activity'], 'H:i').'<br>Dernier IP: '.$member['last_ip'].' (' . @COUNTRIES[geoip_country_code($member['last_ip'])] .')';
+				$vie = __('admin/users.result_life') .' : ' . Format::today($member['activity'], 'H:i').'<br>'. __('admin/users.result_last_ip') .' : '.$member['last_ip'].' (' . @COUNTRIES[geoip_country_code($member['last_ip'])] .')';
 
 				echo '<tr class="'.($member['ban_reason'] !== null ? 'danger':'').'">';
-					echo '<td>'.($member['activity'] > time() - 120 ? '<a class="ico-online" title="En Ligne<br>'.$vie.'"></a>' : '<a class="ico-offline" title="Hors Ligne<br>'.$vie.'"></a>' ).' '.Widgets::userAgentIcons($member['last_user_agent']).'</td>';
+					echo '<td>'.($member['activity'] > time() - 120 ? '<a class="ico-online" title="'. __('admin/users.result_online') .' </br>'.$vie.'"></a>' : '<a class="ico-offline" title="'. __('admin/users.result_offline') .' <br>'.$vie.'"></a>' ).' '.Widgets::userAgentIcons($member['last_user_agent']).'</td>';
 					echo '<td><a href="'.App::getAdminURL('user_view', ['id' => $member['id']]).'">'.html_encode($member['username']).'</a></td>';
 					echo "<td>".html_encode($member['email'])."</td>";
 					echo '<td><a class="group-color-'.$member['color'].'" href="?page=users&filter=group_id:%20'.$member['group_id'].'">'.$member['gname'].'</a></td>';
@@ -59,26 +59,26 @@ $ptotal = ceil(Db::Get('select count(*) from {users} as a left join {groups} as 
 					echo '<td>';
 
 					if (has_permission('admin.edit_uprofile'))
-						echo '<a href="?page=user_view&id='.$member['id'].'" class="btn btn-primary btn-sm" title="Éditer le profil"><i class="fa fa-pencil-alt"></i></a> ';
+						echo '<a href="?page=user_view&id='.$member['id'].'" class="btn btn-primary btn-sm" title="'. __('admin/users.result_edit') .'"><i class="fa fa-pencil-alt"></i></a> ';
 
 					if (has_permission('admin.del_member'))
-						echo '<a href="?page=user_delete&id='.$member['id'].'" class="btn btn-danger btn-sm" title="Supprimer le compte"><i class="far fa-trash-alt"></i></a> ';
+						echo '<a href="?page=user_delete&id='.$member['id'].'" class="btn btn-danger btn-sm" title="'. __('admin/users.result_delete') .'"><i class="far fa-trash-alt"></i></a> ';
 
 					if (has_permission('mod.ban_member')) {
 						if ($member['ban_reason'] !== null)
-							echo '<a href="?page=banlist&filter='.$member['username'].','.$member['last_ip'].','.$member['email'].'" class="btn btn-info btn-sm" title="Réactiver le compte" fancybox-title="Réactiver le compte"><i class="fa fa-unlock"></i></a> ';
+							echo '<a href="?page=banlist&filter='.$member['username'].','.$member['last_ip'].','.$member['email'].'" class="btn btn-info btn-sm" title="'. __('admin/users.result_unban') .'" fancybox-title="'. __('admin/users.result_unban') .'"><i class="fa fa-unlock"></i></a> ';
 						else
-							echo '<a href="?page=banlist&hide&username='.$member['username'].'&ip='.$member['last_ip'].'&email='.$member['email'].'" class="btn btn-info btn-sm" title="Bannir ce membre" fancybox-title="Bannir ce membre"><i class="fa fa-lock"></i></a> ';
+							echo '<a href="?page=banlist&hide&username='.$member['username'].'&ip='.$member['last_ip'].'&email='.$member['email'].'" class="btn btn-info btn-sm" title="'. __('admin/users.result_ban') .'" fancybox-title="'. __('admin/users.result_ban') .'"><i class="fa fa-lock"></i></a> ';
 					}
 
 					if (App::groupHasPermission($member['group_id'], 'admin.backup'))
-						echo '<button class="btn btn-warning btn-sm" title="Super-Administrateur"><i class="fa fa-star"> </i></button> ';
+						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_sadm') .'"><i class="fa fa-star"> </i></button> ';
 
 					elseif (App::groupHasPermission($member['group_id'], 'administrator'))
-						echo '<button class="btn btn-warning btn-sm" title="Administrateur"><i class="fa fa-star-half-o"> </i></button> ';
+						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_adm') .'"><i class="fa fa-star-half-o"> </i></button> ';
 
 					elseif (App::groupHasPermission($member['group_id'], 'moderator'))
-						echo '<button class="btn btn-warning btn-sm" title="Modérateur"><i class="fa fa-star-o"></i></button> ';
+						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_mod') .'"><i class="fa fa-star-o"></i></button> ';
 
 					echo '</td>';
 				echo '</tr>';

@@ -7,10 +7,10 @@ $modules = [];
 if ($plugin_name = App::POST('activate_plugin')) {
 	try {
 		if (App::activateModule($plugin_name)) {
-			App::setSuccess("Module <strong>$plugin_name</strong> activé!");
+			App::setSuccess(__('admin/modules.alert_enabling_success', ['%plugin_name%' => $plugin_name]));
 		}
 	} catch (Exception $e) {
-		App::setWarning("Impossible d'activer <strong>$plugin_name</strong>!", true);
+		App::setWarning(__('admin/modules.alert_enabling_error'), true);
 		App::setWarning('<pre>'.html_encode($e).'</pre>', true);
 	}
 }
@@ -18,17 +18,17 @@ if ($plugin_name = App::POST('activate_plugin')) {
 if ($plugin_name = App::POST('deactivate_plugin')) {
 	try {
 		if (App::deactivateModule($plugin_name)) {
-			App::setSuccess("Module <strong>$plugin_name</strong> activé!");
+			App::setSuccess(__('admin/modules.alert_disabling_success', ['%plugin_name%' => $plugin_name]));
 		}
 	} catch (Exception $e) {
-		App::setNotice("Le module <strong>$plugin_name</strong> a été désactivé cependant il a produit une erreur:", true);
+		App::setNotice(__('admin/modules.alert_disabling_error'), true);
 		App::setNotice("<pre>".html_encode($e).'</pre>', true);
 	}
 }
 
 if ($plugin_name = App::POST('delete_plugin')) {
 	if (App::deleteModule($plugin_name)) {
-		App::setSuccess("Module <strong>$plugin_name</strong> supprimé!");
+		App::setSuccess(__('admin/modules.alert_deleted_success', ['%plugin_name%' => $plugin_name]));
 	}
 }
 
@@ -45,14 +45,14 @@ if (isset($_FILES['plugin_file']) && is_uploaded_file($_FILES['plugin_file']['tm
 			$target = ROOT_DIR . '/modules/' . $module->name;
 			$source = dirname($manifest);
 			rename($source, $target);
-			App::setSuccess('Module importé. Vous pouvez maintenant l\'activer.');
+			App::setSuccess(__('admin/modules.alert_import_success'));
 		} else {
-			App::setWarning('Ce module est invalide, référez vous à la documentation ou importer le manuellement via ftp.');
+			App::setWarning(__('admin/modules.alert_import_warning'));
 		}
 
 		rrmdir($tmpdir);
 	} else {
-		App::setWarning('Zip invalide !');
+		App::setWarning(__('admin/modules.alert_zip_error'));
 	}
 }
 
@@ -66,7 +66,7 @@ foreach(glob(ROOT_DIR . '/modules/*/module.json', GLOB_BRACE) as $filename) {
 			if ($update = $module->checkForUpdates()) {
 				$url = html_encode($update->download ?: $update->homepage);
 				$ver = html_encode($update->version);
-				$updates[$key]['content'] = "<a href=\"$url\">Nouvelle version: $ver</a>";
+				$updates[$key]['content'] = "<a href=\"$url\">". __('admin/modules.version_checker') ." : $ver</a>";
 			} else {
 				$updates[$key] = ['checked' => time() , 'content' => ''];
 			}
@@ -78,7 +78,7 @@ $current_plugin = App::getModule(App::GET('plugin', ''));
 
 if (IS_POST && $current_plugin && $current_plugin->settings) {
 	if (settings_save($current_plugin->settings, App::POST())) {
-		App::setSuccess('Configuration mise à jour!');
+		App::setSuccess(__('admin/modules.alert_config_updated'));
 	}
 }
 ?>
@@ -86,12 +86,12 @@ if (IS_POST && $current_plugin && $current_plugin->settings) {
 <?php if (!$current_plugin && class_exists('ZipArchive')) { ?>
 	<div class="float-right">
 		<form method="post" class="form-horizontal" enctype="multipart/form-data">
-				Installer un module: <input type="file" name="plugin_file" style="display: inline;width:200px;"><button type="submit">Upload</button>
+				<?= __('admin/modules.header_form') ?> : <input type="file" name="plugin_file" style="display: inline;width:200px;"><button type="submit"><?= __('admin/modules.header_form_btn_upload') ?></button>
 		</form>
 	</div>
 <?php } ?>
 
-<legend><a href="?page=modules">Modules additionnels</a> <?php if ($current_plugin) echo ':: Configuration de '.html_encode($current_plugin->name) ?></legend>
+<legend><a href="?page=modules"><?= __('admin/modules.main_title') ?></a> <?php if ($current_plugin) echo ':: Configuration de '.html_encode($current_plugin->name) ?></legend>
 
 <?php
 if ($current_plugin) {
@@ -103,9 +103,9 @@ if ($current_plugin) {
 	<table class="table table-striped">
 		<thead>
 			<tr>
-				<th>Nom du plugin</th>
-				<th>Description</th>
-				<th>Auteur</th>
+				<th><?= __('admin/modules.table_name') ?></th>
+				<th><?= __('admin/modules.table_desc') ?></th>
+				<th><?= __('admin/modules.table_author') ?></th>
 				<th style="width: 195px"></th>
 			</tr>
 		</thead>
@@ -120,12 +120,12 @@ if ($current_plugin) {
 
 				if (App::getModule($plugin_id)) {
 					if ($module->settings) {
-						echo '<a class="btn btn-default btn-sm" href="?page=modules&plugin='.$plugin_id.'"><i class="fa fa-cog"></i> Settings</a> ';
+						echo '<a class="btn btn-default btn-sm" href="?page=modules&plugin='.$plugin_id.'"><i class="fa fa-cog"></i> '. __('admin/modules.btn_settings') .'</a> ';
 					}
-					echo '<button type="submit" name="deactivate_plugin" class="btn btn-default btn-sm btn-danger" value="'.$plugin_id.'">Deactivate</button> ';
+					echo '<button type="submit" name="deactivate_plugin" class="btn btn-default btn-sm btn-danger" value="'.$plugin_id.'">'. __('admin/modules.btn_disabling') .'</button> ';
 				} else {
-					echo '<button type="submit" name="activate_plugin" class="btn btn-default btn-sm btn-success" value="'.$plugin_id.'">Activate</button> ';
-					echo '<button type="submit" name="delete_plugin" class="btn btn-default btn-sm btn-danger" value="'.$plugin_id.'" onclick="return confirm(\'Le module et tous ses fichiers seront supprimés. Continuer?\');">Delete</button> ';
+					echo '<button type="submit" name="activate_plugin" class="btn btn-default btn-sm btn-success" value="'.$plugin_id.'">'. __('admin/modules.btn_enabling') .'</button> ';
+					echo '<button type="submit" name="delete_plugin" class="btn btn-default btn-sm btn-danger" value="'.$plugin_id.'" onclick="return confirm(\''.__('admin/modules.btn_delete_onclic').'\');">'.__('admin/general.btn_delete').'</button> ';
 				}
 
 				echo '</td></tr>';

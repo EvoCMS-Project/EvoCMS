@@ -25,36 +25,36 @@ if (isset(App::$POST['update_group'])) {
 		if (!empty($permissions)) {
 			Db::Insert('permissions', $permissions, true);
 		}
-		App::setSuccess('Modifications enregistrés!');
-		App::logEvent(null, 'admin', 'Modification des permissions du groupe '.$group->name.'.');
+		App::setSuccess(__('admin/groups.alert_edit_success'));
+		App::logEvent(null, 'admin', __('admin/groups.logevent_edit_success',['%group%' => $group->name]));
 	}
 }
 elseif (!empty(App::$POST['new_group_name'])) {
-	Db::Insert('groups', array('name' => App::$POST['new_group_name'], 'color' => '1')) && App::setSuccess('Groupe ajouté!');
-	App::logEvent(null, 'admin', 'Création d\'un groupe '.App::$POST['new_group_name'].'.');
+	Db::Insert('groups', array('name' => App::$POST['new_group_name'], 'color' => '1')) && App::setSuccess(__('admin/groups.alert_grp_add_success'));
+	App::logEvent(null, 'admin', __('admin/groups.logevent_create_success',['%group%' => App::$POST['new_group_name']]));
 }
 elseif (!empty(App::$POST['delete_group'])) {
 	if (App::$POST['delete_group'] == App::getCurrentUser()->group_id) {
-		App::setWarning('Vous ne pouvez pas supprimer un groupe auquel vous appartenez !');
+		App::setWarning(__('admin/groups.alert_del_error_myself'));
 	}
 	elseif (Db::Get('select id from {groups} where id = ? AND internal is not null', App::$POST['delete_group'])) {
-		App::setWarning('Vous ne pouvez pas supprimer un groupe de base, sinon le CMS risque de mal fonctionner !');
+		App::setWarning(__('admin/groups.alert_del_error_global'));
 	}
 	elseif (Db::Delete('groups', 'id = ? AND internal is null', App::$POST['delete_group'])) {
 		$group_id = App::POST('delete_new_group') ?: App::getConfig('default_user_group');
 		$new_group = Db::Get('select id from {groups} where id = ?', $group_id);
 		Db::Update('users', ['group_id' => $new_group ?: 2], ['group_id' => App::$POST['delete_group']]);
 		Db::Delete('permissions', ['group_id' => App::$POST['delete_group']]);
-		App::setSuccess('Groupe supprimé!');
-		App::logEvent(0, 'admin', 'Suppression d\'un groupe '.App::$POST['group_name'].'.');
+		App::setSuccess(__('admin/groups.alert_del_success'));
+		App::logEvent(0, 'admin', __('admin/groups.delete_title',['%group%' => App::$POST['group_name']]));
 	} else
-		App::setWarning('Erreur lors de la suppression');
+		App::setWarning(__('admin/groups.alert_del_error'));
 }
 elseif (isset(App::$POST['reorder'])) {
 	foreach(App::$POST['reorder'] as $priority => $k) {
 		Db::Update('groups', ['priority' => $priority], ['id' => $k]);
 	}
-	App::setSuccess('Menu enregistré!');
+	App::setSuccess(__('admin/groups.alert_menu_success'));
 }
 
 foreach(Group::select() as $group) {
@@ -68,15 +68,15 @@ uasort($groups, function($a, $b) { return $a['priority'] <=> $b['priority']; });
 $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 ?>
 <div class="card mb-4">
-	<div class="card-header p-2"><h4>Créer un groupe</h4></div>
+	<div class="card-header p-2"><h4><?= __('admin/groups.creation_title') ?></h4></div>
 	<div class="card-body">
 		<form class="form-horizontal" role="form" method="post">
 			<div class="form-group row">
-				<label class="col-sm-3 col-form-label text-right">Nom du groupe</label>
+				<label class="col-sm-3 col-form-label text-right"><?= __('admin/groups.creation_name') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" name="new_group_name">
 				</div>
-				<button type="submit" class="btn btn-success" style="margin-top: 2px;">Créer le groupe</button>
+				<button type="submit" class="btn btn-success" style="margin-top: 2px;"><?= __('admin/groups.creation_btn') ?></button>
 			</div>
 		</form>
 	</div>
@@ -84,7 +84,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 
 <div class="card">
 	<div class="card-header p-2">
-		<h4 class="panel-title">Gestion du groupe: <em><?=html_encode($groups[$cur_id]['name']) ?></em></h4>
+		<h4 class="panel-title"><?= __('admin/groups.management_title') ?> : <em><?=html_encode($groups[$cur_id]['name']) ?></em></h4>
 	</div>
 	<div class="card-body">
 	<form method="post">
@@ -95,10 +95,10 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 				<?php
 					foreach($groups as $id => $group) {
 						if ($cur_id == $id) {
-							echo '<tr id="'.$group['id'].'"><td class="group-color-'.$group['color'].'"><strong>'.$group['name'].'</strong></td><td></td><td><small>'.$group['count'].' users</small></td></tr>';
+							echo '<tr id="'.$group['id'].'"><td class="group-color-'.$group['color'].'"><strong>'.$group['name'].'</strong></td><td></td><td><small>'.$group['count'].' '. __('admin/groups.management_users') .'</small></td></tr>';
 						} else {
 							echo '<tr id="'.$group['id'].'"><td><a href="?page=groups&id='.$id.'" style="';
-							echo '" class="group-color-'.$group['color'].'">'.$group['name'].'</a></td><td></td><td><small>'.$group['count'].' users</small></td></tr>';
+							echo '" class="group-color-'.$group['color'].'">'.$group['name'].'</a></td><td></td><td><small>'.$group['count'].' '. __('admin/groups.management_users') .'</small></td></tr>';
 						}
 					}
 				?>
@@ -107,7 +107,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 
 		  <div class="col-md-9 col-md-push-3"  style="border-left:1px solid #ddd;">
 			<ul class="nav nav-tabs">
-			  <li class="nav-item"><a class="nav-link active" href="#general" data-toggle="tab">Général</a></li>
+			  <li class="nav-item"><a class="nav-link active" href="#general" data-toggle="tab"><?= __('admin/groups.tab_general') ?></a></li>
 				<?php
 				foreach($_permissions as $id => $perms) {
 					echo '<li class="nav-item"><a class="nav-link" href="#perms-'.$id.'" data-toggle="tab">'.$perms['label'].'</a></li>';
@@ -116,15 +116,15 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 			</ul>
 			<div class="tab-content panel">
 				<div class="tab-pane fade active show p-3" id="general">
-					<legend>Configuration du groupe </legend>
+					<legend><?= __('admin/groups.config_title') ?> </legend>
 					<div class="form-group row" style="height: 30px;">
-						<label class="col-sm-5 col_gm col-form-label text-right">Nom du groupe</label>
+						<label class="col-sm-5 col_gm col-form-label text-right"><?= __('admin/groups.config_gname') ?></label>
 						<div class="col-sm-6">
 							<input type="text" class="form-control" name="group_name" value="<?= $groups[$cur_id]['name']?>">
 						</div>
 					</div>
 					<div class="form-group row" style="height: 30px;">
-						<label class="col-sm-5 col_gm col-form-label text-right">Role special</label>
+						<label class="col-sm-5 col_gm col-form-label text-right"><?= __('admin/groups.config_grole') ?></label>
 						<div class="col-sm-6">
 						<?php if ($groups[$cur_id]['internal']) { ?>
 							<input class="form-control" disabled value="<?= $groups[$cur_id]['role'] ?>">
@@ -134,7 +134,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 						</div>
 					</div>
 					<div class="form-group row" style="height: 30px;">
-						<label for="`color`" class="col-sm-5 col_gm col-form-label text-right" >Couleur</label>
+						<label for="`color`" class="col-sm-5 col_gm col-form-label text-right" ><?= __('admin/groups.config_cname') ?></label>
 						<div class="col-sm-6" style="margin-top:4px">
 							<select class="form-control group-color-<?= $groups[$cur_id]['color'] ?>" name="color"
 								onchange="this.className = 'form-control ' + $(this).find(':selected')[0].className;">
@@ -149,13 +149,13 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 					</div>
 					<input type="submit" name="update_group" value="<?php echo $cur_id?>" hidden>
 
-					<legend>Suppression du groupe</legend>
+					<legend><?= __('admin/groups.delete_title') ?></legend>
 					<?php if ($groups[$cur_id]['internal']) { ?>
-						<em>Ceci est un groupe système (<?= $groups[$cur_id]['internal'] ?>), il ne peut être supprimé.</em>
+						<em><?= __('admin/groups.delete_violation',['%gid%' => $groups[$cur_id]['internal']]) ?></em>
 					<?php } else { ?>
 					<div class="form-group row text-center" style="display: block">
-						<button type="submit" name="delete_group" class="btn btn-danger" onclick="return confirm('Sur?');" value="<?php echo $cur_id?>">Supprimer ce groupe</button>
-						et déplacer les membres dans:
+						<button type="submit" name="delete_group" class="btn btn-danger" onclick="return confirm('Sur?');" value="<?php echo $cur_id?>"><?= __('admin/groups.delete_btn') ?></button>
+						<?= __('admin/groups.delete_move') ?> :
 						<?php
 							foreach($groups as $_group) {
 								$_options[$_group['id']] = $_group['name'];
@@ -168,7 +168,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 				<?php
 					foreach($_permissions as $id => $perms) {
 						echo '<div class="tab-pane fade p-3" id="perms-'.$id.'">';
-						echo '<label class="float-right">Cocher tout <input type="checkbox" class="check-all" data-group="'.$id.'"></label>';
+						echo '<label class="float-right">'. __('admin/groups.config_check_all') .' <input type="checkbox" class="check-all" data-group="'.$id.'"></label>';
 							$permissions_count = 0;
 							foreach($perms as $title => $permissions) {
 								if (is_array($permissions)) {
@@ -183,13 +183,13 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 							}
 
 							if ($permissions_count === 0) {
-								echo '<em>Aucune permission dans ce groupe</em>';
+								echo '<em>'. __('admin/groups.groups.no_perms') .'</em>';
 							}
 						echo '</div>';
 					}
 				?>
 				<div class="form-group row text-center" style="display:block">
-					<button type="submit" name="update_group" value="<?php echo $cur_id?>" class="btn btn-success">Enregistrer les modifications</button>
+					<button type="submit" name="update_group" value="<?php echo $cur_id?>" class="btn btn-success"><?= __('admin/groups.save') ?></button>
 				</div>
 			</div>
 		</div>

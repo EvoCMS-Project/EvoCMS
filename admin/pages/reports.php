@@ -8,7 +8,7 @@ $selected_types = App::REQ('types', array_keys($types));
 if (App::POST('dismiss')) {
 	if ($r = Db::Get('select * from {reports} where id = ?', App::POST('dismiss'))) {
 		Db::Update('reports', ['deleted' => time()], ['id' => App::POST('dismiss')]);
-		App::logEvent(0, 'admin', "Suppression d'une alerte de type {$r['type']}#{$r['rel_id']}: {$r['reason']}");
+		App::logEvent(0, 'admin', __('admin/general.report_log_delete_alert') ."{$r['type']}#{$r['rel_id']}: {$r['reason']}");
 	}
 }
 
@@ -27,9 +27,9 @@ if ($selected_types) {
 $ptotal = 0;
 ?>
 <?php if (!$reports) { ?>
-	<br><div style="text-align: center;" class="alert alert-warning">Il n'y a aucun signalement.</div>
+	<br><div style="text-align: center;" class="alert alert-warning"><?= __('admin/general.report_none') ?></div>
 <?php } else { ?>
-	<legend>Signalements</legend>
+	<legend><?= __('admin/general.report_title')?></legend>
 	<form method="post" id="content">
 		<div class="float-right">
 		<?php
@@ -43,9 +43,9 @@ $ptotal = 0;
 		</div>
 		<table class="table table-lists">
 			<thead>
-				<th>Membre</th>
-				<th>Résumé</th>
-				<th>Raison</th>
+				<th><?= __('admin/general.report_member')?></th>
+				<th><?= __('admin/general.report_summary')?></th>
+				<th><?= __('admin/general.report_reason')?></th>
 				<th></th>
 			</thead>
 			<tbody>

@@ -13,10 +13,10 @@ foreach($filters as $filter) {
 }
 
 $types = array(
-	'username' => 'Username',
-	'email' => 'Email',
-	'ip' => 'IP',
-	'country' => 'Pays',
+	'username' => __('admin/security.select_username'),
+	'email' => __('admin/security.select_email'),
+	'ip' => __('admin/security.select_ip'),
+	'country' => __('admin/security.table_country'),
 );
 
 if ($rule = App::POST('rule') ?: App::POST('country')) {
@@ -29,7 +29,7 @@ if ($rule = App::POST('rule') ?: App::POST('country')) {
 	));
 
 	$uid = App::POST('type') == 'username' ? (int)Db::Get('select id from {users} where username  = ?', $rule) : 0;
-	App::logEvent($uid, 'admin', 'Nouveau banissement: '.App::POST('type').' = '.$rule);
+	App::logEvent($uid, 'admin', __('admin/security.logevent_add_rule') .App::POST('type').' = '.$rule);
 
 	App::setSuccess('Règle ajoutée !');
 } elseif (App::POST('delete')) {
@@ -37,9 +37,9 @@ if ($rule = App::POST('rule') ?: App::POST('country')) {
 	$uid = $rule['type'] == 'username' ? (int)Db::Get('select id from {users} where username  = ?', $rule['rule']) : 0;
 
 	Db::Delete('banlist', ['id' => App::POST('delete')]);
-	App::logEvent($uid, 'admin', 'Suppression d\'une règle de banissement: ' . $rule['type'] . ' = '. $rule['rule']);
+	App::logEvent($uid, 'admin', __('admin/security.logevent_del_rule') . $rule['type'] . ' = '. $rule['rule']);
 
-	App::setSuccess('Règle supprimmée !');
+	App::setSuccess(__('admin/security.alert_rule_del_success'));
 }
 
 if ($where) {
@@ -51,15 +51,15 @@ if ($where) {
 <div class="banlist">
 	<legend><a onclick="$('#banlist').toggle('slow'); return false;" href="#">Sécurité</a></legend>
 	<?php if (!$banlist): ?>
-		<div class="text-center alert alert-warning">Aucun élément trouvé!</div>
+		<div class="text-center alert alert-warning"><?= __('admin/security.alert_notfound') ?> !</div>
 	<?php else: ?>
 			<form method="post" <?php if (App::GET('hide')) echo 'hidden'; ?> id="banlist" action="?page=security">
 				<table class="table">
 					<thead>
 						<tr>
-							<th>Règle</th>
-							<th>Raison</th>
-							<th>Expiration</th>
+							<th><?= __('admin/security.table_rule') ?></th>
+							<th><?= __('admin/security.table_reason') ?></th>
+							<th><?= __('admin/security.table_expiration') ?></th>
 							<th style="width:90px;"> </th>
 						</tr>
 					</thead>
@@ -79,42 +79,42 @@ if ($where) {
 
 	<br>
 	<form class="form-horizontal" method="post" action="?page=security">
-		<legend>Ajouter un élément</legend>
+		<legend><?= __('admin/security.add_title') ?></legend>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="type">Type :</label>
+			<label class="col-sm-3 col-form-label text-right" for="type"><?= __('admin/security.table_type') ?> :</label>
 			<div class="col-sm-8 controls">
 				<?= Widgets::select('type', $types); ?>
-				<small>Utilisez le ban IP avec parcimonie, n'oubliez pas qu'une IP ne représente pas forcément un utilisateur.</small>
+				<small><?= __('admin/security.small_type') ?></small>
 			</div>
 		</div>
 		<div class="row ban ban-username ban-email ban-ip">
-			<label class="col-sm-3 col-form-label text-right" for="rule">Règle :</label>
+			<label class="col-sm-3 col-form-label text-right" for="rule"><?= __('admin/security.table_rule') ?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" data-autocomplete="userlist" name="rule" id="rule" type="text" <?php if (App::GET('username')) echo 'value="' . html_encode(App::GET('username')) .'" style="background-color:pink;"'; ?>>
-				<small>Les wildcards * et % sont acceptés, la règle n'est pas sensible à la casse. Example: *@LiVe.Ca</small>
+				<small><?= __('admin/security.small_rule') ?></small>
 			</div>
 		</div>
 		<div class="row ban ban-country">
-			<label class="col-sm-3 col-form-label text-right">Pays :</label>
+			<label class="col-sm-3 col-form-label text-right"><?= __('admin/security.table_country') ?> :</label>
 			<div class="col-sm-8">
 				<?= Widgets::select('country', COUNTRIES); ?>
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="reason">Raison :</label>
+			<label class="col-sm-3 col-form-label text-right" for="reason"><?= __('admin/security.table_reason') ?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="reason" type="text" value="">
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="expires">Expiration :</label>
+			<label class="col-sm-3 col-form-label text-right" for="expires"><?= __('admin/security.table_expiration') ?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="expires" type="text" value="+1 week">
-				<small>Une valeur de 0 indique que la règle n'expire pas. Format: <a href="http://php.net/manual/fr/function.strtotime.php">strtotime</a>.</small>
+				<small><?= __('admin/security.small_expiration') ?> : <a href="http://php.net/manual/fr/function.strtotime.php">strtotime</a>.</small>
 			</div>
 		</div>
 		<div class="text-center">
-			<button class="btn btn-primary" name="add_menu" value="" type="submit">Enregistrer</button>
+			<button class="btn btn-primary" name="add_menu" value="" type="submit"><?= __('admin/general.btn_save') ?></button>
 		</div>
 	</form>
 </div>

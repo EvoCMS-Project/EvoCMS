@@ -11,7 +11,7 @@ $mail_id = 0;
 $mail_targets = [];
 
 if (IS_POST && (empty($subject) || empty($message) || empty($groups) || $cycle < 1)) {
-	App::setWarning('Un des champs est vide.');
+	App::setWarning(__('admin/broadcast.alert_empty_field'));
 }
 elseif (IS_POST && is_array($groups)) {
 	$groups = array_map('intval', $groups);
@@ -38,7 +38,7 @@ elseif (IS_POST && is_array($groups)) {
 	$html_message = markdown2html($message);
 	$text_message = strip_tags($message);
 
-	App::logEvent(null, 'admin', 'Envoi de la newsletter #'.$mail_id.': '.$subject);
+	App::logEvent(null, 'admin', __('admin/broadcast.logevent_news_sent').' #'.$mail_id.': '.$subject);
 
 	// We should use bcc if no substitution (%username%) is needed. It will be faster and might
 	// Work better if the smtp server limits mails per day
@@ -48,20 +48,20 @@ elseif (IS_POST && is_array($groups)) {
 		$text = strtr($text_message, ['%username%' => $user['username']]);
 
 		if (App::sendmail($user['email'], $subject, $text, $html)) {
-			$mail_targets[] = 'Mail envoyé à '.$user['username'].' &lt;'.$user['email'].'&gt;';
+			$mail_targets[] = __('admin/broadcast.state_sent_success').''.$user['username'].' &lt;'.$user['email'].'&gt;';
 			$mail_sent++;
 		} else {
-			$mail_targets[] = 'Mail non envoyé à '.$user['username'].' &lt;'.$user['email'].'&gt; <span style="color:red">Erreur!</span>';
+			$mail_targets[] = __('admin/broadcast.state_sent_error').''.$user['username'].' &lt;'.$user['email'].'&gt; <span style="color:red">'.__('admin/broadcast.state_sent_error_err').'</span>';
 			$mail_failed++;
 		}
 	}
 
 	if ($mail_failed) {
-		App::setWarning("Envoi completé!\nÉchec d'envoi à ".__plural('%count% membre|%count% membres', $mail_failed));
+		App::setWarning(__('admin/broadcast.alert_send_fail').''.__plural('%count% membre|%count% membres', $mail_failed));
 	}
 
 	if ($mail_sent) {
-		App::setSuccess("Envoi completé!\nMessage envoyé à ".__plural('%count% membre|%count% membres', $mail_sent));
+		App::setSuccess(__('admin/broadcast.alert_send_success').''.__plural('%count% membre|%count% membres', $mail_sent));
 	}
 
 	Db::Update('newsletter', ['mail_sent' => $mail_sent, 'mail_failed' => $mail_failed], ['id' => $mail_id]);
@@ -97,31 +97,31 @@ $editors = [
 ?>
 
 <?php if (!$mail_id) { ?>
-	<legend>Envoi de mail de masse</legend>
+	<legend><?= __('admin/broadcast.title') ?></legend>
 	<form method="post">
 	<input type="hidden" name="cycle" value="100">
 	<div class="row">
 		<div class="form-horizontal text-center col-sm-9">
 			<div class="form-group row">
-				<label class="col-sm-1 control-label" for="sujet">Sujet:</label>
+				<label class="col-sm-1 control-label" for="sujet"><?= __('admin/broadcast.form_subject') ?>:</label>
 				<div class="col-sm-12 control">
 					<input id="sujet" name="sujet" class="form-control" type="text" maxlength="32" value="<?= $subject ?>">
 				</div>
 			</div>
 			<div class="form-group row">
-				<label class="col-sm-1 control-label" for="id">Message:</label>
+				<label class="col-sm-1 control-label" for="id"><?= __('admin/broadcast.form_content') ?> :</label>
 				<div class="col-sm-12 control">
-					<textarea id="editor" name="message" class="form-control" style="height: 350px" placeholder="Composer un message..."><?= html_encode($message ?: nl2br($preset)) ?></textarea>
+					<textarea id="editor" name="message" class="form-control" style="height: 350px" placeholder="<?= __('admin/broadcast.form_content_ph') ?>..."><?= html_encode($message ?: nl2br($preset)) ?></textarea>
 				</div>
 			</div>
-			<button class="btn btn-primary" type="submit">Envoyer le message</button>
+			<button class="btn btn-primary" type="submit"><?= __('admin/broadcast.form_send') ?></button>
 		</div>
 
 		<div class="col-sm-3">
 			<table class="table table-lists" id="rcpt_groups">
 				<thead>
-					<th>Groupe</th>
-					<th style="width:35%">Membres</th>
+					<th><?= __('admin/broadcast.table_group') ?></th>
+					<th style="width:35%"><?= __('admin/broadcast.table_members') ?></th>
 					<th style="width:10%"></th>
 				</thead>
 				<tbody>
@@ -137,12 +137,12 @@ $editors = [
 	</form>
 <?php } else { ?>
 
-<a href="#" onclick="$('#mailinglist').toggle()">Voir la liste de destinataires</a>
+<a href="#" onclick="$('#mailinglist').toggle()"><?= __('admin/broadcast.title_view') ?></a>
 <div id="mailinglist" hidden><?= implode('<br>', $mail_targets) ?></div>
 
 <?php } ?>
 <div class="text-right">
-	<a id="viewhistory" class="btn btn-info" href="#viewhistory">Voir l'historique</a>
+	<a id="viewhistory" class="btn btn-info" href="#viewhistory"><?= __('admin/broadcast.btn_view') ?></a>
 </div>
 <hr>
 
@@ -157,9 +157,9 @@ $editors = [
 					<span class="badge">'.Format::today($letter['date_sent'], 'H:i').'</span>
 					<h4 class="list-group-item-heading">'.html_encode($letter['subject']).'</strong></h4>
 					<p class="list-group-item-text">'.
-						'Groupes: <em>' . html_encode(implode(', ', $groups)).'</em> &nbsp; '.
-						'Auteur: <em>' . html_encode($letter['username']) . '</em> &nbsp; '.
-						'Envois: <em>' . (($letter['mail_sent'] - $letter['mail_failed']) . '/' . $letter['mail_sent']) . '</em> '.
+						__('admin/broadcast.table_group'). ' : <em>' . html_encode(implode(', ', $groups)).'</em> &nbsp; '.
+						__('admin/broadcast.table_author'). ' : <em>' . html_encode($letter['username']) . '</em> &nbsp; '.
+						__('admin/broadcast.table_sent'). ' : <em>' . (($letter['mail_sent'] - $letter['mail_failed']) . '/' . $letter['mail_sent']) . '</em> '.
 					'</p>
 				</a>';
 		}

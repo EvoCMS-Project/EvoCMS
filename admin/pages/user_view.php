@@ -23,18 +23,18 @@ $mails  = Db::QueryAll(
 );
 ?>
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link active" href="#user" data-toggle="tab">User</a></li>
-	<li class="nav-item"><a class="nav-link" href="#profile" data-toggle="tab">Éditer</a></li>
-	<li class="nav-item"><a class="nav-link" href="#messages" data-toggle="tab">Messages</a></li>
-	<li class="nav-item"><a class="nav-link disabled" href="#files" data-toggle="tab">Fichiers</a></li>
-	<li class="nav-item"><a class="nav-link" href="#history" data-toggle="tab">Historique</a></li>
+	<li class="nav-item"><a class="nav-link active" href="#user" data-toggle="tab"><?= __('admin/user_view.tab_profi') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#profile" data-toggle="tab"><?= __('admin/user_view.tab_edit') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#messages" data-toggle="tab"><?= __('admin/user_view.tab_mail') ?></a></li>
+	<li class="nav-item"><a class="nav-link disabled" href="#files" data-toggle="tab"><?= __('admin/user_view.tab_file') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#history" data-toggle="tab"><?= __('admin/user_view.tab_logs') ?></a></li>
 </ul>
 <div class="tab-content panel">
 	<div class="tab-pane fade" id="profile" style="padding: 1em;">
 	<?php if (has_permission('admin.edit_uprofile')): ?>
 		<?php include ROOT_DIR.'/pages/profile.php'; ?>
 	<?php else: ?>
-		Vous n'avez pas la permission de voir cette section.
+		<?= __('admin/user_view.tab_denied') ?>
 	<?php endif; ?>
 	</div>
 
@@ -46,11 +46,11 @@ $mails  = Db::QueryAll(
 	<?php if (has_permission('admin.view_user_messages')): ?>
 		<table class="table">
 			<thead>
-				<th>Date</th>
-				<th>De</th>
-				<th>À</th>
-				<th>Sujet</th>
-				<th>Message</th>
+				<th><?= __('admin/user_view.tab_send') ?></th>
+				<th><?= __('admin/user_view.tab_from') ?></th>
+				<th><?= __('admin/user_view.tab_to') ?></th>
+				<th><?= __('admin/user_view.tab_subject') ?></th>
+				<th><?= __('admin/user_view.tab_content') ?></th>
 			</thead>
 			<tbody>
 			<?php
@@ -67,7 +67,7 @@ $mails  = Db::QueryAll(
 			</tbody>
 		</table>
 	<?php else: ?>
-		Vous n'avez pas la permission de voir cette section.
+		<?= __('admin/user_view.tab_denied') ?>
 	<?php endif; ?>
 	</div>
 
@@ -75,11 +75,11 @@ $mails  = Db::QueryAll(
 	<?php if (has_permission('admin.view_user_history')): ?>
 		<table class="table">
 			<thead>
-				<th>Date</th>
-				<th>Pseudo</th>
-				<th>Affecté</th>
-				<th>IP</th>
-				<th>Événement</th>
+				<th><?= __('admin/history.date') ?></th>
+				<th><?= __('admin/history.username') ?></th>
+				<th><?= __('admin/history.affected') ?></th>
+				<th><?= __('admin/history.ip') ?></th>
+				<th><?= __('admin/history.event') ?></th>
 			</thead>
 			<tbody>
 			<?php
@@ -96,7 +96,7 @@ $mails  = Db::QueryAll(
 			</tbody>
 		</table>
 	<?php else: ?>
-		Vous n'avez pas la permission de voir cette section.
+		<?= __('admin/user_view.tab_denied') ?>
 	<?php endif; ?>
 	</div>
 </div>

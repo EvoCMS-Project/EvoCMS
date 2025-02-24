@@ -3,7 +3,7 @@
 has_permission('admin.backup', true);
 
 if (!class_exists('ZipArchive')) {
-    die('PHP Extension Zip requise pour backup!');
+    die(__('admin/system.backup_phpzip_required'));
 }
 
 if ($type = App::GET('type')) {
@@ -16,10 +16,10 @@ if ($type = App::GET('type')) {
     $zip->open($tmp_file, Evo\BetterZip::CREATE);
 
     if ($type === 'web') {
-        App::logEvent(0, 'admin', 'Téléchargement d\'une sauvegarde web.');
+        App::logEvent(0, 'admin', __('admin/system.backup_logevent_web'));
         $zip->addDir(ROOT_DIR, ROOT_DIR);
     } elseif ($type === 'sql') {
-        App::logEvent(0, 'admin', 'Téléchargement d\'une sauvegarde SQL.');
+        App::logEvent(0, 'admin', __('admin/system.backup_logevent_sql'));
         $zip->addFromString('backup_sql-'.date('Y-m-d_Hi').'.sql', Db::Export());
     }
 
@@ -39,5 +39,5 @@ if ($type = App::GET('type')) {
 ?>
 <legend>Backup</legend>
 
-<a href="?page=backup&type=web" class="btn btn-sm btn-primary">Backup files</a>
-<a href="?page=backup&type=sql" class="btn btn-sm btn-primary">Backup database</a>
+<a href="?page=backup&type=web" class="btn btn-sm btn-primary"><?= __('admin/system.backup_files') ?></a>
+<a href="?page=backup&type=sql" class="btn btn-sm btn-primary"><?= __('admin/system.backup_db') ?></a>

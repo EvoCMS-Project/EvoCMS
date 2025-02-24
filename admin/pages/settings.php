@@ -8,16 +8,16 @@ use Evo\Models\File;
 if (App::POST('mail||send-test-mail')) {
 	$success = App::sendmail(
 		App::POST('mail||send-test-mail'),
-		'Ceci est un test.',
-		"Ceci est un message de test.\nThis is a test email.",
-		"Ceci est un message de <strong>test</strong>.\nThis is a <strong>test</strong> email.",
+		__('admin/settings.email_test_1'),
+		__('admin/settings.email_test_2'),
+		__('admin/settings.email_test_3'),
 		$error
 	);
 
 	if ($success) {
-		App::setNotice('Envoi de mail de test réussi!');
+		App::setNotice(__('admin/settings.notice_email_sent'));
 	} else {
-		App::setWarning('Envoi de mail de test échoué: <pre>'.html_encode($error).'</pre>');
+		App::setWarning(__('admin/settings.warning_email_sent') .': <pre>'.html_encode($error).'</pre>');
 	}
 }
 
@@ -63,34 +63,34 @@ foreach(App::getModules() as $plugin) {
 	image : image picker
 */
 $site_settings = array(
-	'name' 				=> array('type' => 'text', 'label' => 'Nom du site'),
-	'subtitle' 	     	=> array('type' => 'text', 'label' => 'Sous titre'),
-	'description' 		=> array('type' => 'text', 'label' => 'Description', 'help' => 'Soyez clair et descriptif, peut influencer votre rendement SEO'),
-	'url' 				=> array('type' => 'text', 'label' => 'Adresse du site'),
-	'url_https' 		=> array('type' => 'bool', 'label' => 'Forcer SSL'),
-	'url_rewriting' 	=> array('type' => 'bool', 'label' => 'Rewriting URL', 'help' => 'Votre serveur doit supporter la réécriture. Le CMS supporte Apache automatiquement. Pour nginx voir nginx.conf.'),
-	'frontpage' 		=> array('type' => 'enum', 'label' => 'Page d\'accueil', 'choices' => $pages),
-	'language'			=> array('type' => 'enum', 'label' => 'Langue du CMS', 'choices' => $locales),
-	'email' 			=> array('type' => 'text', 'label' => 'Email Administrateur'),
-	'timezone'          => array('type' => 'enum', 'label' => 'Fuseau horaire', 'choices' => generate_tz_list()),
-	'open_registration'	=> array('type' => 'enum', 'label' => 'Permettre les inscriptions', 'choices' => [0 => 'Non', 1 => 'Oui', 3 => 'Oui, avec activation par email', 2 => 'Oui, par invitation']),
-	'default_user_group'=> array('type' => 'enum', 'label' => 'Groupe par défaut', 'choices' => $group_list),
-	'articles_per_page' => array('type' => 'number', 'label' => 'Articles par page', 'help' => 'Nombre d\'articles affichés par page dans le blog'),
-	'editor'			=> array('type' => 'enum', 'label' => 'Éditeur', 'choices' => ['wysiwyg' => 'WYSIWYG', 'markdown' => 'Markdown']),
+	'name' 				=> array('type' => 'text', 'label' => __('admin/general.site_name')),
+	'subtitle' 	     	=> array('type' => 'text', 'label' => __('admin/general.site_subtitle')),
+	'description' 		=> array('type' => 'text', 'label' => __('admin/general.site_desc'), 'help' => __('admin/general.site_desc_tips')),
+	'url' 				=> array('type' => 'text', 'label' => __('admin/general.site_url')),
+	'url_https' 		=> array('type' => 'bool', 'label' => __('admin/general.site_https')),
+	'url_rewriting' 	=> array('type' => 'bool', 'label' => __('admin/general.site_curl'), 'help' => __('admin/general.site_curl_tips')),
+	'frontpage' 		=> array('type' => 'enum', 'label' => __('admin/general.site_home'), 'choices' => $pages),
+	'language'			=> array('type' => 'enum', 'label' => __('admin/general.site_lang'), 'choices' => $locales),
+	'email' 			=> array('type' => 'text', 'label' => __('admin/general.site_email_admin')),
+	'timezone'          => array('type' => 'enum', 'label' => __('admin/general.site_timezone'), 'choices' => generate_tz_list()),
+	'open_registration'	=> array('type' => 'enum', 'label' => __('admin/general.site_register'), 'choices' => [0 => __('admin/general.site_register_opt0'), 1 => __('admin/general.site_register_opt1'), 3 => __('admin/general.site_register_yes0'), 2 => __('admin/general.site_register_yes1')]),
+	'default_user_group'=> array('type' => 'enum', 'label' => __('admin/general.site_group'), 'choices' => $group_list),
+	'articles_per_page' => array('type' => 'number', 'label' => __('admin/general.site_article_page'), 'help' => __('admin/general.site_article_page_tips')),
+	'editor'			=> array('type' => 'enum', 'label' => __('admin/general.site_editor'), 'choices' => ['wysiwyg' => 'WYSIWYG', 'markdown' => 'Markdown']),
 );
 
 $upload_settings = array(
-	'upload_groups'		=> array('type' => 'textarea', 'label' => 'Fichiers acceptés', 'help' => 'Un groupe par ligne au format:<br>groupe ext ext...<br>où ext est une extension ou un mime-type.', 'allow_reset' => true),
-	'upload_max_size'	=> array('type' => 'number', 'label' => 'Taille max. fichier (MB)', 'help' => 'La taille maximal d\'un fichier en upload. Votre configuration PHP limite à ' . $max_server_upload_size . 'MB', 'default' => '', 'allow_reset' => true, 'attributes' => ['placeholder' => 'Limite serveur: ' .  $max_server_upload_size .'MB']),
+	'upload_groups'		=> array('type' => 'textarea', 'label' => __('admin/general.upload_file'), 'help' => __('admin/general.upload_file_tips'), 'allow_reset' => true),
+	'upload_max_size'	=> array('type' => 'number', 'label' => __('admin/general.upload_max_size') .'(MB)', 'help' => __('admin/general.upload_max_size_tips') .' '. $max_server_upload_size . 'MB', 'default' => '', 'allow_reset' => true, 'attributes' => ['placeholder' => __('admin/general.upload_serv_limit') .' : ' .  $max_server_upload_size .'MB']),
 );
 
 $mail_settings = array(
-	'mail.send_method'     => array('type' => 'enum', 'label' => 'Méthode d\'envoi', 'choices' => ['mail' => 'Serveur Local (sendmail)', 'smtp' => 'Serveur Personalisé (SMTP)']),
-	'mail.smtp_host'       => array('type' => 'text', 'label' => 'SMTP Server Host', 'default' => 'localhost'),
-	'mail.smtp_port'       => array('type' => 'number', 'label' => 'SMTP Server Port', 'default' => '25'),
-	'mail.smtp_encryption' => array('type' => 'enum', 'label' => 'SMTP Encryption', 'choices' => ['' => 'Auto', 'tls' => 'TLS', 'ssl' => 'SSL']),
-	'mail.smtp_username'   => array('type' => 'text', 'label' => 'SMTP Server Username', 'attributes' => ['autocomplete' => 'off']),
-	'mail.smtp_password'   => array('type' => 'password', 'label' => 'SMTP Server Password', 'attributes' => ['autocomplete' => 'new-password']),
+	'mail.send_method'     => array('type' => 'enum', 'label' => __('admin/general.email_mtd'), 'choices' => ['mail' => __('admin/general.email_mtd_0'), 'smtp' => __('admin/general.email_mtd_1')]),
+	'mail.smtp_host'       => array('type' => 'text', 'label' => __('admin/general.email_host'), 'default' => 'localhost'),
+	'mail.smtp_port'       => array('type' => 'number', 'label' => __('admin/general.email_port'), 'default' => '25'),
+	'mail.smtp_encryption' => array('type' => 'enum', 'label' => __('admin/general.email_encrypt'), 'choices' => ['' => 'Auto', 'tls' => 'TLS', 'ssl' => 'SSL']),
+	'mail.smtp_username'   => array('type' => 'text', 'label' => __('admin/general.email_username'), 'attributes' => ['autocomplete' => 'off']),
+	'mail.smtp_password'   => array('type' => 'password', 'label' => __('admin/general.email_password'), 'attributes' => ['autocomplete' => 'new-password']),
 );
 
 $providers_settings = array(
@@ -100,16 +100,16 @@ $social_settings = array(
 );
 
 foreach(Evo\Avatars::getProviders(false) as $key => $provider) {
-	$providers_settings["providers.avatar.$key"] = ['type' => 'bool', 'label' => "Avatar type '$key'", 'default' => true];
+	$providers_settings["providers.avatar.$key"] = ['type' => 'bool', 'label' => __('admin/general.profil_avatar', ['%key%' => $key]), 'default' => true];
 }
 
 foreach(Evo\Social::getProviders(false) as $key => [$name, $icon, $regex]) {
-	$providers_settings["providers.social.$key"] = ['type' => 'bool', 'label' => "Lien $name <i class='fab $icon'></i>", 'default' => true];
+	$providers_settings["providers.social.$key"] = ['type' => 'bool', 'label' => "$name <i class='fab $icon'></i>", 'default' => true];
 	$social_settings["social.$key"] = ['type' => 'text', 'label' => "$name <i class='fab $icon'></i>", 'attributes' => ['placeholder' => 'URL']];
 }
 
 $theme_settings = array(
-	'theme'        => array('type' => 'enum', 'label' => 'Thème', 'choices' => array_keys($_themes)),
+	'theme'        => array('type' => 'enum', 'label' => __('admin/general.theme_selector'), 'choices' => array_keys($_themes)),
 );
 
 if (IS_POST) {
@@ -126,7 +126,7 @@ if (IS_POST) {
 
 	$upload_max_size = (int)App::POST('upload_max_size');
 	if ($upload_max_size > $max_server_upload_size) {
-		App::setNotice("La configuration de votre serveur impose une limite d'upload de $max_server_upload_size MB. Votre limite CMS de $upload_max_size MB ne sera pas prise en compte. Veuillez vous référer aux directives php.ini post_max_size et upload_max_filesize.");
+		App::setNotice(__('admin/general.upload_max_size_cfg', ['%max_server_upload_size%' => $max_server_upload_size,'%upload_max_size%' => $max_server_upload_size]));
 	}
 
 	if (isset($values['url'])) {
@@ -135,7 +135,7 @@ if (IS_POST) {
 			 	$values['url'] = preg_replace('#^(http:|https:|)//#i', 'https://', $values['url']);
 			}
 		} else {
-			App::setWarning('Adresse du site invalide!');
+			App::setWarning(__('admin/general.upload_invalid_url'));
 			$save = false;
 		}
 	}
@@ -158,9 +158,9 @@ if (IS_POST) {
 			if (in_array('theme', $changes)) {
 				App::setTheme($values['theme']);
 			}
-			App::setSuccess('Configuration mise à jour!');
+			App::setSuccess(__('admin/settings-alert.success'));
 		} else {
-			App::setNotice('Aucun changement!');
+			App::setNotice(__('admin/settings-alert.nochange'));
 		}
 	}
 }
@@ -180,12 +180,12 @@ if (IS_POST) {
 ?>
 
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link <?= $tab === 'config' ? 'active' : '' ?>" href="#config" data-toggle="tab">Configuration du site</a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'advanced' ? 'active' : '' ?>" href="#advanced" data-toggle="tab">Configuration avancée</a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'social' ? 'active' : '' ?>" href="#social" data-toggle="tab">Social</a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'theme' ? 'active' : '' ?>" href="#theme" data-toggle="tab">Sélection du thème</a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'config' ? 'active' : '' ?>" href="#config" data-toggle="tab"><?= __('admin/general.tab_site') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'advanced' ? 'active' : '' ?>" href="#advanced" data-toggle="tab"><?= __('admin/general.tab_advanced') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'social' ? 'active' : '' ?>" href="#social" data-toggle="tab"><?= __('admin/general.tab_social') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'theme' ? 'active' : '' ?>" href="#theme" data-toggle="tab"><?= __('admin/general.tab_theme') ?></a></li>
 	<?php if (App::getTheme()->settings) { ?>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'themeconfig' ? 'active' : '' ?>" href="#themeconfig" data-toggle="tab">Configuration du thème</a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'themeconfig' ? 'active' : '' ?>" href="#themeconfig" data-toggle="tab"><?= __('admin/general.tab_tconfig') ?></a></li>
 	<?php } ?>
 </ul>
 
@@ -199,15 +199,15 @@ if (IS_POST) {
 	</div>
 
 	<div class="tab-pane fade <?= $tab === 'advanced' ? 'show active' : '' ?>" id="advanced" style="padding: 2em;">
-		<?= settings_form($upload_settings, 'Configuration upload') ?>
+		<?= settings_form($upload_settings, __('admin/general.adv_cfg_upl')) ?>
 		<div>&nbsp;</div>
-		<?= settings_form($mail_settings, 'Configuration e-mail') ?>
+		<?= settings_form($mail_settings, __('admin/general.adv_cfg_email')) ?>
 		<form method="post">
 			<input type="text" name="mail||send-test-mail" value="<?= App::getCurrentUser()->email ?>" placeholder="adresse@destination.com">
 			<button type="submit">Envoi mail test</button>
 		</form>
 		<div>&nbsp;</div>
-		<?= settings_form($providers_settings, 'Options profil membre') ?>
+		<?= settings_form($providers_settings, __('admin/general.adv_cfg_profil')) ?>
 	</div>
 
 	<div class="tab-pane fade <?= $tab === 'theme' ? 'show active' : '' ?>" id="theme" style="padding: 2em;">
@@ -219,21 +219,21 @@ if (IS_POST) {
 					echo '<td style="width:200px"><img alt="preview" src="'.App::getLocalURL($preview).'" style="max-width:100%"></td>';
 					echo '<td><h4>'.html_encode($theme->name).' <small>'.$theme->version.'</small></h4>'.html_encode($theme->description).'</td>';
 					if ($dir === App::getConfig('theme')) {
-						echo '<td>Thème actif!</td>';
+						echo __('admin/general.theme_enabled');
 					} else {
-						echo '<td><button class="btn btn-sm btn-primary" name="theme" value="'.$dir.'">Activer</button></td>';
+						echo '<td><button class="btn btn-sm btn-primary" name="theme" value="'.$dir.'">'.__('admin/general.theme_active_btn').'</button></td>';
 					}
 					echo '</tr>';
 				}
 			?>
 			</table>
 		</form>
-		<div class="text-center">Vous pouvez installer des themes supplémentaires dans la section Modules!</div>
+		<div class="text-center"><?= __('admin/general.theme_tips') ?></div>
 	</div>
 
 	<div class="tab-pane fade <?= $tab === 'themeconfig' ? 'show active' : '' ?>" id="themeconfig" style="padding: 2em;">
 		<form method="post" class="form-horizontal" enctype="multipart/form-data">
-			<legend>Préférences du thème</legend>
+			<legend><?= __('admin/general.theme_title1') ?></legend>
 			<?= settings_form(App::getTheme()->settings) ?>
 		</form>
 	</div>

@@ -11,23 +11,23 @@ if (App::GET('filter')) {
 	$filter = '%';
 }
 
-$status = ['draft' => 'Brouillon', 'published' => 'Publié', 'archived' => 'Supprimé'];
+$status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/pages.status_published'), 'archived' => __('admin/pages.status_archived')];
 ?>
 <div class="float-right">
 	<form method="post" class="form-inline">
-		<input id="filter" name="filter" class="form-control" type="text" value="<?= html_encode(App::GET('filter')) ?>" placeholder="Recherche...">
+		<input id="filter" name="filter" class="form-control" type="text" value="<?= html_encode(App::GET('filter')) ?>" placeholder="<?= __('admin/pages.btn_search') ?>">
 		<button type="submit" hidden></button>
 	</form>
 </div>
 
-<legend style="padding-top:5px;">Liste des pages</legend>
+<legend style="padding-top:5px;"><?= __('admin/pages.title') ?></legend>
 
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link active" href="#all" data-toggle="tab">Toutes</a></li>
-	<li class="nav-item"><a class="nav-link" href="#published" data-toggle="tab">Publiées</a></li>
-	<li class="nav-item"><a class="nav-link" href="#draft" data-toggle="tab">Brouillons</a></li>
-	<li class="nav-item"><a class="nav-link" href="#archived" data-toggle="tab">Archives</a></li>
-	<li class="nav-item ml-auto"><a class="nav-link" href="?page=page_edit" title="Ajouter une nouvelle page"><i class="far fa-lg fa-file"></i> Nouvelle Page</a></li>
+	<li class="nav-item"><a class="nav-link active" href="#all" data-toggle="tab"><?= __('admin/pages.table_all') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#published" data-toggle="tab"><?= __('admin/pages.table_published') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#draft" data-toggle="tab"><?= __('admin/pages.table_draft') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#archived" data-toggle="tab"><?= __('admin/pages.table_archives') ?></a></li>
+	<li class="nav-item ml-auto"><a class="nav-link" href="?page=page_edit" title="<?= __('admin/pages.btn_add_title') ?>"><i class="far fa-lg fa-file"></i> <?= __('admin/pages.btn_add') ?></a></li>
 </ul>
 
 <div class="tab-content panel">
@@ -38,12 +38,12 @@ $status = ['draft' => 'Brouillon', 'published' => 'Publié', 'archived' => 'Supp
 	<div id="content">
 		<table class="table">
 			<thead>
-				<th style="width:50%">Page</th>
+				<th style="width:50%"><?= __('admin/pages.table_page') ?></th>
 				<th style="width:0px;"></th>
-				<th>Status</th>
-				<th>Commentaires</th>
-				<th>Vues</th>
-				<th>Gestion</th>
+				<th><?= __('admin/pages.table_status') ?></th>
+				<th><?= __('admin/pages.table_comments') ?></th>
+				<th><?= __('admin/pages.table_view') ?></th>
+				<th><?= __('admin/pages.table_management') ?></th>
 			</thead>
 			<tbody>
 		<?php
@@ -57,17 +57,17 @@ $status = ['draft' => 'Brouillon', 'published' => 'Publié', 'archived' => 'Supp
 			foreach($pages as $page) {
 				$a = ($page['pub_rev'] != $page['revision'] ? ['rev' => $page['revision']]:[]);
 				echo '<tr'.($page['pub_rev'] != $page['revision'] ? ' class="bg-light"':'').'>';
-					echo '<td><a href="?page=page_edit&id='.$page['id'].'">'.html_encode($page['title'] ?: 'Page sans titre').'</a>';
+					echo '<td><a href="?page=page_edit&id='.$page['id'].'">'.html_encode($page['title'] ?: __('admin/pages.table_noname')).'</a>';
 					// if ($page['pub_rev'] != $page['revision'])
 					// 	echo '<small><em> - Brouillon</em></small>';
 					echo '</td>';
-					echo '<td><a title="Permalink" href="'.App::getURL($page['slug']?:$page['page_id'], $a).'"><small>Voir</small></a></td>';
+					echo '<td><a title="Permalink" href="'.App::getURL($page['slug']?:$page['page_id'], $a).'"><small>'.__('admin/pages.btn_view').'</small></a></td>';
 					echo '<td>'.($status[$page['status']] ?? $page['status']).'</td>';
 					echo '<td>'.$page['comments'].'</td>';
 					echo '<td>'.$page['views'].'</td>';
 					echo '<td>';
-						echo '<a title="Éditer" href="?page=page_edit&id='.$page['id'].'" class="btn btn-primary btn-sm"><i class="fa fa-pencil-alt"></i></a> ';
-						echo '<button title="Supprimer" class="btn btn-danger btn-sm" name="id" value="'.$page['id'].'" onclick="return confirm(\'Sur?\');"><i class="far fa-trash-alt"></i></button>';
+						echo '<a title="'.__('admin/pages.btn_edit').'" href="?page=page_edit&id='.$page['id'].'" class="btn btn-primary btn-sm"><i class="fa fa-pencil-alt"></i></a> ';
+						echo '<button title="'.__('admin/pages.btn_delete').'" class="btn btn-danger btn-sm" name="id" value="'.$page['id'].'" onclick="return confirm(\''.__('admin/pages.btn_sur').'\');"><i class="far fa-trash-alt"></i></button>';
 					echo '</td>';
 				echo '</tr>';
 				};

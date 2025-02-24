@@ -29,21 +29,21 @@ $req = Db::QueryAll('SELECT h.*, a.username as username, b.username as ausername
 ?>
 <?php if ($filter || $count > 0) { ?>
 <form role="search" class="well" method="post">
-	<input id="filter" type="text" class="form-control" placeholder="recherche">
+	<input id="filter" type="text" class="form-control" placeholder="<?= __('admin/history.ph_search')?>">
 </form>
 <?php }?>
 <form method="post">
 	<div id="content">
 		<?php if (!$req): ?>
-			<div class="alert alert-warning text-center mt-2">Aucune entrée trouvée!</div>
+			<div class="alert alert-warning text-center mt-2"><?= __('admin/history.alert_no_record')?></div>
 		<?php else: ?>
 		<table class="table">
 			<thead>
-				<th>Date</th>
-				<th>Pseudo</th>
-				<th>Affecté</th>
-				<th>IP</th>
-				<th>Événement</th>
+				<th><?= __('admin/history.date')?></th>
+				<th><?= __('admin/history.username')?></th>
+				<th><?= __('admin/history.affected')?></th>
+				<th><?= __('admin/history.ip')?></th>
+				<th><?= __('admin/history.event')?></th>
 			</thead>
 			<tbody>
 			<?php

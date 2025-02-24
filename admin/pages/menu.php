@@ -4,24 +4,24 @@ has_permission('admin.manage_menu', true);
 
 if (isset(App::$POST['add_menu'], App::$POST['name']) && !empty(App::$POST['name'])) {
 	if (App::$POST['add_menu'] == 0 && Db::Insert('menu', ['parent'=>App::$POST['parent'], 'priority'=>App::$POST['priority'], 'name'=>App::$POST['name'], 'icon'=>App::$POST['icon'], 'link'=>App::$POST['link']?:App::$POST['internal_page'],'visibility'=>App::$POST['visibility']]))
-		App::setSuccess('Élément ajouté!');
+		App::setSuccess(__('admin/menu.alert_add_success'));
 	elseif (Db::Update('menu',  ['parent' => App::$POST['parent'], 'priority' => App::$POST['priority'], 'name' => App::$POST['name'], 'icon' => App::$POST['icon'], 'link' => App::$POST['link'] ?: App::$POST['internal_page'], 'visibility' => App::$POST['visibility']], ['id' => App::$POST['add_menu']]))
-		App::setSuccess('Élément mis à jour!');
+		App::setSuccess(__('admin/menu.alert_update_success'));
 	elseif(Db::$errno != 0)
 		App::setWarning((string)Db::$error);
 }
 elseif (isset(App::$POST['del_menu'])) {
 	if (Db::Delete('menu', ['id' => App::$POST['del_menu']])) {
-		App::setSuccess('Élément supprimé!');
+		App::setSuccess(__('admin/menu.alert_del_success'));
 	} else {
-		App::setWarning('Élément déjà supprimé!');
+		App::setWarning(__('admin/menu.alert_exist_warning'));
 	}
 }
 elseif (isset(App::$POST['menu-editor'])) {
 	foreach(App::$POST['menu-editor'] as $priority => $k) {
 		if ($k) Db::Update('menu', ['priority' => $priority], ['id' => $k]);
 	}
-	App::setSuccess('Menu enregistré!');
+	App::setSuccess(__('admin/menu.alert_create_success'));
 }
 
 $parent_list = [0 => ''];
@@ -44,8 +44,8 @@ function display_tree(int $id, $level, &$tree, &$parent_list) {
 			else
 				echo '<td><a href="'.App::getURL($menu['link']).'">'.html_encode(Format::truncate($menu['page_name'], 40)).'</a></td>';
 			echo '<td>'.
-					'<button name="edit_menu" value="'.$menu['id'].'" class="btn btn-sm btn-primary" title="Éditer cet élément"><i class="fa fa-pencil-alt"></i></button>&nbsp;'.
-					'<button name="del_menu" value="'.$menu['id'].'" class="btn btn-sm btn-danger" title="Supprimer cet élément" onclick="return confirm(\'Sur?\');"><i class="far fa-trash-alt"></i></button>'.
+					'<button name="edit_menu" value="'.$menu['id'].'" class="btn btn-sm btn-primary" title="'.__('admin/menu.btn_title_edit').'"><i class="fa fa-pencil-alt"></i></button>&nbsp;'.
+					'<button name="del_menu" value="'.$menu['id'].'" class="btn btn-sm btn-danger" title="'.__('admin/menu.btn_title_delete').'" onclick="return confirm(\'Sur?\');"><i class="far fa-trash-alt"></i></button>'.
 				 '</td>';
 
 		echo '</tr>';
@@ -70,18 +70,18 @@ $pages = [
 	'Internes'   => new HtmlSelectGroup(array_combine(INTERNAL_PAGES, array_map('ucwords', INTERNAL_PAGES))),
 ];
 ?>
-<legend>Éditeur de menus</legend>
+<legend><?= __('admin/menu.title') ?></legend>
 <form method="post"  action="#edit">
 <?php if (!$tree): ?>
-	<div class="text-center alert alert-warning">Aucun élément trouvé!</div>
+	<div class="text-center alert alert-warning"><?= __('admin/menu.not_found') ?></div>
 <?php else: ?>
 	<table class="table sortable" id="menu-editor">
 		<thead>
 			<tr>
-				<th>Nom</th>
+				<th><?= __('admin/menu.table_name') ?></th>
 				<th></th>
-				<th>Ordre</th>
-				<th>Adresse</th>
+				<th><?= __('admin/menu.table_order') ?></th>
+				<th><?= __('admin/menu.table_addr') ?></th>
 				<th style="width:90px;"> </th>
 			</tr>
 		</thead>
@@ -95,39 +95,39 @@ $pages = [
 	<div class="card-header">
 	<?php
 		if ($cur_elem['id'])
-			echo '<strong>Modifier l\'élément #'.$cur_elem['id'].'</strong>';
+			echo '<strong>'. __('admin/menu.cur_elem_edit',['%cur%' => $cur_elem['id']]).'</strong>';
 		else
-			echo '<strong>Ajouter un élément</strong>';
+			echo '<strong>'. __('admin/menu.cur_elem_add').'</strong>';
 	?>
 	</div>
 	<div class="card-body">
 	<form class="form-horizontal" method="post" action="#">
 	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account">Nom :</label>
+		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_name') ?> :</label>
 		<div class="col-sm-8 controls">
 			<input class="form-control" name="name" type="text" value="<?php echo html_encode($cur_elem['name'])?>">
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account">Icône :</label>
+		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_ico') ?> :</label>
 		<div class="col-sm-8 controls">
 		<?= Widgets::iconSelect('icon', $cur_elem['icon']) ?>
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account">Parent :</label>
+		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_parent') ?> :</label>
 		<div class="col-sm-8 controls">
 			<?= Widgets::select('parent', $parent_list, $cur_elem['parent'], false) ?>
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account">Ordre :</label>
+		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_order') ?> :</label>
 		<div class="col-sm-8 controls">
 			<?= Widgets::select('priority', array_keys(array_fill(0, 100, '')), $cur_elem['priority']) ?>
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account">Lien :</label>
+		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_link') ?> :</label>
 		<div class="col-sm-8 controls">
 			<input class="form-control" name="link" id="link" type="text" value="<?php echo $cur_elem['page_name'] ? '' : html_encode($cur_elem['link'])?>">
 			ou
@@ -136,19 +136,19 @@ $pages = [
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account">Visibilité :</label>
+		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_viewable') ?> :</label>
 		<div class="col-sm-8 controls">
 		<?php
 			echo '<select class="form-control" name="visibility">';
-			echo '<option value="0">Tout le monde</option>';
-			echo '<option value="1" '. ($cur_elem['visibility'] == 1 ? 'selected':'').'>Membres seulement</option>';
-			echo '<option value="2" '. ($cur_elem['visibility'] == 2 ? 'selected':'').'>Invités seulement</option>';
+			echo '<option value="0">'.__('admin/menu.table_everyone').'</option>';
+			echo '<option value="1" '. ($cur_elem['visibility'] == 1 ? 'selected':'').'>'.__('admin/menu.table_members_only').'</option>';
+			echo '<option value="2" '. ($cur_elem['visibility'] == 2 ? 'selected':'').'>'.__('admin/menu.table_guess_only').'</option>';
 			echo '</select>';
 		?>
 		</div>
 	</div>
 	<div class="text-center">
-		<button class="btn btn-medium btn-primary" name="add_menu" value="<?php echo $cur_elem['id']?>" type="submit">Enregistrer le menu</button>  <button class="btn btn-danger">Annuler</button>
+		<button class="btn btn-medium btn-primary" name="add_menu" value="<?php echo $cur_elem['id']?>" type="submit"><?= __('admin/menu.btn_save') ?></button>  <button class="btn btn-danger"><?= __('admin/menu.btn_cancel') ?></button>
 	</div>
 </form>
 	</div>

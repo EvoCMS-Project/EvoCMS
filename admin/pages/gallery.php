@@ -16,7 +16,7 @@ foreach(File::select() as $file) {
 }
 
 if ($not_found && App::POST('cleanup')) {
-	App::setNotice("$not_found records have been removed from the database.");
+	App::setNotice("$not_found ". __('admin/gallery.alert_cleanup') ."");
 	$not_found = 0;
 }
 ?>
@@ -24,7 +24,7 @@ if ($not_found && App::POST('cleanup')) {
 <?php if ($not_found) { ?>
 <div class="float-right" style="padding-left:1em">
 	<form method="post">
-		<button name="cleanup" value="1" class="btn btn-default">Enlever les fichiers introuvables (<?= $not_found ?>)</button>
+		<button name="cleanup" value="1" class="btn btn-default"><?= __('admin/gallery.btn_cleanup') ?> (<?= $not_found ?>)</button>
 	</form>
 </div>
 <?php } ?>

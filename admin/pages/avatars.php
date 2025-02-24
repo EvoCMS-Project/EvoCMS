@@ -9,25 +9,25 @@ if (!IS_POST) {
 }
 elseif (!preg_match('#^[-a-zA-Z0-9_]+$#', $cat = App::POST('categorie', '')))
 {
-	App::setWarning('Le nom de dossier contient des caractères interdits ou est vide '.$cat);
+	App::setWarning(__('admin/avatars.alert_forbiden_chars', ['%cat%' => $cat]));
 }
 elseif (App::POST('create')) //SI le formulaire est envoyé on éxécute le code
 {
 	if (file_exists($dir . $cat)) {
-		App::setWarning('Un dossier nommé '.$cat.' existe déjà!');
+		App::setWarning(__('admin/avatars.alert_already_exist', ['%cat%' => $cat]));
 	} elseif (@mkdir($dir . $cat, 0755, true)) {
 		@touch($dir . $cat . '/index.html');
-		App::setSuccess('Dossier '.$cat.' est créé avec succès');
+		App::setSuccess(__('admin/avatars.alert_fcreate_success', ['%cat%' => $cat]));
 	} else {
-		App::setWarning('Une erreur est survenu durant la création du dossier '.$cat);
+		App::setWarning(__('admin/avatars.alert_fcreate_error', ['%cat%' => $cat]));
 	}
 }
 elseif (App::POST('delete')) //SI le formulaire est envoyé on éxécute le code
 {
 	if (rrmdir($dir . $cat)) {
-		App::setSuccess('Le dossier '.$cat.' a bien été supprimé');
+		App::setSuccess(__('admin/avatars.alert_fdelete_success', ['%cat%' => $cat]));
 	} else {
-		App::setWarning('Une erreur est survenu durant la suppression du dossier '.$cat);
+		App::setWarning(__('admin/avatars.alert_fdelete_error', ['%cat%' => $cat]));
 	}
 }
 elseif(!empty($_FILES['upload']))
@@ -38,36 +38,36 @@ elseif(!empty($_FILES['upload']))
 		$path = $dir . $cat . '/' . $filename;
 
 		if ($filename == '') {
-			App::setWarning("Le nom du fichier {$name} après conversion est vide!", true);
+			App::setWarning(__('admin/avatars.alert_empty_name_aconv',['%name%' => $name]), true);
 		}
 		elseif (!preg_match('/\.(jpg|gif|png)$/', $filename) || !in_array(@getimagesize($files['tmp_name'][$index])[2], [1, 2, 3])) {
-			App::setWarning("Le format de {$name} n'est pas supporté\n", true);
+			App::setWarning(__('admin/avatars.alert_invalid_format',['%name%' => $name]), true);
 		}
 		elseif(file_exists($path)) {
-			App::setWarning("Le fichier {$path} existe déjà!\n", true);
+			App::setWarning(__('admin/avatars.alert_file_exist',['%path%' => $path]), true);
 		}
 		elseif (move_uploaded_file($files['tmp_name'][$index], $path)) {
 			chmod($path, 0755);
-			App::setSuccess("Avatar {$name} ajouté!\n", true);
+			App::setSuccess(__('admin/avatars.alert_avatar_added',['%name%' => $name]), true);
 		}
 		else {
-			App::setWarning("Erreur d'upload pour {$name}!\n", true);
+			App::setWarning(__('admin/avatars.alert_upload_error',['%name%' => $name]), true);
 		}
 	}
 }
 ?>
 <div class="card">
 	<div class="card-header">
-		<h4>Créer une catégorie d'avatars</h4>
+		<h4><?= __('admin/avatars.title') ?></h4>
 	</div>
 	<div class="card-body">
 	<form class="form-horizontal" role="form" style="margin-bottom: -13px;" method="post">
 	  <div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right">Nom de la catégorie</label>
+		<label class="col-sm-3 col-form-label text-right"><?= __('admin/avatars.catname') ?></label>
 		<div class="col-sm-6">
 		  <input type="text" class="form-control" name="categorie">
 		</div>
-	  <button type="submit" class="btn btn-success" style="margin-top: 2px;" name="create" value="1">Créer la catégorie</button>
+	  <button type="submit" class="btn btn-success" style="margin-top: 2px;" name="create" value="1"><?= __('admin/avatars.btn_create') ?></button>
 	  </div>
 	</form>
 	</div>
@@ -81,10 +81,10 @@ if ($files = glob($dir.'/*', GLOB_ONLYDIR)) {
 		echo '<div class="card mt-4">';
 		echo '<div class="card-header">';
 			echo '<form method="post" enctype="multipart/form-data"><input type="hidden" name="categorie" value="' . $cat . '">';
-				echo '<button class="btn btn-danger" style="position:relative;top:-5px;float:right" onclick="return confirm(\'Les fichiers seront supprimés. Continuer?\');" name="delete" value="1">Supprimer</button>';
+				echo '<button class="btn btn-danger" style="position:relative;top:-5px;float:right" onclick="return confirm(\''.__('admin/avatars.alert_delete_advise').'\');" name="delete" value="1">'.__('admin/general.btn_delete').'</button>';
 				echo '<input type="file" class="float-right" name="upload[]" multiple>';
 			echo '</form>';
-			echo '<h4>Catégorie : '.$cat.'</h4>';
+			echo '<h4>'. __('admin/avatars.category') .' : '.$cat.'</h4>';
 		echo '</div>';
 
 		if ($avatars = glob($cat_dir.'/*.{jpg,jpeg,png,gif}', GLOB_BRACE)) {

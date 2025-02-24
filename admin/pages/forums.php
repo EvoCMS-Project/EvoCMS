@@ -9,12 +9,12 @@ if (App::POST('header_change'))
 {
 	App::setConfig('forums.name', App::POST('forums_name'));
 	App::setConfig('forums.description', App::POST('forums_description'));
-	App::setSuccess('Changement effectués!');
+	App::setSuccess(__('admin/forums.alert_success_header_change'));
 }
 elseif (App::POST('new_category'))
 {
 	Db::Insert('forums_cat', array('name' => App::POST('category_name'), 'priority' => 0));
-	App::setSuccess('Catégorie ajoutée !');
+	App::setSuccess(__('admin/forums.alert_success_new_category'));
 	$edit_mode = false;
 }
 elseif (App::POST('move_category') && $cat_id)
@@ -38,7 +38,7 @@ elseif (App::POST('move_category') && $cat_id)
 elseif (App::POST('edit_category') && App::POST('category_name') && $cat_id)
 {
 	Db::Update('forums_cat', ['name' => App::POST('category_name')], ['id' => $cat_id]);
-	App::setSuccess('Catégorie renommée !');
+	App::setSuccess(__('admin/forums.alert_success_edit_category'));
 	unset(App::$POST['edit_category']);
 	$edit_mode = false;
 }
@@ -55,11 +55,11 @@ elseif (App::POST('add_forum') !== null && App::POST('name'))
 		], ['id' => App::POST('add_forum')]);
 
 		if (Db::$affected_rows) {
-			App::setSuccess('Forum mis à jour !');
+			App::setSuccess(__('admin/forums.alert_success_add_forum'));
 			$forum_id = App::POST('add_forum');
 			$edit_mode = false;
 		} else {
-			App::setWarning("Erreur lors de l'enregistrement");
+			App::setWarning(__('admin/alert_warning_add_forum'));
 		}
 	} else {
 		Db::Insert('forums', array(
@@ -71,11 +71,11 @@ elseif (App::POST('add_forum') !== null && App::POST('name'))
 			'redirect'    => App::POST('redirect')
 		));
 		if ($forum_id = Db::$insert_id) {
-			App::setSuccess('Forum ajouté !');
-			App::logEvent(0, 'forum', 'Création du forum "' . App::POST('name') . '"');
+			App::setSuccess(__('admin/forums.alert_success_reorder_forums'));
+			App::logEvent(0, 'forum', __('admin/forums.logevent_add_forum').'"' . App::POST('name') . '"');
 			$edit_mode = false;
 		} else {
-			App::setWarning("Erreur lors de l'enregistrement");
+			App::setWarning(__('admin/forums.alert_warning_add_forum'));
 		}
 	}
 
@@ -107,7 +107,7 @@ elseif (App::POST('del_forum'))
 			Db::Delete('forums_posts', ['topic_id' => $topic['id']]);
 		}
 		Db::Delete('permissions', 'related_id = ? and name like "forum.%"', App::POST('del_forum'));
-		App::setSuccess('Élément supprimé!');
+		App::setSuccess(__('admin/forums.alert_success_del_forum'));
 		$edit_mode = false;
 	} else {
 		App::setWarning((string)Db::$error);
@@ -120,16 +120,16 @@ elseif (App::POST('reorder_forums'))
 			if ($k) Db::Update('forums', ['priority' => $priority], ['id' => $k]);
 		}
 	}
-	App::setSuccess('Forum enregistré!');
+	App::setSuccess(__('admin/forums.alert_success_reorder_forums'));
 	$edit_mode = false;
 }
 elseif (App::POST('delete_category'))
 {
 	if (Db::Get('SELECT * FROM {forums} WHERE cat = ?', $cat_id)) {
-		App::setWarning('Vous ne pouvez supprimer une catégorie contenant des forums.');
+		App::setWarning(__('admin/alert_warning_delete_category'));
 	} else {
 		Db::Delete('forums_cat', ['id' => $cat_id]);
-		App::setSuccess('Catégorie supprimée !');
+		App::setSuccess(__('admin/forums.alert_success_delete_category'));
 	}
 	$edit_mode = false;
 }
@@ -165,28 +165,28 @@ foreach($forums as $forum) {
 }
 ?>
 
-<legend><a href="?page=forums">Éditeur de forums</a></legend>
+<legend><a href="?page=forums"><?= __('admin/forums.title')?></a></legend>
 
 <?php if (!$edit_mode): ?>
 <div class="card">
-	<div class="card-header"><strong>Entête</strong></div>
+	<div class="card-header"><strong><?= __('admin/forums.header')?></strong></div>
 	<div class="card-body">
 	<form class="form-horizontal" role="form" method="post">
 	  <div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right">Titre du forum</label>
+		<label class="col-sm-4 col-form-label text-right"><?= __('admin/forums.table_title')?></label>
 		<div class="col-sm-5">
 		  <input type="text" class="form-control" name="forums_name" placeholder="<?=html_encode(App::getConfig('name'))?>" value="<?=html_encode(App::POST('forums_name', App::getConfig('forums.name')))?>">
 		</div>
 	  </div>
 	  <div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right">Description du forum</label>
+		<label class="col-sm-4 col-form-label text-right"><?= __('admin/forums.table_desc')?></label>
 		<div class="col-sm-5">
 		  <input type="text" class="form-control" name="forums_description" placeholder="<?=html_encode(App::getConfig('description'))?>" value="<?=html_encode(App::POST('forums_description', App::getConfig('forums.description')))?>">
-		  <small>Vous pouvez utiliser des bbcode dans la description.</small>
+		  <small><?= __('admin/forums.table_desc_tips')?></small>
 		</div>
 	  </div>
 	  <div class="text-center">
-		<button type="submit" name="header_change" value="1" class="btn btn-primary">Enregistrer</button>
+		<button type="submit" name="header_change" value="1" class="btn btn-primary"><?=__('admin/general.btn_save')?></button>
 	  </div>
 	</form>
 	</div>
@@ -206,10 +206,10 @@ foreach($categories as $id => $c) {
 					<div class="btn-group float-right">
 						<button name="move_category" value="-1" class="btn btn-sm btn-info">↑</button>
 						<button name="move_category" value="1" class="btn btn-sm btn-info">↓</button>
-						<button name="edit_category" value="1" class="btn btn-sm btn-info">Renommer</button>
-						<button name="delete_category" value="1" class="btn btn-sm btn-danger">Supprimer</button>
+						<button name="edit_category" value="1" class="btn btn-sm btn-info">'. __('admin/forums.table_btn_rename') .'</button>
+						<button name="delete_category" value="1" class="btn btn-sm btn-danger">'. __('admin/general.btn_delete') .'</button>
 					</div>
-					Catégorie: <strong>' . $c['name'] . '</strong>
+					'.__('admin/forums.table_cat').' : <strong>' . $c['name'] . '</strong>
 				</div>
 				<div class="card-body" id="cat'.$id.'">
 					<table class="table sortable" id="reorder_forums['.$id.']" style="width:100%">
@@ -218,45 +218,45 @@ foreach($categories as $id => $c) {
 	foreach($c['forums'] as $forum) {
 		echo '<tr id="' . $forum['id'] . '">';
 			echo '<td><a href="'.App::getURL('forums', $forum['id']).'">'. html_encode($forum['name']) . '</a><br>'.
-				($forum['redirect'] ? '<em>Redirection: <strong>'.$forum['redirect'].'</strong></em><br>':'').'
+				($forum['redirect'] ? '<em>'. __('admin/forums.table_redirect').' : <strong>'.$forum['redirect'].'</strong></em><br>':'').'
 				<small>'. bbcode2html($forum['description']) .'</small><br>
 				</td>';
 			echo '<td style="width:4em;"><i class="'.$forum['icon'].'"></i></td>';
 			echo '<td style="width:8em;">'.$forum['num_posts'].' posts</td>';
-			echo '<td style="min-width:40%"><small>Lecture: ';
+			echo '<td style="min-width:40%"><small>'. __('admin/forums.table_read') .' : ';
 
 			if (!isset($forum['forum.read']))
-				echo '<strong>Personne</strong>';
+				echo '<strong>'. __('admin/forums.table_read_none') .'</strong>';
 			elseif (!array_diff(array_keys($groups), $forum['forum.read']))
-				echo '<strong>Tout le monde</strong>';
+				echo '<strong>'. __('admin/forums.table_read_all') .'</strong>';
 			else foreach($forum['forum.read'] as $group)
 				if (isset($groups[$group]))
 					echo '<i><span class="group-color-' . $groups[$group]['color'] . '">' . $groups[$group]['name'] . '</span></i> ';
 
-			echo '<br>Écriture: ';
+			echo '<br>'. __('admin/forums.table_forum_write_title') .' : ';
 
 			if (!isset($forum['forum.write']))
-				echo '<strong>Personne</strong>';
+				echo '<strong>'. __('admin/forums.table_write_none') .'</strong>';
 			elseif (!array_diff(array_keys($groups), $forum['forum.write']))
-				echo '<strong>Tout le monde</strong>';
+				echo '<strong>'. __('admin/forums.table_write_all') .'</strong>';
 			else foreach($forum['forum.write'] as $group)
 				if (isset($groups[$group]))
 					echo '<i><span class="group-color-' . $groups[$group]['color'] . '">' . $groups[$group]['name'] . '</span></i> ';
 
-			echo '<br>Modération: ';
+			echo '<br>'. __('admin/forums.table_forum_mod_title') .' : ';
 
 			if (!isset($forum['forum.moderation']))
-				echo '<strong>Modérateur globaux seulement</strong>';
+				echo '<strong>'. __('admin/forums.table_mod_global') .'</strong>';
 			elseif (!array_diff(array_keys($groups), $forum['forum.moderation']))
-				echo '<strong>Tout le monde</strong>';
+				echo '<strong>'. __('admin/forums.table_mod_global_all') .'</strong>';
 			else foreach($forum['forum.moderation'] as $group)
 				if (isset($groups[$group]))
 					echo '<i><span class="group-color-' . $groups[$group]['color'] . '">' . $groups[$group]['name'] . '</span></i> ';
 
 			echo '</small></td>';
 			echo '<td style="width:90px;">'.
-					'<button name="edit_forum" value="'.$forum['id'].'" class="btn btn-sm btn-primary" title="Éditer cet élément"><i class="fa fa-pencil-alt"></i></button> '.
-					'<button name="del_forum" value="'.$forum['id'].'" class="btn btn-sm btn-danger" title="Supprimer cet élément" onclick="return confirm(\'Sur?\');"><i class="far fa-trash-alt"></i></button>'.
+					'<button name="edit_forum" value="'.$forum['id'].'" class="btn btn-sm btn-primary" title="'. __('admin/forums.table_edit') .'"><i class="fa fa-pencil-alt"></i></button> '.
+					'<button name="del_forum" value="'.$forum['id'].'" class="btn btn-sm btn-danger" title="'. __('admin/forums.table_delete') .'" onclick="return confirm(\'Sur?\');"><i class="far fa-trash-alt"></i></button>'.
 				'</td>';
 
 		echo '</tr>';
@@ -269,34 +269,34 @@ foreach($categories as $id => $c) {
 <?php if ($categories && !App::POST('edit_category')): ?>
 	<div class="card" id="edit-forum">
 		<div class="card-header"><strong>
-			<?= $cur_elem['id'] ? 'Modifier le forum #'.$cur_elem['id'] : 'Ajouter un forum' ?>
+			<?= $cur_elem['id'] ? __('admin/forums.add_forum_title_edit').' # '.$cur_elem['id'] : __('admin/forums.add_forum_title_add') ?>
 		</strong></div>
 		<div class="card-body">
 	<form class="form-horizontal" method="post" action="#">
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="name">Nom :</label>
+			<label class="col-sm-3 col-form-label text-right" for="name"><?= __('admin/forums.table_name')?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="name" type="text" value="<?= html_encode($cur_elem['name'])?>">
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="description">Description :</label>
+			<label class="col-sm-3 col-form-label text-right" for="description"><?= __('admin/forums.table_desc_alt')?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="description" type="text" value="<?= html_encode($cur_elem['description'])?>">
-				<small>Vous pouvez utiliser des bbcode dans la description.</small>
+				<small><?= __('admin/forums.table_desc_alt_tips')?></small>
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="redirect">Redirection :</label>
+			<label class="col-sm-3 col-form-label text-right" for="redirect"><?= __('admin/forums.table_redirect')?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="redirect" type="text" placeholder="Exemple: https://google.ca" value="<?= html_encode($cur_elem['redirect']) ?>">
-				<small>Afficher un lien externe dans la liste de forums. <strong>Le forum ne sera plus accessible</strong>.</small>
+				<small><?= __('admin/forums.table_redirect_link')?>.</small>
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="permission">Accès :</label>
+			<label class="col-sm-3 col-form-label text-right" for="permission"><?= __('admin/forums.table_access')?> :</label>
 			<div class="col-sm-2">
-				<strong>Lecture</strong>
+				<strong><?= __('admin/forums.table_read')?></strong>
 				<?php
 					echo '<select class="form-control" size="'.count($groups).'" name="perms[read][]" multiple>';
 					foreach($groups as $group) {
@@ -308,7 +308,7 @@ foreach($categories as $id => $c) {
 				?>
 			</div>
 			<div class="col-sm-2">
-				<strong>Écriture</strong>
+				<strong><?= __('admin/forums.table_forum_write_title')?></strong>
 				<?php
 					echo '<select class="form-control" size="'.count($groups).'" name="perms[write][]" multiple>';
 					foreach($groups as $group) {
@@ -320,7 +320,7 @@ foreach($categories as $id => $c) {
 				?>
 			</div>
 			<div class="col-sm-2">
-				<strong>Modération</strong>
+				<strong><?= __('admin/forums.table_forum_mod_title')?></strong>
 				<?php
 					echo '<select class="form-control" size="'.count($groups).'" name="perms[moderation][]" multiple>';
 					foreach($groups as $group) {
@@ -333,26 +333,26 @@ foreach($categories as $id => $c) {
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="icon">Icône :</label>
+			<label class="col-sm-3 col-form-label text-right" for="icon"><?= __('admin/forums.table_ico')?> :</label>
 			<div class="col-sm-8 controls">
 			<?= Widgets::iconSelect('icon', $cur_elem['icon']) ?>
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="account">Catégorie :</label>
+			<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/forums.table_cat')?> :</label>
 			<div class="col-sm-8 controls" style="font-family: 'Font Awesome 5 Free', 'Font Awesome 5 Brands', 'sans-serif'">
 				<?= Widgets::select('cat', $cat_select, $cur_elem['cat'], false) ?>
 			</div>
 		</div>
 		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="account">Ordre :</label>
+			<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/forums.table_order')?> :</label>
 			<div class="col-sm-8 controls">
 				<?= Widgets::select('priority', array_keys(array_fill(0, 100, '')), $cur_elem['priority']) ?>
 			</div>
 		</div>
 		<div class="text-center">
-			<button class="btn btn-medium btn-primary" name="add_forum" value="<?= $cur_elem['id'] ?>" type="submit">Enregistrer le forum</button>
-			<button class="btn btn-danger">Annuler</button>
+			<button class="btn btn-medium btn-primary" name="add_forum" value="<?= $cur_elem['id'] ?>" type="submit"><?= __('admin/forums.table_btn_save')?></button>
+			<button class="btn btn-danger"><?= __('admin/menu.btn_cancel')?></button>
 		</div>
 	</form>
 		</div>
@@ -364,21 +364,21 @@ foreach($categories as $id => $c) {
 <?php if (!App::POST('add_forum')): ?>
 <div class="card">
 	<div class="card-header">
-		<strong><?= $edit_mode ? 'Renommer la catégorie' : 'Créer une catégorie' ?></strong>
+		<strong><?= $edit_mode ? __('admin/forums.add_forum_title_rename') : __('admin/forums.add_forum_title_create') ?></strong>
 	</div>
 	<div class="card-body">
 	<form class="form-horizontal" role="form" style="margin-bottom: -13px;" method="post">
 	  <div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right">Nom de la catégorie</label>
+		<label class="col-sm-4 col-form-label text-right"><?= __('admin/forums.add_catname')?></label>
 		<div class="col-sm-5">
 		  <input type="text" class="form-control" name="category_name" value="<?= html_encode($categories[$cat_id]['name'] ?? '') ?>">
 		</div>
 	<?php if ($edit_mode): ?>
 		<input type="hidden" value="<?= $cat_id ?>" name="cat_id">
-		<button type="submit" name="edit_category" value="<?= $cat_id; ?>" class="btn btn-success" style="margin-top: 2px;">Renommer la catégorie</button>
-		<button type="submit" name="cancel" value="" class="btn btn-danger" style="margin-top: 2px;">Annuler</button>
+		<button type="submit" name="edit_category" value="<?= $cat_id; ?>" class="btn btn-success" style="margin-top: 2px;"><?= __('admin/forums.add_forum_title_rename')?></button>
+		<button type="submit" name="cancel" value="" class="btn btn-danger" style="margin-top: 2px;"><?= __('admin/menu.btn_cancel')?></button>
 	<?php else: ?>
-		<button type="submit" name="new_category" value="1" class="btn btn-success" style="margin-top: 2px;">Créer la catégorie</button>
+		<button type="submit" name="new_category" value="1" class="btn btn-success" style="margin-top: 2px;"><?= __('admin/forums.add_cat_create')?></button>
 	<?php endif; ?>
 	  </div>
 	</form>
