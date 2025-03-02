@@ -102,7 +102,7 @@ if ($posts) {
 				echo '&nbsp;<a href="'.App::getURL('forums', ['topic'=>$post['topic_id'],'quote'=>$post['id']]).'" title="'. __('forum.post_quote') .'"><i class="fa fa-quote-right"></i></a>';
 
 				echo '&nbsp;</span></div>';
-				echo '<div class="comment">' . bbcode2html($post['message']) . '</div>';
+				echo '<div class="comment p-3">' . bbcode2html($post['message']) . '</div>';
 				App::trigger('forum_before_post_signature', array($post));
 			echo '</td>';
 		echo '</tr>';

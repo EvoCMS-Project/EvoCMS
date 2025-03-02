@@ -749,7 +749,7 @@ img[style*="float: right"] {
 
 .forum-wrapper .forum-navbar.tools > li + li:before {
 	content: '|';
-	margin: 0px 4px;
+	margin: 0px 8px;
 }
 
 .forum-main .comment h4 {

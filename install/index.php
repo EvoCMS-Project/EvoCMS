@@ -102,7 +102,7 @@ switch($cur_step) {
 
 	case STEP_CONFIG:
 		if (isset($_POST['email'], $_POST['admin'], $_POST['admin_pass'], $_POST['url'], $_POST['name'], $_POST['payload'])) {
-			if (!preg_match('#http://.+#', $_POST['url']))
+			if (!preg_match('#https?://.+#', $_POST['url']))
 				$warning .= __('config.bad_url') . '<br>';
 			if (!preg_match('#^.+@.+\..+$#', $_POST['email']))
 				$warning .= __('config.bad_email') . '<br>';
@@ -797,32 +797,30 @@ switch($cur_step) {
 				<div class="form-group row">
 					<label class="col-sm-4 col-form-label text-right"><?= __('config.siteurl') ?> : </label>
 					<div class="col-sm-8">
-						<div class="form-control-static"><?= $_POST['url'] ?></div>
+						<div class="form-control"><?= $_POST['url'] ?></div>
 					</div>
 				</div>
 				<div class="form-group row">
 					<label class="col-sm-4 col-form-label text-right"><?= __('config.adminurl') ?> : </label>
 					<div class="col-sm-8">
-						<div class="form-control-static"><?= $_POST['url'] ?>/admin</div>
+						<div class="form-control"><?= $_POST['url'] ?>/admin</div>
 					</div>
 				</div>
 				<div class="form-group row">
 					<label class="col-sm-4 col-form-label text-right"><?= __('config.username') ?> : </label>
 					<div class="col-sm-8">
-						<div class="form-control-static"><?= $_POST['admin'] ?></div>
+						<div class="form-control"><?= $_POST['admin'] ?></div>
 					</div>
 				</div>
 				<div class="form-group row">
 					<label class="col-sm-4 col-form-label text-right"><?= __('config.password') ?> : </label>
 					<div class="col-sm-8">
-						<div class="form-control-static"><?= $_POST['admin_pass'] ?></div>
+						<div class="form-control"><?= $_POST['admin_pass'] ?></div>
 					</div>
 				</div>
 				<div class="text-center">
 					<button type="submit" name="step" value="<?= STEP_CLEANUP ?>" class="btn btn-success"><?= __('install.complete') ?></button>
 				</div>
-				<div>&nbsp;</div>
-
 			<?php } ?>
 <?php endif; ?>
 							<br>
