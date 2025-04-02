@@ -29,8 +29,10 @@ class Format
 	{
 		$a = 'ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûýýþÿŔŕ';
 		$b = 'aaaaaaaceeeeiiiidnoooooouuuuybsaaaaaaaceeeeiiiidnoooooouuuyybyRr';
-		$string = strtr(utf8_decode((string)$string), utf8_decode($a), $b);
-		return utf8_encode($string);
+		//$string = strtr(utf8_decode((string)$string), utf8_decode($a), $b);
+		//return utf8_encode($string);
+		$string = strtr(mb_convert_encoding((string)$string, "ISO-8859-1", "UTF-8"), mb_convert_encoding($a, "ISO-8859-1", "UTF-8"), $b);
+		return mb_convert_encoding($string, "UTF-8", "ISO-8859-1");
 	}
 
 

@@ -136,7 +136,7 @@ if (App::POST('delete')) {
 
 	$page = Db::Get('SELECT r.*,p.* FROM {pages} as p JOIN {pages_revs} as r USING(page_id) WHERE r.id = ?', $page['id']);
 
-	App::logEvent(0, 'admin', __('admin/page_edit.legevent_update',['%pid%' => $page['page_id'], '%ptitle%' => $page['title']]));
+	App::logEvent(0, 'admin', __('admin/page_edit.logevent_update',['%pid%' => $page['page_id'], '%ptitle%' => $page['title']]));
 	App::setSuccess(__('admin/page_edit.success_save'));
 }
 

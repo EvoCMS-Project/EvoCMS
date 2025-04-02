@@ -9,7 +9,8 @@ if (!$user_info) {
 
 App::setTitle(__('user.page_title', ['%user%' => $user_info->username]));
 
-if (trim(App::POST('report')) !== '') {
+//if (trim(App::POST('report')) !== '') {
+if (App::POST('report') !== null && trim(App::POST('report')) !== '') {
 	Db::Insert('reports', array(
 		'user_id'  => App::getCurrentUser()->id,
 		'type'     => 'profile',

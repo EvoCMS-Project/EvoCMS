@@ -2,8 +2,9 @@
 
 has_permission('admin.manage_forums', true);
 
-$cat_id = (int)App::POST('cat_id');
-$edit_mode = App::POST('edit_mode');
+$cat_id = (int)App::POST('cat_id', '0');
+$cat_name = (string)App::POST('category_name', '');
+$edit_mode = (bool)App::POST('edit_mode', '0');
 
 if (App::POST('header_change'))
 {
@@ -11,9 +12,9 @@ if (App::POST('header_change'))
 	App::setConfig('forums.description', App::POST('forums_description'));
 	App::setSuccess(__('admin/forums.alert_success_header_change'));
 }
-elseif (App::POST('new_category'))
+elseif (App::POST('new_category') && $cat_name !== '')
 {
-	Db::Insert('forums_cat', array('name' => App::POST('category_name'), 'priority' => 0));
+	Db::Insert('forums_cat', ['name' => $cat_name, 'priority' => 0]);
 	App::setSuccess(__('admin/forums.alert_success_new_category'));
 	$edit_mode = false;
 }
@@ -35,9 +36,9 @@ elseif (App::POST('move_category') && $cat_id)
 	}
 	$edit_mode = false;
 }
-elseif (App::POST('edit_category') && App::POST('category_name') && $cat_id)
+elseif (App::POST('edit_category') && $cat_id && $cat_name !== '')
 {
-	Db::Update('forums_cat', ['name' => App::POST('category_name')], ['id' => $cat_id]);
+	Db::Update('forums_cat', ['name' => $cat_name], ['id' => $cat_id]);
 	App::setSuccess(__('admin/forums.alert_success_edit_category'));
 	unset(App::$POST['edit_category']);
 	$edit_mode = false;
