@@ -173,7 +173,7 @@ switch($page['type']) {
 		App::renderTemplate('pages/page_article.php', ['article' => $page, 'home' => $home]);
 		break;
 	case 'page-blank':
-		App::setTemplate('blank.php');
+		App::setTemplate('page_blank.php');
 	case 'page-full':
 		App::renderTemplate('pages/page_full.php', ['page' => $page, 'home' => $home]);
 		break;
