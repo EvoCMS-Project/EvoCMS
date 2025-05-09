@@ -148,6 +148,7 @@ function bbcode2html($bbcode, $safe_subset = false)
 
 function markdown2html($content, $safe_mode = false, $hard_wrap = false)
 {
+	$content = $content ?? '';
 	$content = (new \Parsedown\ParsedownExtra)
 		->setSafeMode($safe_mode)
 		->setBreaksEnabled($hard_wrap)
