@@ -556,6 +556,9 @@ switch($cur_step) {
 							"// Debug mode active les options de dévelopement.\n".
 							"\$debug_mode = false; \n".
 							"\n".
+							"// Préserve les erreurs PHP dans un fichier log.\n".
+							"\$error_log = false; \n".
+							"\n".
 							"// Safe mode permets de désactiver tous les plugins et SSL.\n".
 							"\$safe_mode = false; \n";
 

@@ -20,6 +20,7 @@ class App
 
 	public static $protections = self::CSRF|self::BOTS;
 	public static $debug_mode = false;
+	public static $error_log = false;
 
 	private static $title = '';
 	private static $success = '';
@@ -69,6 +70,14 @@ class App
 			if (self::$debug_mode = !empty($debug_mode)) {
 				ini_set('display_errors', 'on');
 				error_reporting(E_ALL);
+			} else {
+				// ini_set('display_errors', 'off');
+				error_reporting(E_ALL & ~(E_DEPRECATED|E_NOTICE));
+			}
+
+			if (self::$error_log = !empty($error_log)) {
+				// ini_set('log_errors', 'on');
+				// ini_set('error_log', );
 			}
 
 			Db::Connect($db_host, $db_user, $db_pass, $db_name, $db_prefix);

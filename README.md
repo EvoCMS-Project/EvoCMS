@@ -21,6 +21,11 @@ location ~ ^/db-.+$ {
    return 404;
 }
 
+location ~ ^/logs {
+   deny all;
+   return 404;
+}
+
 location ~*  ^/assets/ {
 	expires 2h;
 }
