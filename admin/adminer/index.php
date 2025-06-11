@@ -5,11 +5,7 @@ App::init();
 has_permission('admin.sql', true);
 
 function adminer_object() {
-	return new class extends Adminer {
-		public function head() {
-			echo script("verifyVersion = function () {};");
-			return true;
-		}
+	return new class extends Adminer\Adminer {
 		public function name() {
 			return '<a href="' . App::getAdminURL() . '"><small>' . App::getConfig('name') . '</small></a>';
 		}
@@ -34,6 +30,6 @@ function adminer_object() {
 	};
 }
 
-ob_start();
+// ob_start();
 
 require 'adminer.php';
