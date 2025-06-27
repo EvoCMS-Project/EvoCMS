@@ -50,7 +50,7 @@ $_themes = [
 foreach(App::getModules() as $plugin) {
 	if (in_array('theme', $plugin->exports)) {
 		$dir = basename($plugin->location);
-		$_themes[$dir] = [$plugin, "/modules/$dir/preview.jpg"];
+		$_themes[$dir] = [$plugin, "{$plugin->location}/preview.jpg"];
 	}
 }
 

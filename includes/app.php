@@ -258,11 +258,15 @@ class App
 			throw new Exception("Le nom '$plugin_id' cause un conflit et ne peut être activé!");
 		}
 
-		try {
-			return new Module(ROOT_DIR . '/modules/' . $plugin_id);
-		} catch(Exception $e) {
-			return null;
+		foreach (['plugins', 'themes'] as $folder) {
+			try {
+				return new Module(ROOT_DIR . '/' . $folder . '/' . $plugin_id);
+			} catch(Exception $e) {
+				continue;
+			}
 		}
+
+		return null;
 	}
 
 
@@ -333,16 +337,29 @@ class App
 		global $_permissions;
 
 		// if (!self::resolveModule($plugin_id)) {
-		if ($plugin_id === '' || strpos($plugin_id, '..') !== false || !is_dir(ROOT_DIR . '/modules/' . $plugin_id)) {
+		if ($plugin_id === '' || strpos($plugin_id, '..') !== false) {
 			return false;
 		}
 
-		if (file_exists(ROOT_DIR . '/modules/' . $plugin_id . '/index.php')) {
-			$plugin = include ROOT_DIR . '/modules/' . $plugin_id . '/index.php';
+		$plugin = null;
+
+		foreach (['plugins', 'themes'] as $folder) {
+			$path = ROOT_DIR . '/' . $folder . '/' . $plugin_id;
+			if (is_dir($path)) {
+				if (file_exists($path . '/index.php')) {
+					$plugin = include $path . '/index.php';
+				}
+				if (empty($plugin) || !($plugin instanceof Module)) {
+					$plugin = new Module($path);
+				}
+				if ($plugin) {
+					break;
+				}
+			}
 		}
 
-		if (empty($plugin) || !($plugin instanceof Module)) {
-			$plugin = new Module(ROOT_DIR . '/modules/' . $plugin_id);
+		if (!$plugin) {
+			return false;
 		}
 
 		$location = ROOT_DIR . '/' . $plugin->location;

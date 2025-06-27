@@ -9,7 +9,7 @@
     "exports": ["plugin"],
 
     "homepage": "",
-    "manifest": "https://github.com/evocms-project/evocms/tree/master/modules/demo/module.json",
+    "manifest": "https://github.com/evocms-project/evocms/tree/master/plugins/demo/module.json",
     "download": "",
 
     "changelog": [

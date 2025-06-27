@@ -42,7 +42,7 @@ if (isset($_FILES['plugin_file']) && is_uploaded_file($_FILES['plugin_file']['tm
 		$manifest = glob($tmpdir . '/{module.json,*/module.json}',  GLOB_BRACE)[0] ?? null;
 
 		if ($manifest && $module = Evo\EvoInfo::fromFile($manifest)) {
-			$target = ROOT_DIR . '/modules/' . $module->name;
+			$target = ROOT_DIR . (in_array('theme', $module->exports) ? '/themes/' : '/plugins/') . $module->name;
 			$source = dirname($manifest);
 			rename($source, $target);
 			App::setSuccess(__('admin/modules.alert_import_success'));
@@ -58,7 +58,7 @@ if (isset($_FILES['plugin_file']) && is_uploaded_file($_FILES['plugin_file']['tm
 
 $updates = &$_SESSION['updates'];
 
-foreach(glob(ROOT_DIR . '/modules/*/module.json', GLOB_BRACE) as $filename) {
+foreach(glob(ROOT_DIR . '/{plugins,themes}/*/module.json', GLOB_BRACE) as $filename) {
 	if ($module = \Evo\EvoInfo::fromFile($filename)) {
 		$key = basename(dirname($filename));
 		$modules[$key] = $module;
