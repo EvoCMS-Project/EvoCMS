@@ -20,7 +20,7 @@ class Server
 		} elseif (method_exists('Evo\ServerQuery\StreamingQuery', 'query' . $type)) {
 			return StreamingQuery::{'query' . $type}($address);
 		} else {
-			throw new exception('Server type unsupported!');
+			throw new Exception('Server type unsupported!');
 		}
 	}
 
