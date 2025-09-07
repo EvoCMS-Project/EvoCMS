@@ -727,6 +727,39 @@ div.image_selector  {
 }
 
 
+.icon-background {
+	color: #d1d6e8;
+    height: 100%;
+    width: 100%;
+    z-index: 0;
+    line-height: 120px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0.03;
+    text-align: right;
+    font-size: 300px;
+}
+
+.plugin_header {
+    min-height: 250px;
+}
+
+.plugin_header .header .title{
+    float: left
+}
+
+.plugin_header .header {
+    position: relative;
+    top: 80px;
+}
+
+.bg-grad-evo {
+    background: #263238;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to left, #37474f, #263238);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to left, #37474f, #263238); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */ 
+}
+
 @media (min-width: 1024px) {
 	ul.stat li {
 		margin: 0px 10px 20px 10px !important;
@@ -808,4 +841,177 @@ div.image_selector  {
 		min-height: 100%;
 		padding-bottom: 300px;
 	}
+}
+
+/* Styles pour le tableau "Sauvegardes existantes" */
+#backups-table {
+    font-family: 'Ubuntu', 'Ubuntu Mono', 'Courier New', Courier, 'Lucida Console', Monaco, monospace;
+}
+
+#backups-table col:nth-child(1) { width: 50px; text-align: center; }
+#backups-table col:nth-child(2) { width: 30%; text-align: left; }
+#backups-table col:nth-child(3) { width: 80px; }
+#backups-table col:nth-child(4) { width: 80px; }
+#backups-table col:nth-child(5) { width: 120px; text-align: center; }
+#backups-table col:nth-child(6) { width: 80px; }
+#backups-table col:nth-child(7) { width: 120px; text-align: right; }
+
+#backups-table tbody tr {
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+#backups-table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#backups-table tbody tr.selected {
+    background-color: #e3f2fd;
+    border-left: 3px solid #2196f3;
+}
+
+#backups-table tbody tr.selected:hover {
+    background-color: #bbdefb;
+}
+
+/* Styles pour les cellules du tableau */
+#backups-table tbody td {
+    vertical-align: middle;
+    padding: 5px 0rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Alignement de la première cellule */
+#backups-table tbody td:first-child {
+    text-align: center;
+    padding: 5px 0.5rem;
+}
+
+/* Alignement de la dernière cellule */
+#backups-table tbody td:last-child {
+    text-align: center;
+    padding: 5px 0.5rem;
+}
+
+/* Alignement des en-têtes */
+#backups-table thead th:nth-child(1),
+#backups-table thead th:nth-child(3),
+#backups-table thead th:nth-child(4),
+#backups-table thead th:nth-child(5) {
+    text-align: center;
+}
+
+/* Alignement des cellules TD colonnes 3 à 7 */
+#backups-table tbody td:nth-child(3),
+#backups-table tbody td:nth-child(4),
+#backups-table tbody td:nth-child(5),
+#backups-table tbody td:nth-child(6),
+#backups-table tbody td:nth-child(7) {
+    text-align: center;
+}
+
+/* Styles pour les boutons d'action */
+#backups-table tbody .btn-group .btn {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+}
+
+/* Styles pour les badges */
+#backups-table tbody .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Styles pour les checkboxes */
+#backups-table tbody input[type="checkbox"] {
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+/* Animation pour les lignes qui apparaissent */
+#backups-table tbody tr {
+    animation: fadeInRow 0.3s ease-in-out;
+}
+
+@keyframes fadeInRow {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Styles pour les icônes */
+#backups-table tbody .fa {
+    color: #6c757d;
+    transition: color 0.2s ease-in-out;
+}
+
+#backups-table tbody tr:hover .fa {
+    color: #495057;
+}
+
+/* Styles pour les noms de fichiers */
+#backups-table tbody strong {
+    color: #212529;
+    font-weight: 600;
+}
+
+#backups-table tbody tr:hover strong {
+    color: #007bff;
+}
+
+/* Styles pour les dates */
+#backups-table tbody td:nth-child(5) {
+    font-family: 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Styles pour les tailles */
+#backups-table tbody td:nth-child(4) {
+    font-family: 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+/* Styles pour l'âge */
+#backups-table tbody td:nth-child(6) {
+    font-size: 0.9rem;
+}
+
+/* Styles pour les types */
+#backups-table tbody .badge-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Styles pour les anciennes sauvegardes */
+#backups-table tbody .badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+    font-size: 0.7rem;
+}
+
+/* Styles pour les lignes vides */
+#backups-table tbody tr:empty {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #backups-table tbody td {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.85rem;
+    }
+    
+    #backups-table tbody .btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
 }

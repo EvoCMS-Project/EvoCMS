@@ -39,6 +39,109 @@ function html_encode($string)
 
 
 /**
+ * Récupère les informations de la page courante dans l'admin
+ * @param string $type 'icon', 'title', 'description', 'both', 'all', ou 'html'
+ * @return string|array
+ */
+
+ function getCurrentPageInfo($type = 'both')
+ {
+	 $page = App::GET('page');
+	 
+	 $pageIcons = [
+		 '' => 'fa-info-circle',
+		 'index' => 'fa-info-circle',
+		 'settings' => 'fa-keyboard',
+		 'reports' => 'fa-exclamation-circle',
+		 'servers' => 'fa-server',
+		 'page_edit' => 'fa-file',
+		 'pages' => 'fa-file-alt',
+		 'menu' => 'fa-list',
+		 'gallery' => 'fa-images',
+		 'avatars' => 'fa-grin-squint-tears',
+		 'downloads' => 'fa-file-download',
+		 'forums' => 'fa-list',
+		 'comments' => 'fa-comments',
+		 'broadcast' => 'fa-envelope',
+		 'users' => 'fa-users',
+		 'groups' => 'fa-layer-group',
+		 'history' => 'fa-user-secret',
+		 'security' => 'fa-user-slash',
+		 'modules' => 'fa-cogs',
+		 'backup' => 'fa-file-archive',
+		 'file_editor' => 'fa-file-code',
+	 ];
+	 
+	 $pageTitles = [
+		 '' => __('admin/menu.title_info'),
+		 'index' => __('admin/menu.title_info'),
+		 'settings' => __('admin/menu.sub_config'),
+		 'reports' => __('admin/menu.sub_report'),
+		 'servers' => __('admin/menu.sub_servers'),
+		 'page_edit' => __('admin/menu.sub_newpage'),
+		 'pages' => __('admin/menu.sub_pages'),
+		 'menu' => __('admin/menu.sub_menu'),
+		 'gallery' => __('admin/menu.sub_lib_media'),
+		 'avatars' => __('admin/menu.sub_lib_avatar'),
+		 'downloads' => __('admin/menu.sub_download'),
+		 'forums' => __('admin/menu.sub_forum'),
+		 'comments' => __('admin/menu.sub_comments'),
+		 'broadcast' => __('admin/menu.sub_newsletter'),
+		 'users' => __('admin/menu.sub_members'),
+		 'groups' => __('admin/menu.sub_groups'),
+		 'history' => __('admin/menu.sub_log_admin'),
+		 'security' => __('admin/menu.sub_security'),
+		 'modules' => __('admin/menu.sub_modules'),
+		 'backup' => __('admin/menu.sub_backup'),
+		 'file_editor' => __('admin/menu.sub_files_editor'),
+	 ];
+	 
+	 $pageDescriptions = [
+		 '' => 'Tableau de bord principal avec les statistiques du site',
+		 'index' => 'Tableau de bord principal avec les statistiques du site',
+		 'settings' => 'Configuration générale du site, paramètres et préférences',
+		 'reports' => 'Gestion des signalements et modération du contenu',
+		 'servers' => 'Configuration et gestion des serveurs de jeu',
+		 'page_edit' => 'Création et édition de nouvelles pages et articles',
+		 'pages' => 'Gestion complète des pages, articles et contenu du site',
+		 'menu' => 'Éditeur de menu pour personnaliser la navigation',
+		 'gallery' => 'Bibliothèque multimédia pour gérer les images et fichiers',
+		 'avatars' => 'Gestion des avatars et images de profil des utilisateurs',
+		 'downloads' => 'Section de téléchargements et fichiers partagés',
+		 'forums' => 'Configuration et modération des forums de discussion',
+		 'comments' => 'Modération des commentaires et interactions utilisateurs',
+		 'broadcast' => 'Envoi de newsletters et communications de masse',
+		 'users' => 'Gestion des membres, profils et comptes utilisateurs',
+		 'groups' => 'Configuration des groupes et permissions utilisateurs',
+		 'history' => 'Historique des actions et logs d\'administration',
+		 'security' => 'Sécurité, bannissements et protection du site',
+		 'modules' => 'Gestion des modules et extensions du CMS',
+		 'backup' => 'Sauvegarde et restauration des données du site',
+		 'file_editor' => 'Éditeur de fichiers pour modifications directes',
+	 ];
+	 
+	 $icon = $pageIcons[$page] ?? 'fa-tachometer-alt';
+	 $title = $pageTitles[$page] ?? ucfirst($page ?: 'Dashboard');
+	 $description = $pageDescriptions[$page] ?? 'Page d\'administration';
+	 
+	 switch ($type) {
+		 case 'icon':
+			 return $icon;
+		 case 'title':
+			 return $title;
+		 case 'description':
+			 return $description;
+		 case 'both':
+			 return ['icon' => $icon, 'title' => $title];
+		 case 'all':
+			 return ['icon' => $icon, 'title' => $title, 'description' => $description];
+		 case 'html':
+		 default:
+			 return '<i class="fa ' . $icon . ' mr-2"></i>' . $title;
+	 }
+ } 
+
+/**
  * Undocumented
  */
 function geoip_country_code($hostname)
