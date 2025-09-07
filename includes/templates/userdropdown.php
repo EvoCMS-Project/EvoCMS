@@ -10,7 +10,7 @@ App::trigger('user_menu', [&$extra_menu_items]);
 	<a href="<?=App::getURL('user');?>" class="btn btn-default" data-hover="dropdown"><span class="account"><?= __('userdropdown.account') ?> (</span><strong><?= App::getCurrentUser()->username ?></strong><span class="account">)</span>
 	<?php if ($alerts) echo ' <i class="fa fa-bell"></i> '. $alerts ?></a>
 	<button type="button" class="btn btn-default dropdown-toggle dropdown-toggle-split account" data-hover="dropdown">
-		<span class="sr-only">Toggle Dropdown</span>
+		<span class="visually-hidden">Toggle Dropdown</span>
 	</button>
 	<div id="userdropdown" class="dropdown-menu" role="menu" style="margin-top: -4px;">
 		<?php

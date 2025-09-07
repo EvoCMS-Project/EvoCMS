@@ -84,7 +84,7 @@ if (IS_POST && $current_plugin && $current_plugin->settings) {
 ?>
 
 <?php if (!$current_plugin && class_exists('ZipArchive')) { ?>
-	<div class="float-right">
+	<div class="float-end">
 		<form method="post" class="form-horizontal" enctype="multipart/form-data">
 				<?= __('admin/modules.header_form') ?> : <input type="file" name="plugin_file" style="display: inline;width:200px;"><button type="submit"><?= __('admin/modules.header_form_btn_upload') ?></button>
 		</form>
@@ -116,16 +116,16 @@ if ($current_plugin) {
 				echo '<td><div><strong>' . html_encode($module->name) . '</strong> '.html_encode($module->version) .'</div><small>Type: '.implode(', ', $module->exports).'</small><br><small>'.($updates[$plugin_id]['content'] ?? '').'</small></td>';
 				echo '<td><p>' . html_encode($module->description) . '</p></td>';
 				echo '<td>' . html_encode($module->author) . '</td>'; // <div><small>' . implode("\n", html_encode($module->contributors)) . '</small></div>
-				echo '<td class="text-right">';
+				echo '<td class="text-end">';
 
 				if (App::getModule($plugin_id)) {
 					if ($module->settings) {
-						echo '<a class="btn btn-default btn-sm" href="?page=modules&plugin='.$plugin_id.'"><i class="fa fa-cog"></i> '. __('admin/modules.btn_settings') .'</a> ';
+						echo '<a class="btn btn-outline-secondary btn-sm" href="?page=modules&plugin='.$plugin_id.'"><i class="fa fa-cog"></i> '. __('admin/modules.btn_settings') .'</a> ';
 					}
-					echo '<button type="submit" name="deactivate_plugin" class="btn btn-default btn-sm btn-danger" value="'.$plugin_id.'">'. __('admin/modules.btn_disabling') .'</button> ';
+					echo '<button type="submit" name="deactivate_plugin" class="btn btn-outline-secondary btn-sm btn-danger" value="'.$plugin_id.'">'. __('admin/modules.btn_disabling') .'</button> ';
 				} else {
-					echo '<button type="submit" name="activate_plugin" class="btn btn-default btn-sm btn-success" value="'.$plugin_id.'">'. __('admin/modules.btn_enabling') .'</button> ';
-					echo '<button type="submit" name="delete_plugin" class="btn btn-default btn-sm btn-danger" value="'.$plugin_id.'" onclick="return confirm(\''.__('admin/modules.btn_delete_onclic').'\');">'.__('admin/general.btn_delete').'</button> ';
+					echo '<button type="submit" name="activate_plugin" class="btn btn-outline-secondary btn-sm btn-success" value="'.$plugin_id.'">'. __('admin/modules.btn_enabling') .'</button> ';
+					echo '<button type="submit" name="delete_plugin" class="btn btn-outline-secondary btn-sm btn-danger" value="'.$plugin_id.'" onclick="return confirm(\''.__('admin/modules.btn_delete_onclic').'\');">'.__('admin/general.btn_delete').'</button> ';
 				}
 
 				echo '</td></tr>';

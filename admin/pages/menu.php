@@ -102,32 +102,32 @@ $pages = [
 	</div>
 	<div class="card-body">
 	<form class="form-horizontal" method="post" action="#">
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_name') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/menu.table_name') ?> :</label>
 		<div class="col-sm-8 controls">
 			<input class="form-control" name="name" type="text" value="<?php echo html_encode($cur_elem['name'])?>">
 		</div>
 	</div>
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_ico') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/menu.table_ico') ?> :</label>
 		<div class="col-sm-8 controls">
 		<?= Widgets::iconSelect('icon', $cur_elem['icon']) ?>
 		</div>
 	</div>
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_parent') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/menu.table_parent') ?> :</label>
 		<div class="col-sm-8 controls">
 			<?= Widgets::select('parent', $parent_list, $cur_elem['parent'], false) ?>
 		</div>
 	</div>
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_order') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/menu.table_order') ?> :</label>
 		<div class="col-sm-8 controls">
 			<?= Widgets::select('priority', array_keys(array_fill(0, 100, '')), $cur_elem['priority']) ?>
 		</div>
 	</div>
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_link') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/menu.table_link') ?> :</label>
 		<div class="col-sm-8 controls">
 			<input class="form-control" name="link" id="link" type="text" value="<?php echo $cur_elem['page_name'] ? '' : html_encode($cur_elem['link'])?>">
 			ou
@@ -135,8 +135,8 @@ $pages = [
 			<script> $('#internal_page').change(function() { $('#link').val(''); }); </script>
 		</div>
 	</div>
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/menu.table_viewable') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/menu.table_viewable') ?> :</label>
 		<div class="col-sm-8 controls">
 		<?php
 			echo '<select class="form-control" name="visibility">';
@@ -148,7 +148,7 @@ $pages = [
 		</div>
 	</div>
 	<div class="text-center">
-		<button class="btn btn-medium btn-primary" name="add_menu" value="<?php echo $cur_elem['id']?>" type="submit"><?= __('admin/menu.btn_save') ?></button>  <button class="btn btn-danger"><?= __('admin/menu.btn_cancel') ?></button>
+		<button class="btn btn-primary" name="add_menu" value="<?php echo $cur_elem['id']?>" type="submit"><?= __('admin/menu.btn_save') ?></button>  <button class="btn btn-danger"><?= __('admin/menu.btn_cancel') ?></button>
 	</div>
 </form>
 	</div>

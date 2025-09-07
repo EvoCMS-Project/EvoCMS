@@ -29,7 +29,7 @@ $mails  = Db::QueryAll(
 	<li class="nav-item"><a class="nav-link disabled" href="#files" data-bs-toggle="tab"><?= __('admin/user_view.tab_file') ?></a></li>
 	<li class="nav-item"><a class="nav-link" href="#history" data-bs-toggle="tab"><?= __('admin/user_view.tab_logs') ?></a></li>
 </ul>
-<div class="tab-content panel">
+<div class="tab-content">
 	<div class="tab-pane fade" id="profile" style="padding: 1em;">
 	<?php if (has_permission('admin.edit_uprofile')): ?>
 		<?php include ROOT_DIR.'/pages/profile.php'; ?>

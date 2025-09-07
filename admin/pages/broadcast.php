@@ -102,13 +102,13 @@ $editors = [
 	<input type="hidden" name="cycle" value="100">
 	<div class="row">
 		<div class="form-horizontal text-center col-sm-9">
-			<div class="form-group row">
+			<div class="mb-3 row">
 				<label class="col-sm-1 control-label" for="sujet"><?= __('admin/broadcast.form_subject') ?>:</label>
 				<div class="col-sm-12 control">
 					<input id="sujet" name="sujet" class="form-control" type="text" maxlength="32" value="<?= $subject ?>">
 				</div>
 			</div>
-			<div class="form-group row">
+			<div class="mb-3 row">
 				<label class="col-sm-1 control-label" for="id"><?= __('admin/broadcast.form_content') ?> :</label>
 				<div class="col-sm-12 control">
 					<textarea id="editor" name="message" class="form-control" style="height: 350px" placeholder="<?= __('admin/broadcast.form_content_ph') ?>..."><?= html_encode($message ?: nl2br($preset)) ?></textarea>

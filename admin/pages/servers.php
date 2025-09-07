@@ -113,36 +113,36 @@ if (isset($servers[App::POST('edit_serv', App::POST('id'))])) {
 	else
 		echo '<legend>'. __('admin/general.server_add_title') .'</legend>';
 ?>
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="name"><?= __('admin/general.server_name') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="name"><?= __('admin/general.server_name') ?> :</label>
 		<div class="col-sm-8 controls">
 				<input class="form-control" id="name" name="name" type="text" value="<?=html_encode($cur_serv['name'])?>">
 		</div>
 	</div>
 
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/general.server_type') ?> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/general.server_type') ?> :</label>
 		<div class="col-sm-8 controls">
 			<?= Widgets::select('type', $server_types, $cur_serv['type'], true, 'class="form-control" id="account"') ?>
 		</div>
 	</div>
 
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="address"><?= __('admin/general.server_ip') ?> <i class="fa fa-question-circle" title="<?= __('admin/general.server_title_ph') ?>"></i> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="address"><?= __('admin/general.server_ip') ?> <i class="fa fa-question-circle" title="<?= __('admin/general.server_title_ph') ?>"></i> :</label>
 		<div class="col-sm-8 controls">
 			<input class="form-control" id="address" name="address" type="text" value="<?=html_encode($cur_serv['address'])?>">
 		</div>
 	</div>
 
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="password"><?= __('admin/general.server_password') ?> <i class="fa fa-question-circle" title="..."></i> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="password"><?= __('admin/general.server_password') ?> <i class="fa fa-question-circle" title="..."></i> :</label>
 		<div class="col-sm-8 controls">
 			<input class="form-control" id="password" name="password" type="text" value="<?=html_encode($cur_serv['password'])?>">
 		</div>
 	</div>
 
-	<div class="form-group row">
-		<label class="col-sm-3 col-form-label text-right" for="poll_interval">Polling <small>(secondes)</small> :</label>
+	<div class="mb-3 row">
+		<label class="col-sm-3 col-form-label text-end" for="poll_interval">Polling <small>(secondes)</small> :</label>
 		<div class="col-sm-8 controls">
 			<input class="form-control" id="poll_interval" name="poll_interval" type="text" value="<?=$cur_serv['poll_interval']?>">
 		</div>
@@ -150,6 +150,6 @@ if (isset($servers[App::POST('edit_serv', App::POST('id'))])) {
 
 	<div class="text-center">
 		<input type="hidden" name="id" value="<?=$cur_serv ? $cur_serv['id'] : 0?>">
-		<button class="btn btn-medium btn-primary" name="save" value="1" type="submit"><?= __('admin/general.server_btn_save') ?></button> <button class="btn btn-danger"><?= __('admin/menu.btn_cancel') ?></button>
+		<button class="btn btn-primary" name="save" value="1" type="submit"><?= __('admin/general.server_btn_save') ?></button> <button class="btn btn-danger"><?= __('admin/menu.btn_cancel') ?></button>
 	</div>
 </form>

@@ -58,15 +58,15 @@
 		<?php } else { ?>
 			<legend><a href="<?=App::getURL('login', ['redir' => $page['page_id']])?>"><?= __('blog.comment_login') ?> : </legend>
 			<div class="input-group">
-				<div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-user"></i></span><span class="sr-only"><?= __('blog.comment_name') ?></span></div>
+				<div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-user"></i></span><span class="visually-hidden"><?= __('blog.comment_name') ?></span></div>
 				<input type="text" name="name" class="form-control" placeholder="Votre nom (optionnel)">
-				<div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-envelope"></i></span><span class="sr-only"><?= __('blog.comment_email') ?></span></div>
+				<div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-envelope"></i></span><span class="visually-hidden"><?= __('blog.comment_email') ?></span></div>
 				<input type="text" name="email" class="form-control" placeholder="Votre email (optionnel)">
 			</div>
 			<br>
 			<textarea id="editor" class="form-control" name="commentaire" placeholder="<?= __('blog.comment_field_ph') ?>" maxlength="1024" rows="3"></textarea>
 			<br>
-			<div class="input-group form-group">
+			<div class="input-group mb-3">
 				<div class="input-group-prepend"><span class="input-group-text"><?= __('blog.comment_captcha') ?> : <strong><?=$captcha_code?></strong></span></div>
 				<input class="form-control" type="text" name="verif" maxlength="8" value="">
 			</div>

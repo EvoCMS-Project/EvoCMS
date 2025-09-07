@@ -56,11 +56,11 @@ if ($posts) {
 			echo '<td><a href="'.App::getURL('user', ['id'=>$post['poster_id']]).'"><strong class="group-color-'.$post['color'].'">' . html_encode($post['username'] ?: $post['poster']). '</strong><br>';
 			echo get_avatar($post). '</a>';
 			echo '<p>';
-			echo '<span class="badge badge-primary label-usergroup">' . $post['gname'] . '</span>';
+			echo '<span class="badge bg-primary label-usergroup">' . $post['gname'] . '</span>';
 
 			if ($post['ban_reason']) {
 				$reason = has_permission('mod.forum_topic_close') ? html_encode($post['ban_reason']) : __('forum.post_banned_user');
-				echo '​<span class="badge badge-danger" title="'.$reason.'">'. __('forum.post_banned') .'</span>';
+				echo '​<span class="badge bg-danger" title="'.$reason.'">'. __('forum.post_banned') .'</span>';
 			}
 
 			echo '</p>';

@@ -176,7 +176,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 	<div class="tab-content">
 		<div class="tab-pane fade show active" id="page_edit">
 			<div class="control-group">
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<div class="col-sm-9">
 						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.title') ?> :</label>
 						<div class="controls">
@@ -192,7 +192,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 						</div>
 					</div>
 				</div>
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<div class="col-sm-9">
 						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.url') ?> :</label>
 						<div class="controls">
@@ -219,7 +219,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 				</div>
 			</div>
 			<div class="control-group">
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<div class="col-sm-3 extra-option">
 						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.category') ?> :</label>
 						<div class="controls">
@@ -246,7 +246,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 					</div>
 				</div>
 
-				<div class="form-group row extra-option pb-3">
+				<div class="mb-3 row extra-option pb-3">
 					<div class="col-sm-3">
 						<label class="col-form-label text-end" for="name"><span title="<?= __('admin/page_edit.option_thumbnails_title') ?>"><?= __('admin/page_edit.option_thumbnail') ?></span> :</label>
 						<div class="controls">

@@ -645,7 +645,7 @@ switch($cur_step) {
 						<input type="hidden" name="language" value="<?= post_e('language', 'french') ?>">
 <?php if ($cur_step == STEP_LANGUAGE): ?>
 			<h2>Veuillez choisir votre langue<br>Please choose your language</h2>
-			<div class="form-group row">
+			<div class="mb-3 row">
 				<div class="col-sm-12">
 					<select class="form-control" id="language" name="language">
 						<?php
@@ -676,10 +676,10 @@ switch($cur_step) {
 <?php elseif ($cur_step == STEP_DATABASE): ?>
 			<legend><?= __('steps.database') ?></legend>
 			<p><?= __('database.legend') ?></p>
-			<div class="sqlite form-group row bs-callout bs-callout-danger">
+			<div class="sqlite mb-3 row alert alert-danger">
 				<?= __('database.sqlite_legend') ?>
 			</div>
-			<div class="sqlite mysql form-group row" data-bs-toggle="tooltip">
+			<div class="sqlite mysql mb-3 row" data-bs-toggle="tooltip">
 				<label for="type" class="col-sm-4 col-form-label text-end">Type</label>
 				<div class="col-sm-6">
 					<select class="form-control" id="type" name="db_type">
@@ -693,7 +693,7 @@ switch($cur_step) {
 				</div>
 				<script>
 					$(function() {$('#type').bind('change blur keyup', function () {
-						$('.form-group').hide();
+						$('.mb-3').hide();
 						$('.'+$(this).val()).show();
 						if ($(this).val() == 'sqlite') {
 							$('#dbname').val('db-<?= random_hash(6) ?>.sqlite');
@@ -706,31 +706,31 @@ switch($cur_step) {
 					});
 				</script>
 			</div>
-			<div class="mysql form-group row">
+			<div class="mysql mb-3 row">
 				<label for="host" class="col-sm-4 col-form-label text-end"><?= __('database.host') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="host" name="db_host" value="<?= post_e('db_host', 'localhost') ?>">
 				</div>
 			</div>
-			<div class="sqlite mysql form-group row">
+			<div class="sqlite mysql mb-3 row">
 				<label for="dbname" class="col-sm-4 col-form-label text-end"><?= __('database.name') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="dbname" name="db_name" value="<?= post_e('db_name') ?>">
 				</div>
 			</div>
-			<div class="mysql form-group row">
+			<div class="mysql mb-3 row">
 				<label for="username" class="col-sm-4 col-form-label text-end"><?= __('database.username') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="username" name="db_user" value="<?= post_e('db_user') ?>">
 				</div>
 			</div>
-			<div class="mysql form-group row">
+			<div class="mysql mb-3 row">
 				<label for="password" class="col-sm-4 col-form-label text-end"><?= __('database.password') ?></label>
 				<div class="col-sm-6">
 					<input type="password" class="form-control" id="password" name="db_pass" value="<?= post_e('db_pass') ?>">
 				</div>
 			</div>
-			<div class="sqlite mysql form-group row" data-bs-toggle="tooltip" title="<?= __('database.prefix_legend') ?>">
+			<div class="sqlite mysql mb-3 row" data-bs-toggle="tooltip" title="<?= __('database.prefix_legend') ?>">
 				<label for="inputPassword3" class="col-sm-4 col-form-label text-end"><?= __('database.prefix') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="prefixe" name="db_prefix" value="<?= post_e('db_prefix', 'evo_') ?>">
@@ -748,31 +748,31 @@ switch($cur_step) {
 			<div>
 				<legend><?= __('steps.config') ?></legend>
 				<p><?= __('config.legend') ?></p>
-					<div class="form-group row">
+					<div class="mb-3 row">
 						<label for="sitename" class="col-sm-3 col-form-label text-end"><?= __('config.sitename') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="sitename" name="name" value="<?= post_e('name', 'Evo-CMS '.EVO_VERSION) ?>">
 						</div>
 					</div>
-					<div class="form-group row">
+					<div class="mb-3 row">
 						<label for="siteurl" class="col-sm-3 col-form-label text-end"><?= __('config.siteurl') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="siteurl" name="url" value="<?= post_e('url', $url) ?>">
 						</div>
 					</div>
-					<div class="form-group row">
+					<div class="mb-3 row">
 						<label for="sitemail" class="col-sm-3 col-form-label text-end"><?= __('config.siteemail') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="sitemail" name="email" placeholder="example@domain.com" value="<?= post_e('email') ?>">
 						</div>
 					</div>
-					<div class="form-group row">
+					<div class="mb-3 row">
 						<label for="sitelogin" class="col-sm-3 col-form-label text-end"><?= __('config.username') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="sitelogin" name="admin" value="admin" value="<?= post_e('admin') ?>">
 						</div>
 					</div>
-					<div class="form-group row">
+					<div class="mb-3 row">
 						<label for="sitepass" class="col-sm-3 col-form-label text-end"><?= __('config.password') ?><br><small><?= __('config.password2') ?></small></label>
 						<div class="col-sm-9">
 							<input type="password" class="form-control" id="sitepass" name="admin_pass" value="<?= post_e('admin_pass') ?>">
@@ -781,7 +781,7 @@ switch($cur_step) {
 					</div>
 
 					<?php if (EVO_REPORT_EMAIL): ?>
-					<div class="form-group row"  data-bs-toggle="tooltip" title="<?= __('config.report_legend') ?>">
+					<div class="mb-3 row"  data-bs-toggle="tooltip" title="<?= __('config.report_legend') ?>">
 						<label class="col-sm-3 col-form-label text-end"></label>
 						<div class="col-sm-9">
 						<input type="checkbox" name="report" id="report" value="1" checked> <label for="report"><?= __('config.report') ?></label>
@@ -792,35 +792,35 @@ switch($cur_step) {
 <?php elseif ($cur_step == STEP_INSTALL): ?>
 			<legend><?= __('steps.finished') ?></legend>
 			<?php if ($failed) { ?>
-				<div class="bs-callout bs-callout-danger">
+				<div class="alert alert-danger">
 				<p><?= __('install.failed_legend') ?></p>
 				<h4><?= __('install.failed') ?></h4>
 				<p><?= $failed ?></p>
 				</div>
 			<?php } elseif ($done) { ?>
-				<div class="bs-callout bs-callout-success">
+				<div class="alert alert-success">
 					<h4><?= __('install.success') ?></h4>
 					<p><?= __('install.success_legend') ?></p>
 				</div>
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<label class="col-sm-4 col-form-label text-end"><?= __('config.siteurl') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['url'] ?></div>
 					</div>
 				</div>
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<label class="col-sm-4 col-form-label text-end"><?= __('config.adminurl') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['url'] ?>/admin</div>
 					</div>
 				</div>
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<label class="col-sm-4 col-form-label text-end"><?= __('config.username') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['admin'] ?></div>
 					</div>
 				</div>
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<label class="col-sm-4 col-form-label text-end"><?= __('config.password') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['admin_pass'] ?></div>
@@ -837,9 +837,9 @@ switch($cur_step) {
 							<?php
 								if (empty($hide_nav)) {
 									if ($cur_step > 0)
-										echo '<a onclick="$(\'#step\').val(',($cur_step-1).').click();" class="btn btn-primary btn-md" role="submit">'.__('buttons.previous').'</a> ';
+										echo '<a onclick="$(\'#step\').val(',($cur_step-1).').click();" class="btn btn-primary" role="submit">'.__('buttons.previous').'</a> ';
 									if ($next_step < max(array_keys($steps)))
-										echo '<button id="step" type="submit" name="step" value="' . $next_step . '" class="btn btn-primary btn-md" onclick="'. ($next_step >= STEP_CONFIG ? '$(\'#form-content,#progressbar\').toggle();' : '').'" role="submit">'.__('buttons.next').'</button>';
+										echo '<button id="step" type="submit" name="step" value="' . $next_step . '" class="btn btn-primary" onclick="'. ($next_step >= STEP_CONFIG ? '$(\'#form-content,#progressbar\').toggle();' : '').'" role="submit">'.__('buttons.next').'</button>';
 								}
 							?>
 							</p>
@@ -847,9 +847,9 @@ switch($cur_step) {
 						</form>
 						<div id="progressbar" style="display:none;">
 							<legend><?= __('install.please_wait') ?>...</legend>
-							<div class=" progress progress-striped active">
-							  <div class="progress-bar"  role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-								 <span class="sr-only">Endless progressbar</span>
+							<div class="progress">
+							  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
+								 <span class="visually-hidden">Endless progressbar</span>
 							  </div>
 							</div>
 						</div>

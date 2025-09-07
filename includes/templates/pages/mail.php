@@ -1,7 +1,7 @@
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link <?=$tab_mail?:'active'?>"href="#inbox" data-bs-toggle="tab"><?= __('mail.tab_inbox') ?> <span class='badge badge-success'><?= count($mail_inbox) ?></span></a></li>
-	<li class="nav-item"><a class="nav-link" href="#outbox" data-bs-toggle="tab"><?= __('mail.tab_outbox') ?> <span class='badge badge-info'><?= count($mail_outbox) ?></span></a></li>
-	<li class="nav-item"><a class="nav-link" href="#trash" data-bs-toggle="tab"><?= __('mail.tab_trash') ?> <span class='badge badge-info'><?= count($mail_trash) ?></span></a></li>
+	<li class="nav-item"><a class="nav-link <?=$tab_mail?:'active'?>"href="#inbox" data-bs-toggle="tab"><?= __('mail.tab_inbox') ?> <span class='badge bg-success'><?= count($mail_inbox) ?></span></a></li>
+	<li class="nav-item"><a class="nav-link" href="#outbox" data-bs-toggle="tab"><?= __('mail.tab_outbox') ?> <span class='badge bg-info'><?= count($mail_outbox) ?></span></a></li>
+	<li class="nav-item"><a class="nav-link" href="#trash" data-bs-toggle="tab"><?= __('mail.tab_trash') ?> <span class='badge bg-info'><?= count($mail_trash) ?></span></a></li>
 	<li class="nav-item"><a class="nav-link <?=!$tab_mail?:'active'?>" href="#mail" data-bs-toggle="tab"><i class="fa fa-pencil-alt"></i> <?= __('mail.tab_composer') ?></a></li>
 	<li class="nav-item"><a class="nav-link" href="<?=App::getURL('mail');?>"><i class="fa fa-sync"></i></a></li>
 </ul>
@@ -32,7 +32,7 @@
 						echo '<td>' . html_encode($mail['username']) . '</td>';
 						echo '<td>' . html_encode($mail['sujet']) . '</td>';
 						echo '<td style="white-space:nowrap;">' . Format::today($mail['posted'], true) . '</td>';
-						echo '<td class="text-right btn-group">';
+						echo '<td class="text-end btn-group">';
 							echo '<a href="' . App::getURL('mail', ['id' => $mail['id']], '#mail') . '" title="'. __('mail.inbox_view') .'" class="btn btn-primary btn-sm"><i class="far fa-eye fa-1"></i></a> ';
 							echo "<button name='del_email' value='{$mail['id']}' title='". __('mail.inbox_delete') ."' class='btn btn-danger btn-sm'><i class='far fa-trash-alt'></i></button> ";
 						echo '</td>';
@@ -98,7 +98,7 @@
 						echo '<td>' . html_encode($mail['sujet']) . '</td>';
 						echo '<td>' . Format::today($mail['posted']) . '</td>';
 						echo '<td>' . Format::today($mail['viewed']) . '</td>';
-						echo '<td class="text-right">';
+						echo '<td class="text-end">';
 							echo "<button name='restore_email' value='{$mail['id']}' title='". __('mail.trash_restore') ."' class='btn btn-success btn-sm'><i class='fa fa-save'></i></button> ";
 						echo '</td>';
 					echo '</tr>';
@@ -155,13 +155,13 @@
 	<form method="post" action="<?=App::getURL('mail')?>">
 		<legend><?= __('mail.composer_title') ?></legend>
 		<div class="form-horizontal text-center">
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-2 control-label" for="query"><?= __('mail.composer_to') ?> :</label>
 			<div class="col-sm-8 control">
 				<input id="query" name="username" class="form-control"  data-autocomplete="userlist" type="text" value="<?=html_encode(App::POST('username') ?: ((string)(int)App::REQ('id') === App::REQ('id') ? '' : App::REQ('id'))) ?>">
 			</div>
 		</div>
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-2 control-label" for="sujet"><?= __('mail.composer_subject') ?> :</label>
 			<div class="col-sm-8 control">
 				<input name="sujet" class="form-control" type="text" maxlength="32" value="<?=html_encode(App::POST('sujet'))?>">

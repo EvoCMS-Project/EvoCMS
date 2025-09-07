@@ -13,7 +13,7 @@ if (App::GET('filter')) {
 
 $status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/pages.status_published'), 'archived' => __('admin/pages.status_archived')];
 ?>
-<div class="float-right">
+<div class="float-end">
 	<form method="post" class="form-inline">
 		<input id="filter" name="filter" class="form-control" type="text" value="<?= html_encode(App::GET('filter')) ?>" placeholder="<?= __('admin/pages.btn_search') ?>">
 		<button type="submit" hidden></button>
@@ -30,7 +30,7 @@ $status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/p
 	<li class="nav-item ms-auto"><a class="nav-link" href="?page=page_edit" title="<?= __('admin/pages.btn_add_title') ?>"><i class="far fa-lg fa-file"></i> <?= __('admin/pages.btn_add') ?></a></li>
 </ul>
 
-<div class="tab-content panel">
+<div class="tab-content">
 	<div class="tab-pane fade active show" id="all" style="padding: 1em;">
 
 <form action="?page=page_edit" method="post">

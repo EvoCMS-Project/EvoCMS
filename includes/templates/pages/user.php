@@ -1,18 +1,18 @@
 <div class="row">
-	<div class="col-sm-2 col-xs-2">
+	<div class="col-sm-2 col-2">
 		<div><?= get_avatar($user_info, 100) ?></div>
 	</div>
-	<div class="col-sm-5 col-xs-3">
+	<div class="col-sm-5 col-3">
 		<h4><?=ucfirst($user_info->username) ?></h4>
 		<p style="margin: -5px 0 8px; " class="group-color-<?= $user_info->group->color ?>"><?= ucfirst($user_info->group->name) ?></p>
-		<?= html_encode($ban_reason) ? '<span class="badge badge-danger">Membre bannis</span>' : ''?>
+		<?= html_encode($ban_reason) ? '<span class="badge bg-danger">Membre bannis</span>' : ''?>
 		<?php if (html_encode($user_info->website)) { ?>
 			<a target="_blank" href="<?= html_encode($user_info->website) ?>">
 				<span class="fa-stack fa-lg" title="<?= __('user.website') ?>">
 					<i class="fa fa-square fa-stack-2x"></i>
 					<i class="fa fa-home fa-stack-1x fa-inverse"></i>
 				</span>
-				<span class="sr-only"><?= __('user.website') ?></span>
+				<span class="visually-hidden"><?= __('user.website') ?></span>
 			</a>
 		<?php } ?>
 		<?php foreach(Evo\Social::getProviders() as $network => [$name, $icon]) { ?>
@@ -22,12 +22,12 @@
 						<i class="fa fa-square fa-stack-2x"></i>
 						<i class="fab <?= $icon ?> fa-stack-1x fa-inverse"></i>
 					</span>
-					<span class="sr-only"><?= $name ?></span>
+					<span class="visually-hidden"><?= $name ?></span>
 				</a>
 			<?php } ?>
 		<?php } ?>
 	</div>
-	<div class="col-sm-5 col-xs-3 text-right">
+	<div class="col-sm-5 col-3 text-end">
 		<?php
 		if (has_permission('admin.edit_uprofile')) {
 			echo '<a class="btn btn-primary" title="' . __('user.edit') . '" href="'.App::getAdminURL('user_view', ['id' => $user_info->id]).'"><i class="fa fa-pencil-alt fa-2x"></i></a> ';
@@ -66,11 +66,11 @@
 	<hr>
 	<div class="row">
 		<div class="col-md-6">
-			<a class="btn btn-success btn-sm btn-block" href="<?= App::getURL('mail/'.$user_info->username) ?>#mail"><i class="fa fa-envelope"></i> <?= __('user.send_message') ?></a>
+			<a class="btn btn-success btn-sm w-100" href="<?= App::getURL('mail/'.$user_info->username) ?>#mail"><i class="fa fa-envelope"></i> <?= __('user.send_message') ?></a>
 		 </div>
 		 <div class="col-md-6">
 			<form method="post" action="<?= App::getURL('friends') ?>">
-				<button class="btn btn-warning btn-sm btn-block" name="new_friend" value="<?= $user_info->username ?>"><i class="fa fa-user"></i> <?= __('user.add_friend') ?></button>
+				<button class="btn btn-warning btn-sm w-100" name="new_friend" value="<?= $user_info->username ?>"><i class="fa fa-user"></i> <?= __('user.add_friend') ?></button>
 			</form>
 		 </div>
 	</div>

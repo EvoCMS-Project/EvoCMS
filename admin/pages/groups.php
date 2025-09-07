@@ -71,7 +71,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 	<div class="card-header p-2"><h4><?= __('admin/groups.creation_title') ?></h4></div>
 	<div class="card-body">
 		<form class="form-horizontal" role="form" method="post">
-			<div class="form-group row">
+			<div class="mb-3 row">
 				<label class="col-sm-3 col-form-label text-end"><?= __('admin/groups.creation_name') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" name="new_group_name">
@@ -88,7 +88,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 	</div>
 	<div class="card-body">
 	<form method="post">
-		<div class="form-group row">
+		<div class="mb-3 row">
 
 			<div class="col-md-3 order-2">
 				<table id="reorder" class="sortable" cellspacing="0" cellpadding="2" style="width:100%;">
@@ -117,13 +117,13 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 			<div class="tab-content">
 				<div class="tab-pane fade active show p-3" id="general">
 					<legend><?= __('admin/groups.config_title') ?> </legend>
-					<div class="form-group row" style="height: 30px;">
+					<div class="mb-3 row" style="height: 30px;">
 						<label class="col-sm-5 col_gm col-form-label text-end"><?= __('admin/groups.config_gname') ?></label>
 						<div class="col-sm-6">
 							<input type="text" class="form-control" name="group_name" value="<?= $groups[$cur_id]['name']?>">
 						</div>
 					</div>
-					<div class="form-group row" style="height: 30px;">
+					<div class="mb-3 row" style="height: 30px;">
 						<label class="col-sm-5 col_gm col-form-label text-end"><?= __('admin/groups.config_grole') ?></label>
 						<div class="col-sm-6">
 						<?php if ($groups[$cur_id]['internal']) { ?>
@@ -133,7 +133,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 						<?php } ?>
 						</div>
 					</div>
-					<div class="form-group row" style="height: 30px;">
+					<div class="mb-3 row" style="height: 30px;">
 						<label for="`color`" class="col-sm-5 col_gm col-form-label text-end" ><?= __('admin/groups.config_cname') ?></label>
 						<div class="col-sm-6" style="margin-top:4px">
 							<select class="form-control group-color-<?= $groups[$cur_id]['color'] ?>" name="color"
@@ -153,7 +153,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 					<?php if ($groups[$cur_id]['internal']) { ?>
 						<em><?= __('admin/groups.delete_violation',['%gid%' => $groups[$cur_id]['internal']]) ?></em>
 					<?php } else { ?>
-					<div class="form-group row text-center" style="display: block">
+					<div class="mb-3 row text-center" style="display: block">
 						<button type="submit" name="delete_group" class="btn btn-danger" onclick="return confirm('Sur?');" value="<?php echo $cur_id?>"><?= __('admin/groups.delete_btn') ?></button>
 						<?= __('admin/groups.delete_move') ?> :
 						<?php
@@ -188,7 +188,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 						echo '</div>';
 					}
 				?>
-				<div class="form-group row text-center" style="display:block">
+				<div class="mb-3 row text-center" style="display:block">
 					<button type="submit" name="update_group" value="<?php echo $cur_id?>" class="btn btn-success"><?= __('admin/groups.save') ?></button>
 				</div>
 			</div>

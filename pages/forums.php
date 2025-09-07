@@ -559,7 +559,7 @@ elseif (isset($topic)) {
 	App::trigger('forum_before_posts_loop', array(&$posts));
 
 	if ($forum_moderator || has_permission('mod.forum_topic_move')) {
-		echo '<div id="move-topic-container" style="display:none;"><form method="post"><div class="form-group row">';
+		echo '<div id="move-topic-container" style="display:none;"><form method="post"><div class="mb-3 row">';
 			echo '<div class="col-md-9">';
 				foreach(forums_list() as $c) {
 					if ($c['forums']) {
@@ -624,7 +624,7 @@ if (isset($forum) && has_permission('forum.write', $forum['id']) && ($edit_mode 
 			<div class="card-body form-horizontal">';
 
 	if (App::GET('compose') || (App::GET('edit') && isset($post) && $topic['first_post_id'] == $post['id'])) {
-		echo '<div class="form-group row">
+		echo '<div class="mb-3 row">
 				<label class="col-sm-auto col-form-label" for="subject">'. __('forum.subject') .' :</label>
 				<div class="col control">
 					<input name="subject" class="form-control" type="text" maxlength="60" value="'.html_encode(App::POST('subject', $subject)).'">
@@ -644,12 +644,12 @@ if (isset($forum) && has_permission('forum.write', $forum['id']) && ($edit_mode 
 
 	if ($can_redirect && ($edit_mode && $post && $topic['first_post_id'] == $post['id'])) {
 		echo '
-		<div class="text-right">
+		<div class="text-end">
 			<button class="btn btn-secondary" type="button"
 				  onclick="$(this).button(\'toggle\');$(\'#redirectForm\').toggle().find(\'input\').val(\'\');"
 				  >'. __('forum.redirect') .'...</button>
 		</div>
-		<div class="form-group" id="redirectForm" style="display: none;">
+		<div class="mb-3" id="redirectForm" style="display: none;">
 			<label class="col-sm-2 control-label" for="redirect">'. __('forum.redirect') .' :</label>
 			<div class="col-sm-10 control">
 				<input name="redirect" class="form-control" placeholder="'. __('forum.exemple') .' : https://google.ca" type="text" maxlength="255" value="'.html_encode(App::POST('redirect', $topic['redirect'])).'">

@@ -80,34 +80,34 @@ if ($where) {
 	<br>
 	<form class="form-horizontal" method="post" action="?page=security">
 		<legend><?= __('admin/security.add_title') ?></legend>
-		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="type"><?= __('admin/security.table_type') ?> :</label>
+		<div class="mb-3 row">
+			<label class="col-sm-3 col-form-label text-end" for="type"><?= __('admin/security.table_type') ?> :</label>
 			<div class="col-sm-8 controls">
 				<?= Widgets::select('type', $types); ?>
 				<small><?= __('admin/security.small_type') ?></small>
 			</div>
 		</div>
 		<div class="row ban ban-username ban-email ban-ip">
-			<label class="col-sm-3 col-form-label text-right" for="rule"><?= __('admin/security.table_rule') ?> :</label>
+			<label class="col-sm-3 col-form-label text-end" for="rule"><?= __('admin/security.table_rule') ?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" data-autocomplete="userlist" name="rule" id="rule" type="text" <?php if (App::GET('username')) echo 'value="' . html_encode(App::GET('username')) .'" style="background-color:pink;"'; ?>>
 				<small><?= __('admin/security.small_rule') ?></small>
 			</div>
 		</div>
 		<div class="row ban ban-country">
-			<label class="col-sm-3 col-form-label text-right"><?= __('admin/security.table_country') ?> :</label>
+			<label class="col-sm-3 col-form-label text-end"><?= __('admin/security.table_country') ?> :</label>
 			<div class="col-sm-8">
 				<?= Widgets::select('country', COUNTRIES); ?>
 			</div>
 		</div>
-		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="reason"><?= __('admin/security.table_reason') ?> :</label>
+		<div class="mb-3 row">
+			<label class="col-sm-3 col-form-label text-end" for="reason"><?= __('admin/security.table_reason') ?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="reason" type="text" value="">
 			</div>
 		</div>
-		<div class="form-group row">
-			<label class="col-sm-3 col-form-label text-right" for="expires"><?= __('admin/security.table_expiration') ?> :</label>
+		<div class="mb-3 row">
+			<label class="col-sm-3 col-form-label text-end" for="expires"><?= __('admin/security.table_expiration') ?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="expires" type="text" value="+1 week">
 				<small><?= __('admin/security.small_expiration') ?> : <a href="http://php.net/manual/fr/function.strtotime.php">strtotime</a>.</small>

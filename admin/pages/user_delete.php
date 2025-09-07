@@ -80,5 +80,5 @@ elseif (App::POST('del_confirmation')) {
 	<label><input name="del_files" value="1" type="checkbox" disabled> <?= __('admin/user_delete.checkbox_files') ?></label><br><br>
 	<label><?= __('admin/user_delete.field_reason') ?> : </label><input name="del_reason" type="input" class="form-control">
 	<br>
-	<input class="btn btn-medium btn-danger" type="submit" name="del_confirmation" onclick="return confirm('Sur?');" value="Supprimer">
+	<input class="btn btn-danger" type="submit" name="del_confirmation" onclick="return confirm('Sur?');" value="Supprimer">
 </form>

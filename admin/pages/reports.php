@@ -31,7 +31,7 @@ $ptotal = 0;
 <?php } else { ?>
 	<legend><?= __('admin/general.report_title')?></legend>
 	<form method="post" id="content">
-		<div class="float-right">
+		<div class="float-end">
 		<?php
 			foreach($types as $t) {
 				if (empty ($selected_types) || in_array($t['type'], $selected_types))

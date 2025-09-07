@@ -215,7 +215,7 @@ class Widgets
 				$q . ' '
 			);
 
-			$r .= '<div class="card text-left mb-4 sql-query">';
+			$r .= '<div class="card text-start mb-4 sql-query">';
 			$r .= '  <div class="card-header ' . ($query['errno'] ? 'text-white bg-danger' : '')  . '">';
 
 			if ($query['errno'])
@@ -274,7 +274,7 @@ class Widgets
 
 		foreach ($range as $i => $l)
 			if ($i == $page)
-				$r .= '<li class="page-item active"><span class="page-link">' . $i . ' <span class="sr-only">(current)</span></span></li>';
+				$r .= '<li class="page-item active"><span class="page-link">' . $i . ' <span class="visually-hidden">(current)</span></span></li>';
 			else
 				$r .= '<li class="page-item"><a class="page-link" href="' . $link . $i . '">' . $l . '</a></li>';
 
@@ -457,7 +457,7 @@ class Widgets
 		{
 			$subfields = $props['type'] === 'multiple' ? $props['fields'] : [$name => $props];
 
-			$buffer .= '<div class="form-group row">';
+			$buffer .= '<div class="mb-3 row">';
 
 			$buffer .= '<label class="col-sm-4 col-form-label text-end" for="' . $form.'-'.md5(key($subfields)) . '">' . $props['label'] . ' ';
 
@@ -533,7 +533,7 @@ class Widgets
 			$buffer .= '</div></div>';
 		}
 
-		$buffer .= '<div class="text-center"><input class="btn btn-medium btn-primary" type="submit" value="' . html_encode($submit_label) . '"></div>';
+		$buffer .= '<div class="text-center"><input class="btn btn-primary" type="submit" value="' . html_encode($submit_label) . '"></div>';
 
 		$buffer .= '<script>
 			$(".form-control").bind("change keyup", function() {

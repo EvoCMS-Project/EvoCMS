@@ -173,13 +173,13 @@ foreach($forums as $forum) {
 	<div class="card-header"><strong><?= __('admin/forums.header')?></strong></div>
 	<div class="card-body">
 	<form class="form-horizontal" role="form" method="post">
-	  <div class="form-group row">
+	  <div class="mb-3 row">
 		<label class="col-sm-4 col-form-label text-right"><?= __('admin/forums.table_title')?></label>
 		<div class="col-sm-5">
 		  <input type="text" class="form-control" name="forums_name" placeholder="<?=html_encode(App::getConfig('name'))?>" value="<?=html_encode(App::POST('forums_name', App::getConfig('forums.name')))?>">
 		</div>
 	  </div>
-	  <div class="form-group row">
+	  <div class="mb-3 row">
 		<label class="col-sm-4 col-form-label text-right"><?= __('admin/forums.table_desc')?></label>
 		<div class="col-sm-5">
 		  <input type="text" class="form-control" name="forums_description" placeholder="<?=html_encode(App::getConfig('description'))?>" value="<?=html_encode(App::POST('forums_description', App::getConfig('forums.description')))?>">
@@ -204,7 +204,7 @@ foreach($categories as $id => $c) {
 			<input type="hidden" name="cat_id" value="'.$id.'">
 			<div class="card">
 				<div class="card-header">
-					<div class="btn-group float-right">
+					<div class="btn-group float-end">
 						<button name="move_category" value="-1" class="btn btn-sm btn-info">↑</button>
 						<button name="move_category" value="1" class="btn btn-sm btn-info">↓</button>
 						<button name="edit_category" value="1" class="btn btn-sm btn-info">'. __('admin/forums.table_btn_rename') .'</button>
@@ -274,27 +274,27 @@ foreach($categories as $id => $c) {
 		</strong></div>
 		<div class="card-body">
 	<form class="form-horizontal" method="post" action="#">
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-3 col-form-label text-right" for="name"><?= __('admin/forums.table_name')?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="name" type="text" value="<?= html_encode($cur_elem['name'])?>">
 			</div>
 		</div>
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-3 col-form-label text-right" for="description"><?= __('admin/forums.table_desc_alt')?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="description" type="text" value="<?= html_encode($cur_elem['description'])?>">
 				<small><?= __('admin/forums.table_desc_alt_tips')?></small>
 			</div>
 		</div>
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-3 col-form-label text-right" for="redirect"><?= __('admin/forums.table_redirect')?> :</label>
 			<div class="col-sm-8 controls">
 				<input class="form-control" name="redirect" type="text" placeholder="Exemple: https://google.ca" value="<?= html_encode($cur_elem['redirect']) ?>">
 				<small><?= __('admin/forums.table_redirect_link')?>.</small>
 			</div>
 		</div>
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-3 col-form-label text-right" for="permission"><?= __('admin/forums.table_access')?> :</label>
 			<div class="col-sm-2">
 				<strong><?= __('admin/forums.table_read')?></strong>
@@ -333,26 +333,26 @@ foreach($categories as $id => $c) {
 				?>
 			</div>
 		</div>
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-3 col-form-label text-right" for="icon"><?= __('admin/forums.table_ico')?> :</label>
 			<div class="col-sm-8 controls">
 			<?= Widgets::iconSelect('icon', $cur_elem['icon']) ?>
 			</div>
 		</div>
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/forums.table_cat')?> :</label>
 			<div class="col-sm-8 controls" style="font-family: 'Font Awesome 5 Free', 'Font Awesome 5 Brands', 'sans-serif'">
 				<?= Widgets::select('cat', $cat_select, $cur_elem['cat'], false) ?>
 			</div>
 		</div>
-		<div class="form-group row">
+		<div class="mb-3 row">
 			<label class="col-sm-3 col-form-label text-right" for="account"><?= __('admin/forums.table_order')?> :</label>
 			<div class="col-sm-8 controls">
 				<?= Widgets::select('priority', array_keys(array_fill(0, 100, '')), $cur_elem['priority']) ?>
 			</div>
 		</div>
 		<div class="text-center">
-			<button class="btn btn-medium btn-primary" name="add_forum" value="<?= $cur_elem['id'] ?>" type="submit"><?= __('admin/forums.table_btn_save')?></button>
+			<button class="btn btn-primary" name="add_forum" value="<?= $cur_elem['id'] ?>" type="submit"><?= __('admin/forums.table_btn_save')?></button>
 			<button class="btn btn-danger"><?= __('admin/menu.btn_cancel')?></button>
 		</div>
 	</form>
@@ -369,7 +369,7 @@ foreach($categories as $id => $c) {
 	</div>
 	<div class="card-body">
 	<form class="form-horizontal" role="form" style="margin-bottom: -13px;" method="post">
-	  <div class="form-group row">
+	  <div class="mb-3 row">
 		<label class="col-sm-4 col-form-label text-right"><?= __('admin/forums.add_catname')?></label>
 		<div class="col-sm-5">
 		  <input type="text" class="form-control" name="category_name" value="<?= html_encode($categories[$cat_id]['name'] ?? '') ?>">

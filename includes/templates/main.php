@@ -77,6 +77,5 @@
 <!-- FIN FOOTER -->
 
 	</div><!-- wrapper -->
-	<script src="<?= App::getAsset('js/bootstrap.bundle.min.js') ?>"></script>
 </body>
 </html>

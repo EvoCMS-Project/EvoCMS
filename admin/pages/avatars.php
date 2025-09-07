@@ -62,7 +62,7 @@ elseif(!empty($_FILES['upload']))
 	</div>
 	<div class="card-body">
 	<form class="form-horizontal" role="form" style="margin-bottom: -13px;" method="post">
-	  <div class="form-group row">
+	  <div class="mb-3 row">
 		<label class="col-sm-3 col-form-label text-right"><?= __('admin/avatars.catname') ?></label>
 		<div class="col-sm-6">
 		  <input type="text" class="form-control" name="categorie">

@@ -43,7 +43,7 @@ elseif ($files = App::POST('files')) {
 		</div>
 		<div id="new" class="card-body collapse <?= empty($fileID) ? 'show' : 'out' ?>" data-bs-parent="#accordion">
 			<form class="form-horizontal" method="post" enctype="multipart/form-data">
-				<div class="form-group row">
+				<div class="mb-3 row">
 					<div class="col-sm-6 col-form-label text-end">
 						<input type="file" name="new_download" style="display:inline;">
 					</div>
@@ -70,11 +70,11 @@ elseif ($files = App::POST('files')) {
 				<button type="submit" hidden></button>
 				<?php
 					echo '  <div class="form-horizontal">';
-					echo '     <div class="form-group row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_title') .' :</span><div class="col-sm-10"><input name="files['.$i.'][caption]" type="text" value="'.html_encode($file->caption).'" class="form-control"></div></div>';
-					echo '     <div class="form-group row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_desc') .' :</span><div class="col-sm-10"><textarea name="files['.$i.'][description]" id="textarea-'.$i.'" class="form-control" style="height: 250px;">'.html_encode($file->description).'</textarea></div></div>';
-					echo '     <div class="form-group row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_fname') .' : </span><div class="col-sm-10"><input name="files['.$i.'][name]" type="text" value="'.html_encode($file->name).'" class="form-control"></div></div>';
-					echo '     <div class="form-group row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_dposted') .' :</span><div class="col-sm-3"><input name="files['.$i.'][posted]" type="text" value="'.date('Y-m-d H:i', $file->posted).'" class="form-control"></div></div>';
-					echo '     <div class="form-group row"><span class="col-sm-2 col-form-label text-end"></span>';
+					echo '     <div class="mb-3 row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_title') .' :</span><div class="col-sm-10"><input name="files['.$i.'][caption]" type="text" value="'.html_encode($file->caption).'" class="form-control"></div></div>';
+					echo '     <div class="mb-3 row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_desc') .' :</span><div class="col-sm-10"><textarea name="files['.$i.'][description]" id="textarea-'.$i.'" class="form-control" style="height: 250px;">'.html_encode($file->description).'</textarea></div></div>';
+					echo '     <div class="mb-3 row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_fname') .' : </span><div class="col-sm-10"><input name="files['.$i.'][name]" type="text" value="'.html_encode($file->name).'" class="form-control"></div></div>';
+					echo '     <div class="mb-3 row"><span class="col-sm-2 col-form-label text-end">'. __('admin/downloads.info_dposted') .' :</span><div class="col-sm-3"><input name="files['.$i.'][posted]" type="text" value="'.date('Y-m-d H:i', $file->posted).'" class="form-control"></div></div>';
+					echo '     <div class="mb-3 row"><span class="col-sm-2 col-form-label text-end"></span>';
 					echo '         <div class="col-sm-2">'. __('admin/downloads.info_size') .' : <strong>'.Format::size($file->size).'</strong></div>';
 					echo '         <div class="col-sm-2">'. __('admin/downloads.info_type') .' : <strong>'.$file->type.'</strong></div>';
 					echo '         <div class="col-sm-3">'. __('admin/downloads.info_mime') .' : <strong>'.$file->mime_type.'</strong></div>';

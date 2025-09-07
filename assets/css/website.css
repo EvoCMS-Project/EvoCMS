@@ -195,7 +195,7 @@
 }
 
 
-a[data-toggle] {
+a[data-bs-toggle] {
 	outline: 0;
 	text-decoration: none;
 }
