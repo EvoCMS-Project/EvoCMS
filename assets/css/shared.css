@@ -7,6 +7,17 @@ legend {
     padding-bottom: 0.25em;
 }
 
+.fs-xxsmall { font-size: xx-small !important; }
+.fs-xsmall { font-size: x-small !important; }
+.fs-small { font-size: small !important; }
+.fs-smaller { font-size: smaller !important; }
+.fs-medium { font-size: medium !important; }
+.fs-large { font-size: large !important; }
+.fs-larger { font-size: larger !important; }
+.fs-xlarge { font-size: x-large !important; }
+.fs-xxlarge { font-size: xx-large !important; }
+.fs-xxxlarge { font-size: xxx-large !important; }
+
 .group-color-0 {color: #aaa !important; }
 .group-color-1 {color: #000 !important; }
 .group-color-2 {color: #0000aa !important; }
