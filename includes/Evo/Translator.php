@@ -23,7 +23,7 @@ class Translator
 	public function __construct($locale, array $fallbackLocales = [], $locale_dir = [], $defaultDomain = 'messages')
 	{
 	//	if (empty($locale_dir) || !is_dir($locale_dir[0])) {
-	//		throw new exception("Can't find locales: {$locale_dir[0]} does not exist!");
+	//		throw new Exception("Can't find locales: {$locale_dir[0]} does not exist!");
 	//	}
 
 		$this->locale_dir = (array)$locale_dir;
@@ -41,7 +41,7 @@ class Translator
 			if ($silent) {
 				return false;
 			}
-			throw new exception("Can't find locales: {$locale_dir} does not exist!");
+			throw new Exception("Can't find locales: {$locale_dir} does not exist!");
 		}
 
 		$this->locale_dir[] = $locale_dir;
@@ -57,7 +57,7 @@ class Translator
 		}
 
 		if (empty($this->locale_dir)) {
-			throw new exception("Failed to load domain '$domain' for locale '$locale': Path not set !");
+			throw new Exception("Failed to load domain '$domain' for locale '$locale': Path not set !");
 		}
 
 		foreach($this->locale_dir as $locale_dir) {
@@ -66,14 +66,14 @@ class Translator
 
 			if (!is_readable($path)) {
 				continue;
-				// throw new exception("Failed to load domain '$domain' for locale '$locale': File not found in path '$path' !");
+				// throw new Exception("Failed to load domain '$domain' for locale '$locale': File not found in path '$path' !");
 			}
 
 			$messages = include $path;
 
 			if (!is_array($messages)) {
 				continue;
-				// throw new exception("Failed to load domain '$domain' for locale '$locale': File didn't return an array !");
+				// throw new Exception("Failed to load domain '$domain' for locale '$locale': File didn't return an array !");
 			}
 
 			$this->addDictionary($messages, $domain, $locale);
@@ -100,7 +100,7 @@ class Translator
 		}
 
 		if (!isset($this->dictionaries[$locale])) {
-			throw new exception("The locale '$locale' isn't loaded or contains no dictionaries.");
+			throw new Exception("The locale '$locale' isn't loaded or contains no dictionaries.");
 		}
 
 		return $this->dictionaries[$locale];
@@ -161,7 +161,7 @@ class Translator
 		$messages = $this->exportDictionary($domain, $locale);
 
 		if (empty($this->locale_dir) && $file === null) {
-			throw new exception('You must set the locale path or specify a filename to save the locale file!');
+			throw new Exception('You must set the locale path or specify a filename to save the locale file!');
 		}
 
 		$path = $file ?: $this->locale_dir . '/' . $locale . '/' . $domain . '.php';
@@ -290,7 +290,7 @@ class Translator
 		$count = count($parts);
 
 		if ($count < 2) {
-			throw new exception("Plural translation '$id' doesn't contain enough choices(requires 2+, contains $count)");
+			throw new Exception("Plural translation '$id' doesn't contain enough choices(requires 2+, contains $count)");
 		}
 
 		foreach($parts as $i => $part) {
@@ -310,7 +310,7 @@ class Translator
 				$numbers = array_map('trim', explode(',', $m[1]));
 
 				if (count($numbers) !== 2 || $numbers[0] > $numbers[1]) {
-					throw new exception("Plural translation'$id' has malformed bracket syntax []");
+					throw new Exception("Plural translation'$id' has malformed bracket syntax []");
 				}
 
 				if ($m[2]) {
@@ -341,7 +341,7 @@ class Translator
 		}
 
 		if (!isset($parts[$number])) {
-			throw new exception("Can't choose in plural translation'$id' for value '$number'");
+			throw new Exception("Can't choose in plural translation'$id' for value '$number'");
 		}
 
 		return strtr($parts[$number], $parameters);
