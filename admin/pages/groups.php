@@ -72,7 +72,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 	<div class="card-body">
 		<form class="form-horizontal" role="form" method="post">
 			<div class="form-group row">
-				<label class="col-sm-3 col-form-label text-right"><?= __('admin/groups.creation_name') ?></label>
+				<label class="col-sm-3 col-form-label text-end"><?= __('admin/groups.creation_name') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" name="new_group_name">
 				</div>
@@ -84,13 +84,13 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 
 <div class="card">
 	<div class="card-header p-2">
-		<h4 class="panel-title"><?= __('admin/groups.management_title') ?> : <em><?=html_encode($groups[$cur_id]['name']) ?></em></h4>
+		<h4 class="card-title"><?= __('admin/groups.management_title') ?> : <em><?=html_encode($groups[$cur_id]['name']) ?></em></h4>
 	</div>
 	<div class="card-body">
 	<form method="post">
 		<div class="form-group row">
 
-			<div class="col-md-3 col-md-pull-9">
+			<div class="col-md-3 order-2">
 				<table id="reorder" class="sortable" cellspacing="0" cellpadding="2" style="width:100%;">
 				<?php
 					foreach($groups as $id => $group) {
@@ -105,26 +105,26 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 				</table>
 			</div>
 
-		  <div class="col-md-9 col-md-push-3"  style="border-left:1px solid #ddd;">
+		  <div class="col-md-9 order-1"  style="border-left:1px solid #ddd;">
 			<ul class="nav nav-tabs">
-			  <li class="nav-item"><a class="nav-link active" href="#general" data-toggle="tab"><?= __('admin/groups.tab_general') ?></a></li>
+			  <li class="nav-item"><a class="nav-link active" href="#general" data-bs-toggle="tab"><?= __('admin/groups.tab_general') ?></a></li>
 				<?php
 				foreach($_permissions as $id => $perms) {
-					echo '<li class="nav-item"><a class="nav-link" href="#perms-'.$id.'" data-toggle="tab">'.$perms['label'].'</a></li>';
+					echo '<li class="nav-item"><a class="nav-link" href="#perms-'.$id.'" data-bs-toggle="tab">'.$perms['label'].'</a></li>';
 				}
 				?>
 			</ul>
-			<div class="tab-content panel">
+			<div class="tab-content">
 				<div class="tab-pane fade active show p-3" id="general">
 					<legend><?= __('admin/groups.config_title') ?> </legend>
 					<div class="form-group row" style="height: 30px;">
-						<label class="col-sm-5 col_gm col-form-label text-right"><?= __('admin/groups.config_gname') ?></label>
+						<label class="col-sm-5 col_gm col-form-label text-end"><?= __('admin/groups.config_gname') ?></label>
 						<div class="col-sm-6">
 							<input type="text" class="form-control" name="group_name" value="<?= $groups[$cur_id]['name']?>">
 						</div>
 					</div>
 					<div class="form-group row" style="height: 30px;">
-						<label class="col-sm-5 col_gm col-form-label text-right"><?= __('admin/groups.config_grole') ?></label>
+						<label class="col-sm-5 col_gm col-form-label text-end"><?= __('admin/groups.config_grole') ?></label>
 						<div class="col-sm-6">
 						<?php if ($groups[$cur_id]['internal']) { ?>
 							<input class="form-control" disabled value="<?= $groups[$cur_id]['role'] ?>">
@@ -134,7 +134,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 						</div>
 					</div>
 					<div class="form-group row" style="height: 30px;">
-						<label for="`color`" class="col-sm-5 col_gm col-form-label text-right" ><?= __('admin/groups.config_cname') ?></label>
+						<label for="`color`" class="col-sm-5 col_gm col-form-label text-end" ><?= __('admin/groups.config_cname') ?></label>
 						<div class="col-sm-6" style="margin-top:4px">
 							<select class="form-control group-color-<?= $groups[$cur_id]['color'] ?>" name="color"
 								onchange="this.className = 'form-control ' + $(this).find(':selected')[0].className;">
@@ -168,7 +168,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 				<?php
 					foreach($_permissions as $id => $perms) {
 						echo '<div class="tab-pane fade p-3" id="perms-'.$id.'">';
-						echo '<label class="float-right">'. __('admin/groups.config_check_all') .' <input type="checkbox" class="check-all" data-group="'.$id.'"></label>';
+						echo '<label class="float-end">'. __('admin/groups.config_check_all') .' <input type="checkbox" class="check-all" data-group="'.$id.'"></label>';
 							$permissions_count = 0;
 							foreach($perms as $title => $permissions) {
 								if (is_array($permissions)) {

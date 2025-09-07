@@ -117,7 +117,7 @@ if (IS_POST) {
 
 			if (!has_permission('administrator') && App::getConfig('open_registration') == 3) {
 				if (send_activation_email(App::POST('username'))) {
-					return print '<div class="bs-callout bs-callout-success">'.__('register.succes_register1').'</div>';
+					return print '<div class="alert alert-success">'.__('register.succes_register1').'</div>';
 				}
 				else {
 					App::logEvent(null, 'admin', __('register.mail_issue_log') .''. App::POST('email'));
@@ -132,9 +132,9 @@ if (IS_POST) {
 				App::sessionStart($uid);
 			}
 
-			return print '<div class="bs-callout bs-callout-success">'. __('register.succes_register2') .'</div>';
+			return print '<div class="alert alert-success">'. __('register.succes_register2') .'</div>';
 		} else {
-			return print '<div class="bs-callout bs-callout-warning">'. __('register.warning_register1') .'</div>';
+			return print '<div class="alert alert-warning">'. __('register.warning_register1') .'</div>';
 		}
 	}
 }

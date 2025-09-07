@@ -23,11 +23,11 @@ $status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/p
 <legend style="padding-top:5px;"><?= __('admin/pages.title') ?></legend>
 
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link active" href="#all" data-toggle="tab"><?= __('admin/pages.table_all') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#published" data-toggle="tab"><?= __('admin/pages.table_published') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#draft" data-toggle="tab"><?= __('admin/pages.table_draft') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#archived" data-toggle="tab"><?= __('admin/pages.table_archives') ?></a></li>
-	<li class="nav-item ml-auto"><a class="nav-link" href="?page=page_edit" title="<?= __('admin/pages.btn_add_title') ?>"><i class="far fa-lg fa-file"></i> <?= __('admin/pages.btn_add') ?></a></li>
+	<li class="nav-item"><a class="nav-link active" href="#all" data-bs-toggle="tab"><?= __('admin/pages.table_all') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#published" data-bs-toggle="tab"><?= __('admin/pages.table_published') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#draft" data-bs-toggle="tab"><?= __('admin/pages.table_draft') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="#archived" data-bs-toggle="tab"><?= __('admin/pages.table_archives') ?></a></li>
+	<li class="nav-item ms-auto"><a class="nav-link" href="?page=page_edit" title="<?= __('admin/pages.btn_add_title') ?>"><i class="far fa-lg fa-file"></i> <?= __('admin/pages.btn_add') ?></a></li>
 </ul>
 
 <div class="tab-content panel">

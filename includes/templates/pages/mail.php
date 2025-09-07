@@ -1,8 +1,8 @@
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link <?=$tab_mail?:'active'?>"href="#inbox" data-toggle="tab"><?= __('mail.tab_inbox') ?> <span class='badge badge-success'><?= count($mail_inbox) ?></span></a></li>
-	<li class="nav-item"><a class="nav-link" href="#outbox" data-toggle="tab"><?= __('mail.tab_outbox') ?> <span class='badge badge-info'><?= count($mail_outbox) ?></span></a></li>
-	<li class="nav-item"><a class="nav-link" href="#trash" data-toggle="tab"><?= __('mail.tab_trash') ?> <span class='badge badge-info'><?= count($mail_trash) ?></span></a></li>
-	<li class="nav-item"><a class="nav-link <?=!$tab_mail?:'active'?>" href="#mail" data-toggle="tab"><i class="fa fa-pencil-alt"></i> <?= __('mail.tab_composer') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?=$tab_mail?:'active'?>"href="#inbox" data-bs-toggle="tab"><?= __('mail.tab_inbox') ?> <span class='badge badge-success'><?= count($mail_inbox) ?></span></a></li>
+	<li class="nav-item"><a class="nav-link" href="#outbox" data-bs-toggle="tab"><?= __('mail.tab_outbox') ?> <span class='badge badge-info'><?= count($mail_outbox) ?></span></a></li>
+	<li class="nav-item"><a class="nav-link" href="#trash" data-bs-toggle="tab"><?= __('mail.tab_trash') ?> <span class='badge badge-info'><?= count($mail_trash) ?></span></a></li>
+	<li class="nav-item"><a class="nav-link <?=!$tab_mail?:'active'?>" href="#mail" data-bs-toggle="tab"><i class="fa fa-pencil-alt"></i> <?= __('mail.tab_composer') ?></a></li>
 	<li class="nav-item"><a class="nav-link" href="<?=App::getURL('mail');?>"><i class="fa fa-sync"></i></a></li>
 </ul>
 <div class="tab-content">
@@ -181,7 +181,12 @@
 load_editor('editor', 'markdown');
 $('form a').click(function() {
 	if (location.href == this.href && window.location.hash == this.hash) {
-		$('[data-toggle="tab"][href="' + window.location.hash + '"]').tab('show')
+		// Bootstrap 5 tab activation
+		var tabElement = document.querySelector('[data-bs-toggle="tab"][href="' + window.location.hash + '"]');
+		if (tabElement) {
+			var tab = new bootstrap.Tab(tabElement);
+			tab.show();
+		}
 	}
 });
 </script>

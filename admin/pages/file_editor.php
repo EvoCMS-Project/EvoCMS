@@ -40,7 +40,7 @@ has_permission('admin.files', true);
 			if (is_dir($path)) {
 				$dir_id = preg_replace('/[^a-z0-9-]/', '_', substr($path, strlen(ROOT_DIR)));
 				$data .= '<li class="collapsible-header dir">
-							<a data-toggle="collapse" href="#' . $dir_id . '"><i class="fas fa-folder fa-sm folder-icon"></i>' . $file . '</a>
+							<a data-bs-toggle="collapse" href="#' . $dir_id . '"><i class="fas fa-folder fa-sm folder-icon"></i>' . $file . '</a>
 							<div class="collapsible-body ' . ($selected ? 'expand' : 'collapse') . '" id="' . $dir_id . '">' . files_tree($path, $current, $dot_files) . '</div>
 						  </li>';
 			} else {
@@ -161,7 +161,7 @@ has_permission('admin.files', true);
 						<?= Widgets::select('theme', $themes, App::getConfig('file_editor.theme'), true, '') ?>
 						<?php if (!is_writable($file)) { echo __('admin/system.editor_alert_readonly'); } ?>
 						<button type='submit' name='save' value='1' class='btn btn-success' title='<?= __('admin/system.editor_btn_save_title') ?>'><i class='fas fa-save'></i> <?= __('admin/system.editor_btn_save') ?></button>
-						<button type="button" name="fe-upload-file" class="btn btn-primary" data-toggle="modal" data-target="upload" title="<?= __('admin/system.editor_btn_upload_title') ?>"><i class="fas fa-file-import"></i></button>
+						<button type="button" name="fe-upload-file" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#upload" title="<?= __('admin/system.editor_btn_upload_title') ?>"><i class="fas fa-file-import"></i></button>
                         <div class="btn-group" role="group" aria-label="zoom">
                           <button name="fe-zoom-in" class="btn btn-secondary" title="<?= __('admin/system.editor_btn_zoomin') ?>"><i class="fas fa-search-plus"></i></button>
                           <span name="font-size" class="btn btn-secondary" disabled></span>

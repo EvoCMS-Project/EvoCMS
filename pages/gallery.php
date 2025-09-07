@@ -71,17 +71,17 @@ elseif (App::POST('filename')) {
 
 $files = File::select("$where order by id desc", ...$where_e);
 ?>
-<div class="float-left btn-group">
-	<a data-gallery-view-switch="grid" class="btn btn-default" href="#"><i class="fa fa-th"></i></a>
-	<a data-gallery-view-switch="list" class="btn btn-default" href="#"><i class="fa fa-list"></i></a>
-	<button id="search" class="btn btn-default"><i class="fa fa-search"></i></button> &nbsp;
+<div class="float-start btn-group">
+	<a data-gallery-view-switch="grid" class="btn btn-outline-secondary" href="#"><i class="fa fa-th"></i></a>
+	<a data-gallery-view-switch="list" class="btn btn-outline-secondary" href="#"><i class="fa fa-list"></i></a>
+	<button id="search" class="btn btn-outline-secondary"><i class="fa fa-search"></i></button> &nbsp;
 </div>
-<button id="uploadfile" class="btn btn-info float-left"><i class="fa fa-upload"></i> <?= __('gallery.menu_btn_upload') ?></button>
-<div class="float-right form-inline gallery-controls">
-	<button id="insertgal" class="btn btn-primary hide"><?= __('gallery.menu_btn_insert_gal') ?></button>
-	<button id="insertfile" class="btn btn-primary hide"><?= __('gallery.menu_btn_insert_file') ?></button>
-	<button id="insertthumb" class="btn btn-primary hide"><?= __('gallery.menu_btn_insert_thumb') ?></button>
-	<select id="gallery-thumbsize" class="form-control hide">
+<button id="uploadfile" class="btn btn-info float-start"><i class="fa fa-upload"></i> <?= __('gallery.menu_btn_upload') ?></button>
+<div class="float-end form-inline gallery-controls">
+	<button id="insertgal" class="btn btn-primary d-none"><?= __('gallery.menu_btn_insert_gal') ?></button>
+	<button id="insertfile" class="btn btn-primary d-none"><?= __('gallery.menu_btn_insert_file') ?></button>
+	<button id="insertthumb" class="btn btn-primary d-none"><?= __('gallery.menu_btn_insert_thumb') ?></button>
+	<select id="gallery-thumbsize" class="form-control d-none">
 		<option value="100x100"><?= __('gallery.menu_btn_crop_small') ?> (100px)</option>
 		<option value="200x200" selected><?= __('gallery.menu_btn_crop_medium') ?> (200px)</option>
 		<option value="480x480"><?= __('gallery.menu_btn_crop_large') ?> (480px)</option>
@@ -90,11 +90,11 @@ $files = File::select("$where order by id desc", ...$where_e);
 		<option value="480"><?= __('gallery.menu_btn_scale_large') ?> (480px)</option>
 		<option value="0"><?= __('gallery.menu_btn_full_size') ?></option>
 	</select>
-	<button id="deletefiles" class="btn  btn-danger hide"><i class="fa fa-times"></i> <?= __('gallery.menu_btn_delete') ?></button>
+	<button id="deletefiles" class="btn  btn-danger d-none"><i class="fa fa-times"></i> <?= __('gallery.menu_btn_delete') ?></button>
 </div>
 <div class="clearfix"></div>
 <br>
-<input id="filter" name="filter" type="text" class="form-control hide" value="" placeholder="<?= __('gallery.search_placeholder') ?>">
+<input id="filter" name="filter" type="text" class="form-control d-none" value="" placeholder="<?= __('gallery.search_placeholder') ?>">
 	<div id="gallery-content" class="gallery">
 	<div id="content">
 	<?php
@@ -160,15 +160,15 @@ $files = File::select("$where order by id desc", ...$where_e);
 		}
 
 		if ($('.gallery .active').length == 0) {
-			$('#insertgal, #insertfile, #insertthumb, #deletefiles, #gallery-thumbsize').addClass('hide');
+			$('#insertgal, #insertfile, #insertthumb, #deletefiles, #gallery-thumbsize').addClass('d-none');
 		} else if (!$.fancybox.isOpen) {
-			$('#deletefiles').removeClass('hide');
+			$('#deletefiles').removeClass('d-none');
 		} else if ($('.gallery .active').length > 1) {
-			$('#insertgal, #deletefiles, #gallery-thumbsize').removeClass('hide');
-			$('#insertfile, #insertthumb').addClass('hide');
+			$('#insertgal, #deletefiles, #gallery-thumbsize').removeClass('d-none');
+			$('#insertfile, #insertthumb').addClass('d-none');
 		} else {
-			$('#insertfile, #insertthumb, #deletefiles, #gallery-thumbsize').removeClass('hide');
-			$('#insertgal').addClass('hide');
+			$('#insertfile, #insertthumb, #deletefiles, #gallery-thumbsize').removeClass('d-none');
+			$('#insertgal').addClass('d-none');
 		}
 	});
 
@@ -238,7 +238,7 @@ $files = File::select("$where order by id desc", ...$where_e);
 			alert('La recherche ne fonctionne pas encore en mode fancybox!');
 			return false;
 		}
-		$('#filter').toggleClass('hide').focus();
+		$('#filter').toggleClass('d-none').focus();
 		$(this).toggleClass('active');
 	});
 
@@ -251,7 +251,7 @@ $files = File::select("$where order by id desc", ...$where_e);
 			history.replaceState(null, null, url);
 		}
 		if (view_mode == 'list') {
-			$('.gallery-controls button:not(#uploadfile)').addClass('hide');
+			$('.gallery-controls button:not(#uploadfile)').addClass('d-none');
 		}
 		$('[data-gallery-view-switch]').removeClass('active');
 		$(this).addClass('active');
@@ -263,6 +263,6 @@ $files = File::select("$where order by id desc", ...$where_e);
 
 
 	if (!$('textarea').length) {
-		$('#gallery-thumbsize').addClass('hide');
+		$('#gallery-thumbsize').addClass('d-none');
 	}
 </script>

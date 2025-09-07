@@ -180,12 +180,12 @@ if (IS_POST) {
 ?>
 
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link <?= $tab === 'config' ? 'active' : '' ?>" href="#config" data-toggle="tab"><?= __('admin/general.tab_site') ?></a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'advanced' ? 'active' : '' ?>" href="#advanced" data-toggle="tab"><?= __('admin/general.tab_advanced') ?></a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'social' ? 'active' : '' ?>" href="#social" data-toggle="tab"><?= __('admin/general.tab_social') ?></a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'theme' ? 'active' : '' ?>" href="#theme" data-toggle="tab"><?= __('admin/general.tab_theme') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'config' ? 'active' : '' ?>" href="#config" data-bs-toggle="tab"><?= __('admin/general.tab_site') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'advanced' ? 'active' : '' ?>" href="#advanced" data-bs-toggle="tab"><?= __('admin/general.tab_advanced') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'social' ? 'active' : '' ?>" href="#social" data-bs-toggle="tab"><?= __('admin/general.tab_social') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'theme' ? 'active' : '' ?>" href="#theme" data-bs-toggle="tab"><?= __('admin/general.tab_theme') ?></a></li>
 	<?php if (App::getTheme()->settings) { ?>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'themeconfig' ? 'active' : '' ?>" href="#themeconfig" data-toggle="tab"><?= __('admin/general.tab_tconfig') ?></a></li>
+	<li class="nav-item"><a class="nav-link <?= $tab === 'themeconfig' ? 'active' : '' ?>" href="#themeconfig" data-bs-toggle="tab"><?= __('admin/general.tab_tconfig') ?></a></li>
 	<?php } ?>
 </ul>
 

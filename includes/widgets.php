@@ -459,7 +459,7 @@ class Widgets
 
 			$buffer .= '<div class="form-group row">';
 
-			$buffer .= '<label class="col-sm-4 col-form-label text-right" for="' . $form.'-'.md5(key($subfields)) . '">' . $props['label'] . ' ';
+			$buffer .= '<label class="col-sm-4 col-form-label text-end" for="' . $form.'-'.md5(key($subfields)) . '">' . $props['label'] . ' ';
 
 			if (!empty($props['help'])) {
 				$buffer .= ' <i class="fa fa-question-circle" title="' . html_encode($props['help']) . '"></i>';
@@ -509,14 +509,19 @@ class Widgets
 
 					case 'image':
 						$files = ['' => 'Valeur par défaut'] + array_column(Db::QueryAll('select path, name from {files} where origin = ?', 'settings') ?: [], 'name', 'path');
-						$attributes .= " style='display:inline;width:40%' onchange='document.getElementById(\"$fieldId\").src=this.value ? site_url+this.value : \"about:blank\";'";
+						$attributes .= " style='display:inline;width:40%' onchange='document.getElementById(\"$fieldId\").src=this.value ? site_url+this.value : \"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\";'";
 						$buffer .= self::select(null, $files, $field['value'], true, $attributes);
 						$buffer .= ' ou <input name="' . $name . '" type="file" style="display:inline"><br>';
-						$buffer .= '<img id="'.$fieldId.'" src="'.($field['value'] ? App::getAsset($field['value']) : 'about:blank').'" alt="Image preview" title="Image preview" style="height: 150px"><br>';
+						$buffer .= '<img id="'.$fieldId.'" src="'.($field['value'] ? App::getAsset($field['value']) : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7').'" alt="Image preview" title="Image preview" style="height: 150px"><br>';
 						break;
 
 					default: // text,password,color,number,etc...
-						$buffer .= '<input type="'.$field['type'].'" value="' . html_encode($field['value']) . '" ' .$attributes . '>';
+						$value = html_encode($field['value']);
+						// Pour les champs de couleur, s'assurer qu'il y a une valeur par défaut valide
+						if ($field['type'] === 'color' && empty($value)) {
+							$value = '#000000'; // Valeur par défaut pour les champs de couleur
+						}
+						$buffer .= '<input type="'.$field['type'].'" value="' . $value . '" ' .$attributes . '>';
 						break;
 				}
 

@@ -162,29 +162,29 @@ $rev2 = (int)App::REQ('rev2');
 $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime_type like ? and origin = ?', 'image/%', 'website') ?: [], 'name', 'id');
 ?>
 <ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link active" href="#page_edit" data-toggle="tab"><?= __('admin/page_edit.nav_edit') ?></a></li>
+	<li class="nav-item"><a class="nav-link active" href="#page_edit" data-bs-toggle="tab"><?= __('admin/page_edit.nav_edit') ?></a></li>
 	<?php if ($page['page_id']) { ?>
-		<li class="nav-item"><a class="nav-link" href="#page_hist" data-toggle="tab"><?= __('admin/page_edit.nav_history') ?></a></li>
-		<li class="nav-item"><a class="nav-link" href="#page_diff" data-toggle="tab"><?= __('admin/page_edit.nav_diff') ?></a></li>
-		<li class="nav-item"><a class="nav-link" href="#page_comments" data-toggle="tab"><?= __('admin/page_edit.nav_comments') ?></a></li>
+		<li class="nav-item"><a class="nav-link" href="#page_hist" data-bs-toggle="tab"><?= __('admin/page_edit.nav_history') ?></a></li>
+		<li class="nav-item"><a class="nav-link" href="#page_diff" data-bs-toggle="tab"><?= __('admin/page_edit.nav_diff') ?></a></li>
+		<li class="nav-item"><a class="nav-link" href="#page_comments" data-bs-toggle="tab"><?= __('admin/page_edit.nav_comments') ?></a></li>
 		<li class="nav-item"><a class="nav-link" href="<?= App::getURL($page['page_id'], ['rev' => 'last']) ?>"><?= __('admin/page_edit.nav_view') ?></a></li>
 	<?php } ?>
 </ul>
 <form method="post">
 	<input type="hidden" id="id" name="id" value="<?= $page['id'] ?>">
 	<input type="hidden" id="page_id" name="page_id" value="<?= $page['page_id'] ?>">
-	<div class="tab-content panel">
+	<div class="tab-content">
 		<div class="tab-pane fade show active" id="page_edit">
 			<div class="control-group">
 				<div class="form-group row">
 					<div class="col-sm-9">
-						<label class="col-form-label text-right" for="title"><?= __('admin/page_edit.title') ?> :</label>
+						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.title') ?> :</label>
 						<div class="controls">
 							<input class="form-control" name="title" type="text" placeholder="<?= __('admin/page_edit.title_ph') ?>" value="<?php echo html_encode($page['title']); ?>" />
 						</div>
 					</div>
 					<div class="col-sm-3">
-						<label class="col-form-label text-right" for="title"><?= __('admin/page_edit.type') ?> :</label>
+						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.type') ?> :</label>
 						<div class="controls">
 							<select name="type" class="form-control">
 								<?php foreach (PAGE_TYPES as $id => $type) echo '<option value="' . $id . '" ' . ($id == $page['type'] ? 'selected' : '') . '>' . $type . '</option>'; ?>
@@ -194,7 +194,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 				</div>
 				<div class="form-group row">
 					<div class="col-sm-9">
-						<label class="col-form-label text-right" for="title"><?= __('admin/page_edit.url') ?> :</label>
+						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.url') ?> :</label>
 						<div class="controls">
 							<div class="input-group">
 								<div class="input-group-prepend"><span class="input-group-text"><?= App::getURL('/') ?></span></div>
@@ -203,7 +203,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 						</div>
 					</div>
 					<div class="col-sm-3">
-						<label class="col-form-label text-right" for="title"><?= __('admin/page_edit.visibility') ?> :</label>
+						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.visibility') ?> :</label>
 						<div class="controls">
 							<select name="status" class="form-control">
 								<option value="published"><?= __('admin/page_edit.status_published') ?> <small><?php if ($page['pub_date']) echo '(' . Format::today($page['pub_date']) . ')'; ?></small></option>
@@ -214,32 +214,32 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 				</div>
 			</div>
 			<div class="control-group row pt-1">
-				<div class="col-sm-12 text-right">
+				<div class="col-sm-12 text-end">
 					<a href="" id="extra-option"><?= __('admin/page_edit.more_options') ?></a>
 				</div>
 			</div>
 			<div class="control-group">
 				<div class="form-group row">
 					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-right" for="name"><?= __('admin/page_edit.category') ?> :</label>
+						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.category') ?> :</label>
 						<div class="controls">
 							<input type="text" name="category" value="<?= html_encode($page['category']) ?>" class="form-control" data-autocomplete="categorylist" data-autocomplete-instant>
 						</div>
 					</div>
 					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-right" for="name"><?= __('admin/page_edit.tags') ?> :</label>
+						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.tags') ?> :</label>
 						<div class="controls">
 							<input type="text" name="category" disabled class="form-control" placeholder="Not implemented">
 						</div>
 					</div>
 					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-right" for="name"><?= __('admin/page_edit.redirect') ?> :</label>
+						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.redirect') ?> :</label>
 						<div class="controls">
 							<input type="text" name="redirect" value="<?= html_encode($page['redirect']) ?>" class="form-control">
 						</div>
 					</div>
 					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-right" for="name"><?= __('admin/page_edit.date_on') ?> :</label>
+						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.date_on') ?> :</label>
 						<div class="controls">
 							<input type="text" name="pub_date_text" value="<?= $page['pub_date'] ? date('Y-m-d H:i', $page['pub_date']) : '' ?>" class="form-control">
 						</div>
@@ -248,13 +248,13 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 
 				<div class="form-group row extra-option pb-3">
 					<div class="col-sm-3">
-						<label class="col-form-label text-right" for="name"><span title="<?= __('admin/page_edit.option_thumbnails_title') ?>"><?= __('admin/page_edit.option_thumbnail') ?></span> :</label>
+						<label class="col-form-label text-end" for="name"><span title="<?= __('admin/page_edit.option_thumbnails_title') ?>"><?= __('admin/page_edit.option_thumbnail') ?></span> :</label>
 						<div class="controls">
 							<?= Widgets::select('image', ['' => 'Automatique'] + $thumbnails, $page['image']) ?>
 						</div>
 					</div>
 					<div class="col-sm-3">
-						<label class="col-form-label text-right" for="name"><?= __('admin/page_edit.nav_comments') ?> :</label>
+						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.nav_comments') ?> :</label>
 						<div class="controls">
 							<select name="allow_comments" class="form-control">
 								<option value="1">Oui</option>
@@ -264,7 +264,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 						</div>
 					</div>
 					<div class="col-sm-3">
-						<label class="col-form-label text-right" for="name"><?= __('admin/page_edit.option_summary') ?> :</label>
+						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.option_summary') ?> :</label>
 						<div class="controls">
 							<select name="display_toc" class="form-control">
 								<option value="1">Oui</option>
@@ -273,7 +273,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 						</div>
 					</div>
 					<div class="col-sm-3">
-						<label class="col-form-label text-right" for="name"><?= __('admin/page_edit.option_sticky') ?> :</label>
+						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.option_sticky') ?> :</label>
 						<div class="controls">
 							<select name="sticky" class="form-control" title="<?= __('admin/page_edit.option_sticky_help') ?>">
 								<option value="0"><?= __('admin/page_edit.option_dont_sticky') ?></option>
@@ -295,7 +295,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 			<div class="pt-2">
 				<textarea class="form-control" id="editor" name="content" placeholder="<?= __('admin/page_edit.content_ph') ?>" style="height:300px;"><?= html_encode($page['content']) ?></textarea>
 				<em id="AutoSaveStatus"></em>
-				<div class="float-right">
+				<div class="float-end">
 					<?= Widgets::select('format', ['wysiwyg'  => 'WYSIWYG', 'markdown' => 'Markdown+'], $page['format'], true, '') ?>
 				</div>
 			</div>
@@ -368,7 +368,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 					}
 					echo '<script>$(\'[href="#page_diff"]\').click();</script>';
 				} else {
-					echo '<script>$(\'[href="#page_diff"]\').hide();</script>';
+					echo '<script>$(\'[href="#page_diff"]\').addClass(\'d-none\');</script>';
 				}
 				?>
 			</div>
@@ -410,7 +410,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 		$('.extra-option').toggle();
 		return false;
 	});
-	$('.extra-option').hide();
+	$('.extra-option').addClass('d-none');
 
 	$('[href="#page_comments"').click(function() {
 		$.get('?page=comments&page_id=<?= $page['page_id'] ?>',

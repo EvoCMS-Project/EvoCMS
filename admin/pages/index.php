@@ -90,7 +90,7 @@
 				<td>
 					Yan Bourgeois <small>(Coolternet)</small> : Designer<br>
 					Alex Duchesne <small>(Alexus)</small>: Développeur<br>
-					<a href="#credits" data-toggle="modal" data-target="#credits"><small>voir plus</small></a>
+					<a href="#credits" data-bs-toggle="modal" data-bs-target="#credits"><small>voir plus</small></a>
 				</td>
 			</tr>
 		</table>

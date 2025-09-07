@@ -121,7 +121,7 @@ function hashchanged(event) {
 		$('.forum .highlight, .commentaires .highlight').removeClass('highlight');
 		$(hash).addClass('highlight');
 	} else {
-		$('a[href="' + hash + '"][data-toggle="tab"]').click();
+		$('a[href="' + hash + '"][data-bs-toggle="tab"]').click();
 	}
 	return false;
 }
@@ -201,7 +201,10 @@ $.fn.image_selector = function (select) {
 		if (option.val() === '' && !option.attr('data-src-alt')) return;
 		var img = $('<img>', { 'data-value': option.val(), 'data-group': group, title: option.text(), src: option.attr('data-src-alt') || site_url + option.val() });
 
-		img.tooltip({ placement: 'bottom' });
+		// Bootstrap 5 tooltip initialization for dynamic images
+		img.on('DOMNodeInserted', function() {
+			new bootstrap.Tooltip(this, { placement: 'bottom' });
+		});
 		option.attr('data-group', group);
 
 		if (option.is(':selected'))
@@ -296,7 +299,7 @@ function autocomplete(callback, query, css) {
 		for (var i in items) {
 			items[i] = Object.keys(items[i]).map(function (key) { return items[i][key]; });
 			var img = typeof items[i][2] == 'string' ?
-				'<img class="float-right" style="max-height: 20px" src="' + items[i][2] + '">' : '';
+				'<img class="float-end" style="max-height: 20px" src="' + items[i][2] + '">' : '';
 
 			items[i][1] = items[i][1] || items[i][0];
 
@@ -319,7 +322,11 @@ function autocomplete(callback, query, css) {
 function pageload() {
 	Prism.highlightAll();
 	draganddrop();
-	$('[title]:not([title=""])').tooltip({ placement: 'bottom' });
+	// Bootstrap 5 tooltips initialization
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]:not([title=""])'));
+	var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+		return new bootstrap.Tooltip(tooltipTriggerEl, { placement: 'bottom' });
+	});
 	$('.fancybox-image, .gallery > .gallery-container a, a[href$=".png"], a[href$=".jpg"], a[href$=".gif"]').not('.no-fancy').fancybox({
 		openEffect: 'elastic',
 		openSpeed: 150,

@@ -16,7 +16,7 @@
 			<div class="nav-wrapper">
 				<ul id="nav-mobile" class="show-on-medium-and-up">
 					<li class="left">
-						<a href="#" data-target="slide-out" class="sidenav-trigger">
+						<a href="#" data-bs-target="slide-out" class="sidenav-trigger">
 							<i class="fa fa-bars fa-lg"></i>Menu
 						</a>
 					</li>
@@ -129,7 +129,7 @@
 			});
 		}
 
-		$('[data-target="slide-out"]').click(function() {
+		$('[data-bs-target="slide-out"]').click(function() {
 			$('body').toggleClass('sidenav-open');
 			$('.sidenav').toggleClass('open', $('body').hasClass('sidenav-open'));
 			if ($('body').hasClass('sidenav-open')) {
@@ -147,5 +147,6 @@
 			}
 		});
 	</script>
+	<script src="<?= App::getAsset('js/bootstrap.bundle.min.js') ?>"></script>
 </body>
 </html>

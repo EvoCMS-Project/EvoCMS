@@ -603,20 +603,25 @@ switch($cur_step) {
 		<meta charset="utf-8">
 		<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
 		<script src="../assets/js/vendor.js"></script>
+		<script src="../assets/js/bootstrap.bundle.min.js"></script>
 		<link href="assets/style.css" rel="stylesheet">
 		<script>
 		$(function() {
-			$('[title]').tooltip({placement: 'bottom'});
+			// Bootstrap 5 tooltips initialization
+			var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+			var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+				return new bootstrap.Tooltip(tooltipTriggerEl, { placement: 'bottom' });
+			});
 		});
 		</script>
 	</head>
 	<body>
 		<div class="row" id="header">
-			<div class="float-left left"><h1>Evo-CMS</h1></div>
-			<div class="float-right right">Installation</div>
+			<div class="float-start left"><h1>Evo-CMS</h1></div>
+			<div class="float-end right">Installation</div>
 		</div>
 		<div id="content">
-			<div class="jumbotron">
+			<div class="bg-light p-5 rounded-3">
 				<div class="row">
 					<div class="col-md-3" id="progression">
 					<?php
@@ -674,8 +679,8 @@ switch($cur_step) {
 			<div class="sqlite form-group row bs-callout bs-callout-danger">
 				<?= __('database.sqlite_legend') ?>
 			</div>
-			<div class="sqlite mysql form-group row" data-toggle="tooltip">
-				<label for="type" class="col-sm-4 col-form-label text-right">Type</label>
+			<div class="sqlite mysql form-group row" data-bs-toggle="tooltip">
+				<label for="type" class="col-sm-4 col-form-label text-end">Type</label>
 				<div class="col-sm-6">
 					<select class="form-control" id="type" name="db_type">
 					<?php
@@ -702,31 +707,31 @@ switch($cur_step) {
 				</script>
 			</div>
 			<div class="mysql form-group row">
-				<label for="host" class="col-sm-4 col-form-label text-right"><?= __('database.host') ?></label>
+				<label for="host" class="col-sm-4 col-form-label text-end"><?= __('database.host') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="host" name="db_host" value="<?= post_e('db_host', 'localhost') ?>">
 				</div>
 			</div>
 			<div class="sqlite mysql form-group row">
-				<label for="dbname" class="col-sm-4 col-form-label text-right"><?= __('database.name') ?></label>
+				<label for="dbname" class="col-sm-4 col-form-label text-end"><?= __('database.name') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="dbname" name="db_name" value="<?= post_e('db_name') ?>">
 				</div>
 			</div>
 			<div class="mysql form-group row">
-				<label for="username" class="col-sm-4 col-form-label text-right"><?= __('database.username') ?></label>
+				<label for="username" class="col-sm-4 col-form-label text-end"><?= __('database.username') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="username" name="db_user" value="<?= post_e('db_user') ?>">
 				</div>
 			</div>
 			<div class="mysql form-group row">
-				<label for="password" class="col-sm-4 col-form-label text-right"><?= __('database.password') ?></label>
+				<label for="password" class="col-sm-4 col-form-label text-end"><?= __('database.password') ?></label>
 				<div class="col-sm-6">
 					<input type="password" class="form-control" id="password" name="db_pass" value="<?= post_e('db_pass') ?>">
 				</div>
 			</div>
-			<div class="sqlite mysql form-group row" data-toggle="tooltip" title="<?= __('database.prefix_legend') ?>">
-				<label for="inputPassword3" class="col-sm-4 col-form-label text-right"><?= __('database.prefix') ?></label>
+			<div class="sqlite mysql form-group row" data-bs-toggle="tooltip" title="<?= __('database.prefix_legend') ?>">
+				<label for="inputPassword3" class="col-sm-4 col-form-label text-end"><?= __('database.prefix') ?></label>
 				<div class="col-sm-6">
 					<input type="text" class="form-control" id="prefixe" name="db_prefix" value="<?= post_e('db_prefix', 'evo_') ?>">
 				</div>
@@ -744,31 +749,31 @@ switch($cur_step) {
 				<legend><?= __('steps.config') ?></legend>
 				<p><?= __('config.legend') ?></p>
 					<div class="form-group row">
-						<label for="sitename" class="col-sm-3 col-form-label text-right"><?= __('config.sitename') ?></label>
+						<label for="sitename" class="col-sm-3 col-form-label text-end"><?= __('config.sitename') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="sitename" name="name" value="<?= post_e('name', 'Evo-CMS '.EVO_VERSION) ?>">
 						</div>
 					</div>
 					<div class="form-group row">
-						<label for="siteurl" class="col-sm-3 col-form-label text-right"><?= __('config.siteurl') ?></label>
+						<label for="siteurl" class="col-sm-3 col-form-label text-end"><?= __('config.siteurl') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="siteurl" name="url" value="<?= post_e('url', $url) ?>">
 						</div>
 					</div>
 					<div class="form-group row">
-						<label for="sitemail" class="col-sm-3 col-form-label text-right"><?= __('config.siteemail') ?></label>
+						<label for="sitemail" class="col-sm-3 col-form-label text-end"><?= __('config.siteemail') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="sitemail" name="email" placeholder="example@domain.com" value="<?= post_e('email') ?>">
 						</div>
 					</div>
 					<div class="form-group row">
-						<label for="sitelogin" class="col-sm-3 col-form-label text-right"><?= __('config.username') ?></label>
+						<label for="sitelogin" class="col-sm-3 col-form-label text-end"><?= __('config.username') ?></label>
 						<div class="col-sm-9">
 							<input type="text" class="form-control" id="sitelogin" name="admin" value="admin" value="<?= post_e('admin') ?>">
 						</div>
 					</div>
 					<div class="form-group row">
-						<label for="sitepass" class="col-sm-3 col-form-label text-right"><?= __('config.password') ?><br><small><?= __('config.password2') ?></small></label>
+						<label for="sitepass" class="col-sm-3 col-form-label text-end"><?= __('config.password') ?><br><small><?= __('config.password2') ?></small></label>
 						<div class="col-sm-9">
 							<input type="password" class="form-control" id="sitepass" name="admin_pass" value="<?= post_e('admin_pass') ?>">
 							<input type="password" class="form-control" id="sitepass2" name="admin_pass_confirm" value="<?= post_e('admin_pass_confirm') ?>" placeholder="Confirmation">
@@ -776,8 +781,8 @@ switch($cur_step) {
 					</div>
 
 					<?php if (EVO_REPORT_EMAIL): ?>
-					<div class="form-group row"  data-toggle="tooltip" title="<?= __('config.report_legend') ?>">
-						<label class="col-sm-3 col-form-label text-right"></label>
+					<div class="form-group row"  data-bs-toggle="tooltip" title="<?= __('config.report_legend') ?>">
+						<label class="col-sm-3 col-form-label text-end"></label>
 						<div class="col-sm-9">
 						<input type="checkbox" name="report" id="report" value="1" checked> <label for="report"><?= __('config.report') ?></label>
 						</div>
@@ -798,25 +803,25 @@ switch($cur_step) {
 					<p><?= __('install.success_legend') ?></p>
 				</div>
 				<div class="form-group row">
-					<label class="col-sm-4 col-form-label text-right"><?= __('config.siteurl') ?> : </label>
+					<label class="col-sm-4 col-form-label text-end"><?= __('config.siteurl') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['url'] ?></div>
 					</div>
 				</div>
 				<div class="form-group row">
-					<label class="col-sm-4 col-form-label text-right"><?= __('config.adminurl') ?> : </label>
+					<label class="col-sm-4 col-form-label text-end"><?= __('config.adminurl') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['url'] ?>/admin</div>
 					</div>
 				</div>
 				<div class="form-group row">
-					<label class="col-sm-4 col-form-label text-right"><?= __('config.username') ?> : </label>
+					<label class="col-sm-4 col-form-label text-end"><?= __('config.username') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['admin'] ?></div>
 					</div>
 				</div>
 				<div class="form-group row">
-					<label class="col-sm-4 col-form-label text-right"><?= __('config.password') ?> : </label>
+					<label class="col-sm-4 col-form-label text-end"><?= __('config.password') ?> : </label>
 					<div class="col-sm-8">
 						<div class="form-control"><?= $_POST['admin_pass'] ?></div>
 					</div>
@@ -852,8 +857,8 @@ switch($cur_step) {
 				</div>
 			</div>
 			<div class="row" id="footer">
-				<div class="float-left">Evo-CMS <?=EVO_VERSION?></div>
-				<div class="float-right">© Evolution-Network</div>
+				<div class="float-start">Evo-CMS <?=EVO_VERSION?></div>
+				<div class="float-end">© Evolution-Network</div>
 			</div>
 		</div>
 	</body>

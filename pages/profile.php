@@ -52,7 +52,7 @@ function get_available_avatars(array $user = null)
 	}
 
 	$paths = glob(ROOT_DIR.'/upload/avatars/*/');
-	$paths[] = App::getTheme()->location . '/img/avatars/';
+	$paths[] = ROOT_DIR . '/assets/img/avatars/';
 	$paths[] = 'img/avatars/';
 
 	foreach($paths as $cat_dir) {
@@ -197,31 +197,31 @@ if (IS_POST && !IS_AJAX) {
 <legend><?= __('profile.edit_title') ?> : <?= $user_info->username?></legend>
 <form method="post" role="form" class="form-horizontal" autocomplete="off">
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="username"><?= __('profile.edit_username') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="username"><?= __('profile.edit_username') ?> :</label>
 		<div class="col-sm-6">
 			<input class="form-control" name="username" type="text" value="<?= $user_info->username?>">
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="mail"><?= __('profile.edit_email') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="mail"><?= __('profile.edit_email') ?> :</label>
 		<div class="col-sm-6">
 			<input class="form-control password-required" name="email" type="text" data-old-value="<?= html_encode($user_info->email)?>" value="<?= html_encode($user_info->email)?>">
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="mail"><?= __('profile.edit_country') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="mail"><?= __('profile.edit_country') ?> :</label>
 		<div class="col-sm-6">
 			<?= Widgets::select('country', COUNTRIES, $user_info->country); ?>
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="mail"><?= __('profile.edit_timezone') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="mail"><?= __('profile.edit_timezone') ?> :</label>
 		<div class="col-sm-6">
 			<?= Widgets::select('timezone', $timezones, App::getCurrentUser()->timezone); ?>
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="newsletter"><?= __('profile.edit_options') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="newsletter"><?= __('profile.edit_options') ?> :</label>
 		<div class="col-sm-8">
 			<input id="newsletter" name="newsletter" type="checkbox" value="1" <?php if ($user_info->newsletter == 1) echo 'checked';?>>
 			<label for="newsletter" class="normal"><?= __('profile.edit_newsletter') ?></label><br>
@@ -230,7 +230,7 @@ if (IS_POST && !IS_AJAX) {
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="password"><?= __('profile.edit_password') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="password"><?= __('profile.edit_password') ?> :</label>
 		<div class="col-sm-6">
 			<input name="password" type="password" hidden><!-- that's to stop chrome's autocomplete -->
 			<input name="password" type="password" data-old-value="" class="form-control password-required" placeholder="<?= __('profile.edit_new_password_ph') ?>">
@@ -241,7 +241,7 @@ if (IS_POST && !IS_AJAX) {
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="permission"><?= __('profile.edit_rank') ?> : </label>
+		<label class="col-sm-4 col-form-label text-end" for="permission"><?= __('profile.edit_rank') ?> : </label>
 		<div class="col-sm-6">
 			<?php
 				$groups = Db::QueryAll('select * from {groups} order by priority asc', true);
@@ -256,37 +256,37 @@ if (IS_POST && !IS_AJAX) {
 				if (isset($fields['group_id']))
 					echo Widgets::select('group_id', $options, $user_info->group_id);
 				else
-					echo '<label class="col-sm-4 col-form-label text-right group-color-'.$user_info->group->color.'">'.html_encode($user_info->group->name).'</label>';
+					echo '<label class="col-sm-4 col-form-label text-end group-color-'.$user_info->group->color.'">'.html_encode($user_info->group->name).'</label>';
 			?>
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="parrain"><?= __('profile.edit_raf') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="parrain"><?= __('profile.edit_raf') ?> :</label>
 		<div class="col-sm-4">
 			<input class="form-control" data-autocomplete="userlist" name="raf" id="parrain" type="text" value="<?= html_encode($user_info->raf)?>" <?php if (!isset($fields['raf'])) echo 'disabled'; ?>>
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="in-game" title="Gamer tag">In-game name:</label>
+		<label class="col-sm-4 col-form-label text-end" for="in-game" title="Gamer tag">In-game name:</label>
 		<div class="col-sm-6">
 			<input class="form-control" id="in-game" name="ingame" type="text" value="<?= html_encode($user_info->ingame)?>" placeholder="<?= __('profile.edit_gametag') ?>">
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="website" title="Site web">Website:</label>
+		<label class="col-sm-4 col-form-label text-end" for="website" title="Site web">Website:</label>
 		<div class="col-sm-6">
 			<input class="form-control" id="website" name="website" type="text" value="<?= html_encode($user_info->website)?>" placeholder="<?= __('profile.edit_website') ?>">
 		</div>
 	</div>
 	<div class="form-group row">
-		<label class="col-sm-4 col-form-label text-right" for="avatar"><?= __('profile.edit_avatar') ?> :</label>
+		<label class="col-sm-4 col-form-label text-end" for="avatar"><?= __('profile.edit_avatar') ?> :</label>
 		<div class="col-sm-5">
 			<?= Widgets::select('avatar', $avatars, $user_info->avatar, true, ['class' => 'avatar_selector form-control']); ?>
 			<span style="margin-left: 10px;position: relative;top: -4px;"><img id="avatar_selector_preview" title="<?= __('profile.edit_avatar_now') ?>" width="42" height="42" src="<?= get_avatar($user_info, 42, true)?>"></span>
 		</div>
 	</div>
 
-	<div id="avatar_selector_box" class="well"></div>
+	<div id="avatar_selector_box" class="bg-light p-3 rounded"></div>
 
 	<br><br>
 
@@ -295,7 +295,7 @@ if (IS_POST && !IS_AJAX) {
 
 		<?php foreach($socialproviders as $network => [$name, $icon]) { ?>
 		<div class="form-group row">
-			<label class="col-sm-4 col-form-label text-right" for="<?= $network ?>" title="<?= $name ?>"><i class="fab <?= $icon ?> fa-2x"></i></label>
+			<label class="col-sm-4 col-form-label text-end" for="<?= $network ?>" title="<?= $name ?>"><i class="fab <?= $icon ?> fa-2x"></i></label>
 			<div class="col-sm-6">
 				<input class="form-control" id="<?= $network ?>" name="social[<?= $network ?>]" type="text" value="<?= html_encode($user_info->social[$network] ?? '')?>" placeholder="<?= __('profile.edit_social', ['%social%' => $name]) ?>">
 			</div>
@@ -305,7 +305,7 @@ if (IS_POST && !IS_AJAX) {
 
 	<legend><?= __('profile.edit_aboutme') ?></legend>
 	<div class="form-group row">
-		<div class="col-md-12 col-md-offset-1">
+		<div class="col-md-12 offset-md-1">
 			<textarea id="editor" class="form-control" name="about" placeholder="<?= __('profile.edit_aboutme2') ?>" style="height:250px;"><?= html_encode($user_info->about)?></textarea>
 		</div>
 	</div>
@@ -321,7 +321,7 @@ if (IS_POST && !IS_AJAX) {
 	$('select.avatar_selector option[value="ingame"]').attr('data-src-alt', "<?= get_avatar(['email' => $user_info->email, 'ingame' => $user_info->ingame], 85, true); ?>");
 	$('select.avatar_selector')
 		.after('<select style="float: left;width: 200px;" class="form-control" id="cat_only_selectbox"></select>')
-		.hide();
+		.addClass('d-none');
 	$("select.avatar_selector > optgroup").each(function() {
 		var f = $(this).children('option');
 		var in_group = $(this).children('option[selected]').length;

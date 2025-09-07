@@ -14,5 +14,6 @@
 
 	<body>
 		<?= $_content ?>
+		<script src="<?= App::getAsset('js/bootstrap.bundle.min.js') ?>"></script>
 	</body>
 </html>
