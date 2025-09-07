@@ -1,32 +1,697 @@
-html {height: 100%;}
-body {font-family: 'Century Gothic', sans-serif; background: #6fa5d0; background: url(background.jpg) left center no-repeat; background-size: cover;}
-#content {max-width: 800px; padding:10px; margin:0 auto; border: 1px solid rgb(223, 223, 223); border-radius: 5px; margin-top: 10px; background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAKT2lDQ1BQaG90b3Nob3AgSUNDIHByb2ZpbGUAAHjanVNnVFPpFj333vRCS4iAlEtvUhUIIFJCi4AUkSYqIQkQSoghodkVUcERRUUEG8igiAOOjoCMFVEsDIoK2AfkIaKOg6OIisr74Xuja9a89+bN/rXXPues852zzwfACAyWSDNRNYAMqUIeEeCDx8TG4eQuQIEKJHAAEAizZCFz/SMBAPh+PDwrIsAHvgABeNMLCADATZvAMByH/w/qQplcAYCEAcB0kThLCIAUAEB6jkKmAEBGAYCdmCZTAKAEAGDLY2LjAFAtAGAnf+bTAICd+Jl7AQBblCEVAaCRACATZYhEAGg7AKzPVopFAFgwABRmS8Q5ANgtADBJV2ZIALC3AMDOEAuyAAgMADBRiIUpAAR7AGDIIyN4AISZABRG8lc88SuuEOcqAAB4mbI8uSQ5RYFbCC1xB1dXLh4ozkkXKxQ2YQJhmkAuwnmZGTKBNA/g88wAAKCRFRHgg/P9eM4Ors7ONo62Dl8t6r8G/yJiYuP+5c+rcEAAAOF0ftH+LC+zGoA7BoBt/qIl7gRoXgugdfeLZrIPQLUAoOnaV/Nw+H48PEWhkLnZ2eXk5NhKxEJbYcpXff5nwl/AV/1s+X48/Pf14L7iJIEyXYFHBPjgwsz0TKUcz5IJhGLc5o9H/LcL//wd0yLESWK5WCoU41EScY5EmozzMqUiiUKSKcUl0v9k4t8s+wM+3zUAsGo+AXuRLahdYwP2SycQWHTA4vcAAPK7b8HUKAgDgGiD4c93/+8//UegJQCAZkmScQAAXkQkLlTKsz/HCAAARKCBKrBBG/TBGCzABhzBBdzBC/xgNoRCJMTCQhBCCmSAHHJgKayCQiiGzbAdKmAv1EAdNMBRaIaTcA4uwlW4Dj1wD/phCJ7BKLyBCQRByAgTYSHaiAFiilgjjggXmYX4IcFIBBKLJCDJiBRRIkuRNUgxUopUIFVIHfI9cgI5h1xGupE7yAAygvyGvEcxlIGyUT3UDLVDuag3GoRGogvQZHQxmo8WoJvQcrQaPYw2oefQq2gP2o8+Q8cwwOgYBzPEbDAuxsNCsTgsCZNjy7EirAyrxhqwVqwDu4n1Y8+xdwQSgUXACTYEd0IgYR5BSFhMWE7YSKggHCQ0EdoJNwkDhFHCJyKTqEu0JroR+cQYYjIxh1hILCPWEo8TLxB7iEPENyQSiUMyJ7mQAkmxpFTSEtJG0m5SI+ksqZs0SBojk8naZGuyBzmULCAryIXkneTD5DPkG+Qh8lsKnWJAcaT4U+IoUspqShnlEOU05QZlmDJBVaOaUt2ooVQRNY9aQq2htlKvUYeoEzR1mjnNgxZJS6WtopXTGmgXaPdpr+h0uhHdlR5Ol9BX0svpR+iX6AP0dwwNhhWDx4hnKBmbGAcYZxl3GK+YTKYZ04sZx1QwNzHrmOeZD5lvVVgqtip8FZHKCpVKlSaVGyovVKmqpqreqgtV81XLVI+pXlN9rkZVM1PjqQnUlqtVqp1Q61MbU2epO6iHqmeob1Q/pH5Z/YkGWcNMw09DpFGgsV/jvMYgC2MZs3gsIWsNq4Z1gTXEJrHN2Xx2KruY/R27iz2qqaE5QzNKM1ezUvOUZj8H45hx+Jx0TgnnKKeX836K3hTvKeIpG6Y0TLkxZVxrqpaXllirSKtRq0frvTau7aedpr1Fu1n7gQ5Bx0onXCdHZ4/OBZ3nU9lT3acKpxZNPTr1ri6qa6UbobtEd79up+6Ynr5egJ5Mb6feeb3n+hx9L/1U/W36p/VHDFgGswwkBtsMzhg8xTVxbzwdL8fb8VFDXcNAQ6VhlWGX4YSRudE8o9VGjUYPjGnGXOMk423GbcajJgYmISZLTepN7ppSTbmmKaY7TDtMx83MzaLN1pk1mz0x1zLnm+eb15vft2BaeFostqi2uGVJsuRaplnutrxuhVo5WaVYVVpds0atna0l1rutu6cRp7lOk06rntZnw7Dxtsm2qbcZsOXYBtuutm22fWFnYhdnt8Wuw+6TvZN9un2N/T0HDYfZDqsdWh1+c7RyFDpWOt6azpzuP33F9JbpL2dYzxDP2DPjthPLKcRpnVOb00dnF2e5c4PziIuJS4LLLpc+Lpsbxt3IveRKdPVxXeF60vWdm7Obwu2o26/uNu5p7ofcn8w0nymeWTNz0MPIQ+BR5dE/C5+VMGvfrH5PQ0+BZ7XnIy9jL5FXrdewt6V3qvdh7xc+9j5yn+M+4zw33jLeWV/MN8C3yLfLT8Nvnl+F30N/I/9k/3r/0QCngCUBZwOJgUGBWwL7+Hp8Ib+OPzrbZfay2e1BjKC5QRVBj4KtguXBrSFoyOyQrSH355jOkc5pDoVQfujW0Adh5mGLw34MJ4WHhVeGP45wiFga0TGXNXfR3ENz30T6RJZE3ptnMU85ry1KNSo+qi5qPNo3ujS6P8YuZlnM1VidWElsSxw5LiquNm5svt/87fOH4p3iC+N7F5gvyF1weaHOwvSFpxapLhIsOpZATIhOOJTwQRAqqBaMJfITdyWOCnnCHcJnIi/RNtGI2ENcKh5O8kgqTXqS7JG8NXkkxTOlLOW5hCepkLxMDUzdmzqeFpp2IG0yPTq9MYOSkZBxQqohTZO2Z+pn5mZ2y6xlhbL+xW6Lty8elQfJa7OQrAVZLQq2QqboVFoo1yoHsmdlV2a/zYnKOZarnivN7cyzytuQN5zvn//tEsIS4ZK2pYZLVy0dWOa9rGo5sjxxedsK4xUFK4ZWBqw8uIq2Km3VT6vtV5eufr0mek1rgV7ByoLBtQFr6wtVCuWFfevc1+1dT1gvWd+1YfqGnRs+FYmKrhTbF5cVf9go3HjlG4dvyr+Z3JS0qavEuWTPZtJm6ebeLZ5bDpaql+aXDm4N2dq0Dd9WtO319kXbL5fNKNu7g7ZDuaO/PLi8ZafJzs07P1SkVPRU+lQ27tLdtWHX+G7R7ht7vPY07NXbW7z3/T7JvttVAVVN1WbVZftJ+7P3P66Jqun4lvttXa1ObXHtxwPSA/0HIw6217nU1R3SPVRSj9Yr60cOxx++/p3vdy0NNg1VjZzG4iNwRHnk6fcJ3/ceDTradox7rOEH0x92HWcdL2pCmvKaRptTmvtbYlu6T8w+0dbq3nr8R9sfD5w0PFl5SvNUyWna6YLTk2fyz4ydlZ19fi753GDborZ752PO32oPb++6EHTh0kX/i+c7vDvOXPK4dPKy2+UTV7hXmq86X23qdOo8/pPTT8e7nLuarrlca7nuer21e2b36RueN87d9L158Rb/1tWeOT3dvfN6b/fF9/XfFt1+cif9zsu72Xcn7q28T7xf9EDtQdlD3YfVP1v+3Njv3H9qwHeg89HcR/cGhYPP/pH1jw9DBY+Zj8uGDYbrnjg+OTniP3L96fynQ89kzyaeF/6i/suuFxYvfvjV69fO0ZjRoZfyl5O/bXyl/erA6xmv28bCxh6+yXgzMV70VvvtwXfcdx3vo98PT+R8IH8o/2j5sfVT0Kf7kxmTk/8EA5jz/GMzLdsAAAAgY0hSTQAAeiUAAICDAAD5/wAAgOkAAHUwAADqYAAAOpgAABdvkl/FRgAAADNJREFUeNrszkEBAAAEBDAk1/zE8NkSrJNsPZp6JiAgICAgICAgICAgICAgcAAAAP//AwBPLAO91e9kWAAAAABJRU5ErkJggg==');}
-#header {max-width: 800px; margin: 0 auto; padding: 0 5px; text-shadow: 0px 0px 5px rgba(150, 150, 150, 1) !important; color: rgba(255, 255, 255, 0.80); font-weight: 100;color: #fff;}
-#header .left h1 {margin-bottom: 0;}
-#header .right {position: relative; right: 0; top: 1.5em;font-size:1.5em;}
-#footer {font-size: 11px; color: black; padding: 0 1.5em;}
-#progression { height: 500px; border-right: 1px solid rgb(223, 223, 223); padding-top: 30px; }
-#progression p { font-size: 10pt; font-weight: 400 !important; }
-#progression .actif { font-weight: 600 !important; font-size: 11pt; }
-#progression .pass { color: rgb(189, 189, 189); }
-#progression .pass:after { color: green; content: ' ✓'; font-weight: bold; }
-#progression .error:after { color: red; content: ' ✘'; font-weight: bold; }
-.jumbotron { margin-bottom: 10px; border: 1px solid rgb(223, 223, 223); padding: 30px; color: inherit; background-color: #ffffff; }
-.requis { margin-bottom: 15px; margin-top: 15px; }
-.requis_align { margin: 0 auto; width: 400px; }
-.requis .ok { color: green; }
-.requis .error{ color: red; }
-.requis .warning{ color: orange; }
-.bs-callout { margin: 10px 0; padding: 10px; border-left: 3px solid #eee; }
-.bs-callout h4{ margin-top: 0; }
-.bs-callout-danger h4{ color: #B94A48; }
-.bs-callout-success h4 { color: #3C763D; }
-.bs-callout p:last-child { margin-bottom: 0; }
-.bs-callout-danger { background-color: #fdf7f7; border-color: #d9534f; }
-.bs-callout-success { background-color: #fdf7f7; border-color: #67B823; }
+/* ===== OSX COMPACT INSTALLATION STYLE ===== */
+:root {
+    /* Apple Color Palette */
+    --apple-blue: #007AFF;
+    --apple-blue-hover: #0056CC;
+    --apple-green: #34C759;
+    --apple-orange: #FF9500;
+    --apple-red: #FF3B30;
+    
+    /* Apple System Colors */
+    --system-background: #FFFFFF;
+    --system-background-secondary: #F2F2F7;
+    --system-fill-quaternary: #F2F2F7;
+    --system-label: #000000;
+    --system-label-secondary: #3C3C43;
+    --system-label-quaternary: #2C2C2E;
+    --system-separator-opaque: #C6C6C8;
+    
+    /* Typography */
+    --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-size-large-title: 1.75rem;
+    --font-size-title-1: 1.375rem;
+    --font-size-title-2: 1.125rem;
+    --font-size-title-3: 1rem;
+    --font-size-body: 0.875rem;
+    --font-size-callout: 0.8125rem;
+    --font-size-caption-2: 0.625rem;
+    
+    /* Compact Spacing */
+    --space-1: 0.1875rem;
+    --space-2: 0.375rem;
+    --space-3: 0.5625rem;
+    --space-4: 0.75rem;
+    --space-5: 0.9375rem;
+    --space-6: 1.125rem;
+    --space-8: 1.5rem;
+    
+    /* Border Radius */
+    --radius-small: 0.25rem;
+    --radius-large: 0.5rem;
+    --radius-extra-large: 0.75rem;
+    --radius-2xl: 1rem;
+    --radius-3xl: 1.25rem;
+    
+}
 
-@media (max-width:800px) {
-    #progression {
-        display: none;
+/* Reset and Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-size: 14px;
+    line-height: 1.47059;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-family);
+    font-size: var(--font-size-body);
+    font-weight: 400;
+    color: var(--system-label);
+    background: var(--system-background-secondary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+/* Main Container - Compact */
+.installer {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    background: linear-gradient(135deg, #F5F7FA 0%, #C3CFE2 100%);
+    position: relative;
+}
+
+.installer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.2) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.15) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.installer-container {
+    width: 100%;
+    max-width: 600px;
+    background: var(--system-background);
+    border-radius: var(--radius-3xl);
+    box-shadow: 
+        0 20px 40px rgba(0, 0, 0, 0.12),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Header - Compact */
+.installer-header {
+    background: var(--system-background);
+    padding: var(--space-8) var(--space-6) var(--space-6);
+    text-align: center;
+    border-bottom: 1px solid var(--system-separator-opaque);
+    position: relative;
+}
+
+.installer-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 3px;
+    background: var(--apple-blue);
+    border-radius: 1.5px;
+}
+
+.installer-title {
+    font-size: var(--font-size-large-title);
+    font-weight: 600;
+    color: var(--system-label);
+    margin-bottom: var(--space-2);
+    letter-spacing: -0.022em;
+    line-height: 1.2;
+}
+
+.installer-subtitle {
+    font-size: var(--font-size-title-3);
+    color: var(--system-label-secondary);
+    font-weight: 400;
+    letter-spacing: -0.011em;
+}
+
+/* Progress Indicator - Compact */
+.progress-indicator {
+    background: var(--system-background-secondary);
+    padding: var(--space-6) var(--space-6);
+    border-bottom: 1px solid var(--system-separator-opaque);
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 1;
+    position: relative;
+}
+
+.progress-step::after {
+    content: '';
+    position: absolute;
+    top: 12px;
+    left: calc(50% + 16px);
+    right: calc(-50% + 16px);
+    height: 2px;
+    background: var(--system-separator-opaque);
+    z-index: 1;
+}
+
+.progress-step:last-child::after {
+    display: none;
+}
+
+.step-circle {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-caption-2);
+    font-weight: 600;
+    position: relative;
+    z-index: 2;
+    transition: all 0.3s ease;
+}
+
+.step-circle.active {
+    background: var(--apple-blue);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+}
+
+.step-circle.completed {
+    background: var(--apple-green);
+    color: white;
+}
+
+.step-circle.pending {
+    background: var(--system-fill-quaternary);
+    color: var(--system-label-quaternary);
+    border: 1px solid var(--system-separator-opaque);
+}
+
+.step-label {
+    font-size: var(--font-size-caption-2);
+    font-weight: 500;
+    color: var(--system-label-secondary);
+    text-align: center;
+    line-height: 1.3;
+}
+
+.step-circle.active + .step-label {
+    color: var(--apple-blue);
+    font-weight: 600;
+}
+
+.step-circle.completed + .step-label {
+    color: var(--apple-green);
+}
+
+/* Main Panel - Compact */
+.installer-main {
+    padding: var(--space-8) var(--space-6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.installer-main form {
+    width: 100%;
+}
+
+.step-content {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.step-header {
+    margin-bottom: var(--space-8);
+}
+
+.step-title {
+    font-size: var(--font-size-title-1);
+    font-weight: 600;
+    color: var(--system-label);
+    margin-bottom: var(--space-3);
+    letter-spacing: -0.022em;
+    line-height: 1.2;
+}
+
+.step-description {
+    font-size: var(--font-size-body);
+    color: var(--system-label-secondary);
+    line-height: 1.47059;
+    letter-spacing: -0.011em;
+}
+
+/* Form Elements - Compact */
+.form-group {
+    margin-bottom: var(--space-5);
+    text-align: left;
+}
+
+.form-label {
+    display: block;
+    font-size: var(--font-size-callout);
+    font-weight: 500;
+    color: var(--system-label);
+    margin-bottom: var(--space-2);
+    letter-spacing: -0.011em;
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--system-separator-opaque);
+    border-radius: var(--radius-large);
+    font-size: var(--font-size-body);
+    font-family: inherit;
+    background: var(--system-background);
+    color: var(--system-label);
+    transition: all 0.2s ease;
+    letter-spacing: -0.011em;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--apple-blue);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+.form-control::placeholder {
+    color: var(--system-label-quaternary);
+}
+
+.form-select {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--system-separator-opaque);
+    border-radius: var(--radius-large);
+    font-size: var(--font-size-body);
+    font-family: inherit;
+    background: var(--system-background);
+    color: var(--system-label);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: -0.011em;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--apple-blue);
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+}
+
+
+/* System Checks - Compact */
+.checks-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    text-align: left;
+}
+
+.check-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--system-background-secondary);
+    border: 1px solid var(--system-separator-opaque);
+    border-radius: var(--radius-large);
+    transition: all 0.2s ease;
+}
+
+.check-item.success {
+    border-color: var(--apple-green);
+    background: rgba(52, 199, 89, 0.1);
+}
+
+.check-item.error {
+    border-color: var(--apple-red);
+    background: rgba(255, 59, 48, 0.1);
+}
+
+.check-icon {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-caption-2);
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.check-item.success .check-icon {
+    background: var(--apple-green);
+    color: white;
+}
+
+.check-item.error .check-icon {
+    background: var(--apple-red);
+    color: white;
+}
+
+.check-text {
+    flex: 1;
+    font-size: var(--font-size-callout);
+    font-weight: 500;
+    color: var(--system-label);
+    letter-spacing: -0.011em;
+}
+
+.check-status {
+    font-size: var(--font-size-caption-2);
+    font-weight: 600;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-small);
+    background: var(--system-fill-quaternary);
+    color: var(--system-label-quaternary);
+}
+
+.check-item.success .check-status {
+    background: var(--apple-green);
+    color: white;
+}
+
+.check-item.error .check-status {
+    background: var(--apple-red);
+    color: white;
+}
+
+/* Alerts - Compact */
+.alert {
+    padding: var(--space-4) var(--space-5);
+    border-radius: var(--radius-large);
+    margin-bottom: var(--space-5);
+    border-left: 3px solid;
+    font-size: var(--font-size-callout);
+    font-weight: 500;
+    letter-spacing: -0.011em;
+}
+
+.alert-success {
+    background: rgba(52, 199, 89, 0.1);
+    border-color: var(--apple-green);
+    color: var(--system-label);
+}
+
+.alert-error {
+    background: rgba(255, 59, 48, 0.1);
+    border-color: var(--apple-red);
+    color: var(--system-label);
+}
+
+
+.alert-info {
+    background: rgba(0, 122, 255, 0.1);
+    border-color: var(--apple-blue);
+    color: var(--system-label);
+}
+
+/* Buttons - Compact */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    border: none;
+    border-radius: var(--radius-large);
+    font-size: var(--font-size-callout);
+    font-weight: 500;
+    font-family: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    letter-spacing: -0.011em;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background: var(--apple-blue);
+    color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--apple-blue-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+}
+
+.btn-secondary {
+    background: var(--system-fill-quaternary);
+    color: var(--system-label);
+    border: 1px solid var(--system-separator-opaque);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--system-fill-tertiary);
+    border-color: var(--system-separator);
+}
+
+.btn-success {
+    background: var(--apple-green);
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background: #30B04A;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+}
+
+.btn-lg {
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--font-size-body);
+}
+
+/* Navigation - Compact */
+.step-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--system-separator-opaque);
+    width: 100%;
+    gap: var(--space-4);
+}
+
+/* Gestion des éléments vides */
+.step-navigation > div:empty {
+    display: none;
+}
+
+/* Centrage pour le bouton de completion */
+.step-navigation .text-center {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+/* Alignement des boutons */
+.step-navigation .btn {
+    flex-shrink: 0;
+    min-width: 120px;
+}
+
+/* Cas avec un seul bouton (centré) */
+.step-navigation .btn:only-child {
+    margin: 0 auto;
+}
+
+/* Cas avec deux boutons (espacement) */
+.step-navigation .btn:first-child:not(:only-child) {
+    margin-right: auto;
+}
+
+.step-navigation .btn:last-child:not(:only-child) {
+    margin-left: auto;
+}
+
+/* Responsive pour la navigation */
+@media (max-width: 768px) {
+    .step-navigation {
+        flex-direction: column;
+        gap: var(--space-3);
+        align-items: stretch;
+    }
+    
+    .step-navigation .btn {
+        width: 100%;
+        min-width: auto;
+        margin: 0 !important;
+    }
+    
+    .step-navigation .text-center {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .step-navigation {
+        gap: var(--space-2);
+    }
+}
+
+
+
+/* Responsive - Compact */
+@media (max-width: 768px) {
+    .installer {
+        padding: var(--space-3);
+    }
+    
+    .installer-container {
+        border-radius: var(--radius-2xl);
+        max-width: 100%;
+    }
+    
+    .installer-header {
+        padding: var(--space-6) var(--space-4);
+    }
+    
+    .installer-title {
+        font-size: var(--font-size-title-1);
+    }
+    
+    .installer-subtitle {
+        font-size: var(--font-size-body);
+    }
+    
+    .progress-indicator {
+        padding: var(--space-4) var(--space-3);
+    }
+    
+    .progress-steps {
+        gap: var(--space-2);
+    }
+    
+    .step-label {
+        font-size: var(--font-size-caption-2);
+    }
+    
+    .installer-main {
+        padding: var(--space-6) var(--space-4);
+    }
+    
+    .step-title {
+        font-size: var(--font-size-title-2);
+    }
+    
+    
+}
+
+@media (max-width: 480px) {
+    .installer {
+        padding: var(--space-2);
+    }
+    
+    .installer-header {
+        padding: var(--space-4) var(--space-3);
+    }
+    
+    .installer-title {
+        font-size: var(--font-size-title-2);
+    }
+    
+    .installer-main {
+        padding: var(--space-4) var(--space-3);
+    }
+    
+    .step-title {
+        font-size: var(--font-size-title-3);
+    }
+    
+    .btn {
+        padding: var(--space-3) var(--space-4);
+        font-size: var(--font-size-caption-1);
+    }
+    
+    .btn-lg {
+        padding: var(--space-3) var(--space-6);
+        font-size: var(--font-size-callout);
+    }
+}
+
+/* Footer - Compact */
+.installer-footer {
+    background: var(--system-background-secondary);
+    border-top: 1px solid var(--system-separator-opaque);
+    padding: var(--space-4) var(--space-6);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: var(--font-size-caption-2);
+    color: var(--system-label-quaternary);
+    letter-spacing: -0.011em;
+    min-height: 44px;
+}
+
+.installer-footer > div {
+    flex: 1;
+    text-align: center;
+}
+
+.installer-footer > div:first-child {
+    text-align: left;
+}
+
+.installer-footer > div:last-child {
+    text-align: right;
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.mb-6 { margin-bottom: var(--space-6); }
+
+/* Responsive - Footer */
+@media (max-width: 768px) {
+    .installer-footer {
+        padding: var(--space-3) var(--space-4);
+        flex-direction: column;
+        gap: var(--space-1);
+        text-align: center;
+        min-height: auto;
+    }
+    
+    .installer-footer > div {
+        text-align: center !important;
     }
 }

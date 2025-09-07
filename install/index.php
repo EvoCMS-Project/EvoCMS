@@ -6,7 +6,9 @@ if (!version_compare(PHP_VERSION, '7.1.0', '>=')) {
 	die('EVO-CMS requires PHP 7.1 or greater. Installed: ' . PHP_VERSION);
 }
 
-error_reporting(E_ALL & ~E_STRICT);
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('log_errors', 1);
 date_default_timezone_set('UTC');
 
 require_once '../includes/definitions.php';
@@ -48,7 +50,14 @@ $next_step = $cur_step = isset($_POST['step']) ? (int)$_POST['step'] : 0;
 $from_step = isset($_POST['from_step']) ? (int)$_POST['from_step'] : 0;
 $payload = isset($_POST['payload']) ? $_POST['payload'] : '';
 $warning = $failed = '';
-$db_types = array_intersect_key(['sqlite' => 'SQLite3', 'mysql' => 'MySQL'], array_flip(Database::AvailableDrivers()));
+
+$available_drivers = Database::AvailableDrivers();
+$db_types = array_intersect_key(['sqlite' => 'SQLite3', 'mysql' => 'MySQL'], array_flip($available_drivers));
+
+// Fallback si aucun driver n'est détecté
+if (empty($db_types)) {
+    $db_types = ['sqlite' => 'SQLite3'];
+}
 $locales = Evo\Lang::getLocales(true, true);
 
 if (file_exists('../config.php') && $cur_step != STEP_CLEANUP) {
@@ -57,6 +66,7 @@ if (file_exists('../config.php') && $cur_step != STEP_CLEANUP) {
 	$cur_step = -1;
 }
 
+try {
 switch($cur_step) {
 	case STEP_LANGUAGE:
 		$next_step = STEP_SYSCHECK;
@@ -73,47 +83,98 @@ switch($cur_step) {
 		$checks[] = [__('checks.ext_gd'), function_exists('imagecreatetruecolor')];
 		$checks[] = [__('checks.ext_zip'), class_exists('ZipArchive')];
 
-		if ($from_step < $cur_step && !in_array(false, $ok) && !in_array(false, $checks)) {
-			$cur_step = $next_step = STEP_DATABASE;
-		} else {
-			$hide_nav = in_array(false, $ok);
-			$next_step = STEP_DATABASE;
-		}
+		// Toujours afficher l'étape, ne pas passer automatiquement
+		$hide_nav = in_array(false, $ok);
+		$next_step = STEP_DATABASE;
 		break;
 
 	case STEP_DATABASE:
-		if (!isset($_POST['db_type']) || !isset($db_types[$_POST['db_type']])) break;
+		
+		// Forcer une valeur par défaut si db_type n'est pas défini
+		if (!isset($_POST['db_type']) || empty($_POST['db_type'])) {
+			if (isset($_POST['db_type_backup']) && !empty($_POST['db_type_backup'])) {
+				$_POST['db_type'] = $_POST['db_type_backup'];
+			} else {
+				$_POST['db_type'] = 'sqlite';
+			}
+		}
+		
+		if (!isset($db_types[$_POST['db_type']])) {
+			$warning = "Type de base de données invalide: " . $_POST['db_type'];
+			break;
+		}
+		
+		// Validation des champs requis
+		$db_type = strtolower(trim($_POST['db_type']));
+		if ($db_type === 'mysql') {
+			if (empty($_POST['db_host'])) {
+				$warning = "L'hôte MySQL est requis";
+				break;
+			}
+			if (empty($_POST['db_user'])) {
+				$warning = "L'utilisateur MySQL est requis";
+				break;
+			}
+			if (empty($_POST['db_name'])) {
+				$warning = "Le nom de la base de données MySQL est requis";
+				break;
+			}
+		} else if ($db_type === 'sqlite') {
+			if (empty($_POST['db_name'])) {
+				$warning = "Le nom de la base de données SQLite est requis (valeur reçue: '" . (isset($_POST['db_name']) ? $_POST['db_name'] : 'NOT SET') . "')";
+				break;
+			}
+		}
 
 		$payload = [$_POST['db_host'], $_POST['db_user'], $_POST['db_pass'], $_POST['db_name'], $_POST['db_prefix'], $_POST['db_type']];
 
 		try {
 			require '../includes/Database/db.'.strtolower($_POST['db_type']).'.php';
-
+			$db_type = strtolower(trim($_POST['db_type']));
+			
+			if (empty($db_type)) {
+				throw new Exception("Type de base de données non spécifié");
+			}
+			
+			$db_file = '../includes/Database/db.' . $db_type . '.php';
+			
+			if (!file_exists($db_file)) {
+				throw new Exception("Fichier de base de données non trouvé: " . $db_file);
+			}
+			
+			require $db_file;
+			
 			Db::Connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass'], $_POST['db_name'], $_POST['db_prefix']);
 
 			if (Db::TableExists('users')) {
 				$warning = __('database.not_empty');
 			}
-			$next_step = $cur_step = STEP_CONFIG;
+			$next_step = STEP_CONFIG;
 		} catch (Exception $e) {
-			$warning = $e->getMessage();
+			$warning = "Erreur de connexion à la base de données: " . $e->getMessage();
 		}
 		break;
 
 	case STEP_CONFIG:
+		
 		if (isset($_POST['email'], $_POST['admin'], $_POST['admin_pass'], $_POST['url'], $_POST['name'], $_POST['payload'])) {
-			if (!preg_match('#https?://.+#', $_POST['url']))
-				$warning .= __('config.bad_url') . '<br>';
-			if (!preg_match('#^.+@.+\..+$#', $_POST['email']))
-				$warning .= __('config.bad_email') . '<br>';
-			if (empty($_POST['admin']))
-				$warning .= __('config.bad_username') . '<br>';
-			if (empty($_POST['admin_pass']) || empty($_POST['admin_pass_confirm']))
-				$warning .= __('config.bad_password1') . '<br>';
-			elseif ($_POST['admin_pass_confirm'] !== $_POST['admin_pass'])
-				$warning .= __('config.bad_password2') . '<br>';
+			try {
+				if (!preg_match('#https?://.+#', $_POST['url']))
+					$warning .= __('config.bad_url') . '<br>';
+				if (!preg_match('#^.+@.+\..+$#', $_POST['email']))
+					$warning .= __('config.bad_email') . '<br>';
+				if (empty($_POST['admin']))
+					$warning .= __('config.bad_username') . '<br>';
+				if (empty($_POST['admin_pass']) || empty($_POST['admin_pass_confirm']))
+					$warning .= __('config.bad_password1') . '<br>';
+				elseif ($_POST['admin_pass_confirm'] !== $_POST['admin_pass'])
+					$warning .= __('config.bad_password2') . '<br>';
 
-			if ($warning) break;
+				if ($warning) break;
+			} catch (Exception $e) {
+				$warning = "Erreur de validation: " . $e->getMessage();
+				break;
+			}
 
 			$db = unserialize(base64_decode($_POST['payload']));
 			$_POST['url'] = trim($_POST['url'], '/');
@@ -452,8 +513,37 @@ switch($cur_step) {
 				Db::AddIndex('users', 'unique', ['username']);
 				Db::AddIndex('users', 'unique', ['email']);
 
-
-
+				// ========================================
+				// SYSTÈME DE SAUVEGARDES EVO-CMS
+				// ========================================
+				// Cette table gère toutes les sauvegardes du système :
+				// - Sauvegardes manuelles créées via l'interface admin
+				// - Sauvegardes automatiques programmées
+				// - Métadonnées complètes pour chaque sauvegarde
+				// - Suivi des utilisateurs et des dates
+				// - Vérification d'intégrité via checksums
+				// ========================================
+				Db::CreateTable('backups', [
+					'id' 				=> 'increment',					// ID unique auto-incrémenté
+					'filename' 			=> 'string|255',				// Nom du fichier de sauvegarde
+					'type' 				=> 'string|32',					// Type: web, sql, full, config
+					'size' 				=> 'integer',					// Taille du fichier en octets
+					'compression_level'		=> ['integer', 6],			// Niveau de compression (0-9)
+					'exclude_files'		=> ['text', null],				// Fichiers exclus (séparés par \n)
+					'created_by'		=> 'integer',					// ID de l'utilisateur créateur
+					'created_at'		=> 'integer',					// Timestamp de création
+					'status'			=> ['string|32', 'completed'],	// Statut: completed, failed, in_progress
+					'description'		=> ['text', null],				// Description optionnelle
+					'file_path'			=> 'string|255',				// Chemin complet du fichier
+					'checksum'			=> ['string|64', null],			// Checksum MD5 du fichier
+				], false, true);
+				
+				// Index pour optimiser les requêtes
+				Db::AddIndex('backups', 'index', ['type']);			// Recherche par type
+				Db::AddIndex('backups', 'index', ['created_at']);		// Tri par date
+				Db::AddIndex('backups', 'index', ['created_by']);		// Recherche par utilisateur
+				Db::AddIndex('backups', 'index', ['status']);			// Filtrage par statut
+				Db::AddIndex('backups', 'index', ['filename']);		// Recherche par nom de fichier
 
 				Db::Insert('settings', [
 					['name' => 'name', 'value' => post_e('name', '')],
@@ -464,6 +554,27 @@ switch($cur_step) {
 					['name' => 'database.version', 'value' => DATABASE_VERSION],
 					['name' => 'install.version', 'value' => EVO_VERSION],
 					['name' => 'install.time', 'value' => time()],
+					
+					// ========================================
+					// PARAMÈTRES DE SAUVEGARDES AUTOMATIQUES
+					// ========================================
+					// Configuration du système de sauvegardes automatiques
+					// Ces paramètres permettent de programmer des sauvegardes
+					// récurrentes sans intervention manuelle
+					// ========================================
+					['name' => 'backup.auto.enabled', 'value' => '0'],					// Activation (0=désactivé, 1=activé)
+					['name' => 'backup.auto.type', 'value' => 'full'],					// Type: web, sql, full, config
+					['name' => 'backup.auto.frequency', 'value' => 'daily'],				// Fréquence: daily, weekly, monthly
+					['name' => 'backup.auto.time', 'value' => '02:00'],					// Heure d'exécution (HH:MM)
+					['name' => 'backup.auto.retention', 'value' => '30'],				// Rétention en jours
+					['name' => 'backup.auto.compression', 'value' => '6'],				// Niveau compression (0-9)
+					['name' => 'backup.auto.exclude', 'value' => '*.log,cache/*,temp/*,backups/*'],	// Fichiers à exclure
+					['name' => 'backup.auto.last_run', 'value' => '0'],					// Timestamp dernière exécution
+					['name' => 'backup.auto.next_run', 'value' => '0'],					// Timestamp prochaine exécution
+					['name' => 'backup.auto.max_size', 'value' => '1073741824'],			// Taille max (1GB en octets)
+					['name' => 'backup.auto.email_notifications', 'value' => '1'],		// Notifications email (0=non, 1=oui)
+					['name' => 'backup.auto.email_on_success', 'value' => '0'],			// Email en cas de succès
+					['name' => 'backup.auto.email_on_failure', 'value' => '1'],			// Email en cas d'échec
 				]);
 
 				Db::Insert('menu', [
@@ -489,6 +600,11 @@ switch($cur_step) {
 					'guest' => ['id' => 4, 'force' => ['comment_send']],
 				];
 
+				// Définir les permissions par défaut si elles n'existent pas
+				if (!isset($_permissions)) {
+					$_permissions = [];
+				}
+				
 				foreach($_permissions as $group => $sections) {
 					foreach(array_filter($sections, 'is_array') as $section) {
 						foreach(array_keys($section) as $priv) {
@@ -583,7 +699,7 @@ switch($cur_step) {
 						  "Email admin: " . $_POST['email'] . "\n" .
 						  "User Agent:  " . $_SERVER['HTTP_USER_AGENT'];
 
-				@mail(EVO_REPORT_EMAIL, 'Rapport d\'installation', utf8_decode($report));
+				@mail(EVO_REPORT_EMAIL, 'Rapport d\'installation', mb_convert_encoding($report, 'ISO-8859-1', 'UTF-8'));
 			}
 		}
 		break;
@@ -596,270 +712,419 @@ switch($cur_step) {
 		exit;
 }
 
+} catch (Exception $e) {
+	$warning = "Erreur lors de l'installation: " . $e->getMessage();
+	$cur_step = STEP_CONFIG; // Revenir à l'étape de configuration
+}
+
 ?>
 <!doctype html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<link href="../assets/css/bootstrap.min.css" rel="stylesheet">
-		<script src="../assets/js/vendor.js"></script>
-		<script src="../assets/js/bootstrap.bundle.min.js"></script>
-		<link href="assets/style.css" rel="stylesheet">
-		<script>
-		$(function() {
-			// Bootstrap 5 tooltips initialization
-			var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
-			var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-				return new bootstrap.Tooltip(tooltipTriggerEl, { placement: 'bottom' });
-			});
-		});
-		</script>
-	</head>
-	<body>
-		<div class="row" id="header">
-			<div class="float-start left"><h1>Evo-CMS</h1></div>
-			<div class="float-end right">Installation</div>
-		</div>
-		<div id="content">
-			<div class="bg-light p-5 rounded-3">
-				<div class="row">
-					<div class="col-md-3" id="progression">
-					<?php
-						foreach($steps as $step => $tag) {
-							if ($cur_step == $step)
-								echo '<p class="actif '.(empty($warning) ? '' : 'error').'">' . $tag . '</p>';
-							elseif($cur_step > $step)
-								echo '<p class="pass">' . $tag . '</p>';
-							else
-								echo '<p>' . $tag . '</p>';
-						}
-					?>
-					</div>
-					<div class="col-md-9">
-						<form class="form-horizontal" method="post" autocomplete="off" id="form-content">
-						<?php
-							if (!empty($warning)) {
-								echo '<div class="alert alert-danger">'.$warning.'</div>';
-							}
-						?>
-						<input type="hidden" name="language" value="<?= post_e('language', 'french') ?>">
-<?php if ($cur_step == STEP_LANGUAGE): ?>
-			<h2>Veuillez choisir votre langue<br>Please choose your language</h2>
-			<div class="mb-3 row">
-				<div class="col-sm-12">
-					<select class="form-control" id="language" name="language">
-						<?php
-							foreach($locales as $locale => $name) {
-								echo '<option value="'.$locale.'" '.($locale === 'french' ? 'selected' : '').'>'.$name.'</option>';
-							}
-						?>
-					</select>
-				</div>
-			</div>
-<?php elseif ($cur_step == STEP_SYSCHECK): ?>
-			<h2><?= __('steps.checks') ?></h2>
-			<legend><?= __('checks.legend') ?></legend>
-			<?php
-			echo '<div class="requis_align">';
-			foreach ($checks as $check) {
-				echo '<div class="row requis">'.
-					'<div class="col-md-9 info">' . htmlentities($check[0], ENT_COMPAT, 'UTF-8') . '</div>';
-					if (!$check[1]) {
-						echo '<div class="col-md-3 error"><i class="glyphicon glyphicon-remove"></i> Erreur</div>';
-					} else {
-						echo '<div class="col-md-3 ok"><i class="glyphicon glyphicon-ok"></i> Ok</div>';
-					}
-				echo '</div>';
-			}
-			echo '</div>';
-			?>
-<?php elseif ($cur_step == STEP_DATABASE): ?>
-			<legend><?= __('steps.database') ?></legend>
-			<p><?= __('database.legend') ?></p>
-			<div class="sqlite mb-3 row alert alert-danger">
-				<?= __('database.sqlite_legend') ?>
-			</div>
-			<div class="sqlite mysql mb-3 row" data-bs-toggle="tooltip">
-				<label for="type" class="col-sm-4 col-form-label text-end">Type</label>
-				<div class="col-sm-6">
-					<select class="form-control" id="type" name="db_type">
-					<?php
-						foreach ($db_types as $type => $label) {
-								echo '<option value="' . $type . '"'  .
-										($type == @$_POST['db_type'] ? ' selected="selected"':'') . '>' . $label . '</option>';
-						}
-					?>
-					</select>
-				</div>
-				<script>
-					$(function() {$('#type').bind('change blur keyup', function () {
-						$('.mb-3').hide();
-						$('.'+$(this).val()).show();
-						if ($(this).val() == 'sqlite') {
-							$('#dbname').val('db-<?= random_hash(6) ?>.sqlite');
-							$('#prefixe').val('');
-						} else {
-							$('#dbname').val('');
-							$('#prefixe').val('evo_');
-						}
-						}).blur();
-					});
-				</script>
-			</div>
-			<div class="mysql mb-3 row">
-				<label for="host" class="col-sm-4 col-form-label text-end"><?= __('database.host') ?></label>
-				<div class="col-sm-6">
-					<input type="text" class="form-control" id="host" name="db_host" value="<?= post_e('db_host', 'localhost') ?>">
-				</div>
-			</div>
-			<div class="sqlite mysql mb-3 row">
-				<label for="dbname" class="col-sm-4 col-form-label text-end"><?= __('database.name') ?></label>
-				<div class="col-sm-6">
-					<input type="text" class="form-control" id="dbname" name="db_name" value="<?= post_e('db_name') ?>">
-				</div>
-			</div>
-			<div class="mysql mb-3 row">
-				<label for="username" class="col-sm-4 col-form-label text-end"><?= __('database.username') ?></label>
-				<div class="col-sm-6">
-					<input type="text" class="form-control" id="username" name="db_user" value="<?= post_e('db_user') ?>">
-				</div>
-			</div>
-			<div class="mysql mb-3 row">
-				<label for="password" class="col-sm-4 col-form-label text-end"><?= __('database.password') ?></label>
-				<div class="col-sm-6">
-					<input type="password" class="form-control" id="password" name="db_pass" value="<?= post_e('db_pass') ?>">
-				</div>
-			</div>
-			<div class="sqlite mysql mb-3 row" data-bs-toggle="tooltip" title="<?= __('database.prefix_legend') ?>">
-				<label for="inputPassword3" class="col-sm-4 col-form-label text-end"><?= __('database.prefix') ?></label>
-				<div class="col-sm-6">
-					<input type="text" class="form-control" id="prefixe" name="db_prefix" value="<?= post_e('db_prefix', 'evo_') ?>">
-				</div>
-			</div>
-<?php elseif ($cur_step == STEP_CONFIG): ?>
-			<?php
-			$scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http';
-			$url = $scheme.'://'.$_SERVER['HTTP_HOST'];
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Installation Evo-CMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="../assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/style.css" rel="stylesheet">
+    <script src="../assets/js/vendor.js"></script>
+</head>
+<body>
+    <div class="installer">
+        <div class="installer-container">
+            <!-- Header -->
+            <div class="installer-header">
+                <h1 class="installer-title">Evo-CMS</h1>
+                <p class="installer-subtitle">Configuration et installation</p>
+            </div>
+            
+            <!-- Progress Indicator -->
+            <div class="progress-indicator">
+                <div class="progress-steps">
+                    <?php
+                    foreach($steps as $step => $tag) {
+                        $isActive = $cur_step == $step;
+                        $isCompleted = $cur_step > $step;
+                        $hasError = $isActive && !empty($warning);
+                        
+                        $stepClass = 'step-circle';
+                        if ($isActive) $stepClass .= ' active';
+                        elseif ($isCompleted) $stepClass .= ' completed';
+                        else $stepClass .= ' pending';
+                        
+                        $stepNumber = $step + 1;
+                        
+                        echo '<div class="progress-step">';
+                        echo '<div class="' . $stepClass . '">';
+                        if ($isCompleted) {
+                            echo '✓';
+                        } elseif ($hasError) {
+                            echo '✗';
+                        } else {
+                            echo $stepNumber;
+                        }
+                        echo '</div>';
+                        echo '<div class="step-label">' . $tag . '</div>';
+                        echo '</div>';
+                    }
+                    ?>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="row installer-content">
+                
+                <!-- Main Panel -->
+                <div class="col-12 installer-main">
+                    <form method="post" autocomplete="off" id="form-content">
+                        <?php if (!empty($warning)): ?>
+                            <div class="alert alert-error">
+                                <?= $warning ?>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <input type="hidden" name="language" value="<?= post_e('language', 'french') ?>">
+                        
+                        <?php if ($cur_step == STEP_LANGUAGE): ?>
+                            <div class="step-content">
+                                <div class="step-header">
+                                    <h2 class="step-title">Sélection de la langue</h2>
+                                    <p class="step-description">Choisissez la langue d'interface pour l'installation</p>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="language">Langue</label>
+                                    <select class="form-select" id="language" name="language">
+                                        <?php
+                                        foreach($locales as $locale => $name) {
+                                            echo '<option value="'.$locale.'" '.($locale === 'french' ? 'selected' : '').'>'.$name.'</option>';
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+                        <?php elseif ($cur_step == STEP_SYSCHECK): ?>
+                            <div class="step-content">
+                                <div class="step-header">
+                                    <h2 class="step-title">Vérifications système</h2>
+                                    <p class="step-description">Vérification des prérequis pour l'installation</p>
+                                </div>
+                                
+                                <div class="checks-list">
+                                    <?php
+                                    foreach ($checks as $check) {
+                                        $isSuccess = $check[1];
+                                        $checkClass = $isSuccess ? 'success' : 'error';
+                                        $statusText = $isSuccess ? 'OK' : 'Erreur';
+                                        
+                                        echo '<div class="check-item ' . $checkClass . '">';
+                                        echo '<div class="check-icon">' . ($isSuccess ? '✓' : '✗') . '</div>';
+                                        echo '<div class="check-text">' . htmlentities($check[0], ENT_COMPAT, 'UTF-8') . '</div>';
+                                        echo '<div class="check-status">' . $statusText . '</div>';
+                                        echo '</div>';
+                                    }
+                                    ?>
+                                </div>
+                            </div>
+                        <?php elseif ($cur_step == STEP_DATABASE): ?>
+                            <div class="step-content">
+                                <div class="step-header">
+                                    <h2 class="step-title">Configuration de la base de données</h2>
+                                    <p class="step-description">Configurez la connexion à votre base de données</p>
+                                </div>
+                                
+                                <div class="alert alert-info mb-6 db-alert">
+                                    <?= __('database.sqlite_legend') ?>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="type">Type de base de données</label>
+                                    <select class="form-select" id="type" name="db_type" required>
+                                        <?php
+                                        if (empty($db_types)) {
+                                            echo '<option value="sqlite">SQLite3 (par défaut)</option>';
+                                        } else {
+                                            $defaultType = @$_POST['db_type'] ?: 'sqlite';
+                                            foreach ($db_types as $type => $label) {
+                                                $selected = ($type == $defaultType) ? ' selected="selected"' : '';
+                                                echo '<option value="' . $type . '"' . $selected . '>' . $label . '</option>';
+                                            }
+                                        }
+                                        ?>
+                                    </select>
+                                    <input type="hidden" id="db_type_backup" name="db_type_backup" value="<?= @$_POST['db_type'] ?: 'sqlite' ?>">
+                                </div>
+                                
+                                <div class="row db-fields-container">
+                                    <div class="col-md-6 mysql db-field form-group">
+                                        <label class="form-label" for="host"><?= __('database.host') ?></label>
+                                        <input type="text" class="form-control" id="host" name="db_host" value="<?= post_e('db_host', 'localhost') ?>">
+                                    </div>
+                                    
+                                    <div class="col-md-6 sqlite mysql db-field form-group">
+                                        <label class="form-label" for="dbname"><?= __('database.name') ?></label>
+                                        <input type="text" class="form-control" id="dbname" name="db_name" value="<?= post_e('db_name', 'db-' . substr(md5(uniqid()), 0, 6) . '.sqlite') ?>">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mysql db-field form-group">
+                                        <label class="form-label" for="username"><?= __('database.username') ?></label>
+                                        <input type="text" class="form-control" id="username" name="db_user" value="<?= post_e('db_user') ?>">
+                                    </div>
+                                    
+                                    <div class="col-md-6 mysql db-field form-group">
+                                        <label class="form-label" for="password"><?= __('database.password') ?></label>
+                                        <input type="password" class="form-control" id="password" name="db_pass" value="<?= post_e('db_pass') ?>">
+                                    </div>
+                                    
+                                    <div class="col-md-6 sqlite mysql db-field form-group">
+                                        <label class="form-label" for="prefixe"><?= __('database.prefix') ?></label>
+                                        <input type="text" class="form-control" id="prefixe" name="db_prefix" value="<?= post_e('db_prefix', 'evo_') ?>">
+                                    </div>
+                                </div>
+                            </div>
+                                
+							<script>
+								$(function() {
+									function updateFormFields() {
+										var selectedType = $('#type').val();
+										var container = $('.db-fields-container');
+										var alert = $('.db-alert');
+										
+										// Synchroniser le champ caché
+										$('#db_type_backup').val(selectedType);
+										
+										// Cacher tous les champs de base de données
+										$('.db-field').hide();
+										$('.' + selectedType).show();
+										
+										// Gérer le layout des colonnes
+										if (selectedType == 'mysql') {
+											container.addClass('mysql-layout');
+											alert.hide(); // Masquer l'alerte pour MySQL
+										} else {
+											container.removeClass('mysql-layout');
+											alert.show(); // Afficher l'alerte pour SQLite
+										}
+										
+										if (selectedType == 'sqlite') {
+											// Générer un nom de base de données unique côté client seulement si vide
+											if (!$('#dbname').val()) {
+												var randomId = Math.random().toString(36).substr(2, 6);
+												$('#dbname').val('db-' + randomId + '.sqlite');
+											}
+											$('#prefixe').val('');
+										} else {
+											if (selectedType == 'mysql') {
+												$('#dbname').val('');
+												$('#prefixe').val('evo_');
+											}
+										}
+									}
+									
+									// Intercepter la soumission du formulaire
+									$('#form-content').on('submit', function(e) {
+										var selectedType = $('#type').val();
+										
+										// S'assurer que le nom de base de données est généré pour SQLite
+										if (selectedType == 'sqlite' && !$('#dbname').val()) {
+											var randomId = Math.random().toString(36).substr(2, 6);
+											$('#dbname').val('db-' + randomId + '.sqlite');
+										}
+										
+										// Validation des champs requis
+										if (selectedType == 'mysql') {
+											var host = $('#host').val().trim();
+											var user = $('#username').val().trim();
+											var dbname = $('#dbname').val().trim();
+											
+											if (!host || !user || !dbname) {
+												e.preventDefault();
+												alert('Veuillez remplir tous les champs requis pour MySQL (Host, Utilisateur, Nom de la base de données)');
+												return false;
+											}
+										} else if (selectedType == 'sqlite') {
+											var dbname = $('#dbname').val().trim();
+											console.log('SQLite dbname value:', dbname);
+											if (!dbname) {
+												e.preventDefault();
+												alert('Veuillez remplir le nom de la base de données SQLite');
+												return false;
+											}
+										}
+										
+										// S'assurer que tous les champs nécessaires sont visibles avant soumission
+										$('.db-field').hide();
+										$('.' + selectedType).show();
+										
+										// Forcer la visibilité des champs requis
+										if (selectedType == 'mysql') {
+											$('.mysql').show();
+										} else {
+											$('.sqlite').show();
+										}
+										
+										// Synchroniser le champ caché
+										$('#db_type_backup').val(selectedType);
+										
+										console.log('Form submitted with type:', selectedType);
+										console.log('Visible fields:', $('.db-field:visible').length);
+									});
+									
+									$('#type').bind('change blur keyup', updateFormFields);
+									
+									// Initialiser les champs au chargement de la page
+									updateFormFields();
+								});
+							</script>
+                        <?php elseif ($cur_step == STEP_CONFIG): ?>
+                            <?php
+								$scheme = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on' ? 'https' : 'http';
+								$url = $scheme.'://'.$_SERVER['HTTP_HOST'];
+								$dir = rtrim(strstr($_SERVER['REQUEST_URI'].'?', '?', true), '/');
+								$url .= substr($dir, 0, strrpos($dir, '/'));
+                            ?>
+                            <div class="step-content row">
+                                <div class="step-header">
+                                    <h2 class="step-title">Configuration du site</h2>
+                                    <p class="step-description">Configurez les paramètres de votre site et l'administrateur</p>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label" for="sitename"><?= __('config.sitename') ?></label>
+                                            <input type="text" class="form-control" id="sitename" name="name" value="<?= post_e('name', 'Evo-CMS '.EVO_VERSION) ?>">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="siteurl"><?= __('config.siteurl') ?></label>
+                                            <input type="text" class="form-control" id="siteurl" name="url" value="<?= post_e('url', $url) ?>">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="sitemail"><?= __('config.siteemail') ?></label>
+                                            <input type="email" class="form-control" id="sitemail" name="email" placeholder="example@domain.com" value="<?= post_e('email') ?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label class="form-label" for="sitelogin"><?= __('config.username') ?></label>
+                                            <input type="text" class="form-control" id="sitelogin" name="admin" value="<?= post_e('admin', 'admin') ?>">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="sitepass"><?= __('config.password') ?></label>
+                                            <input type="password" class="form-control" id="sitepass" name="admin_pass" value="<?= post_e('admin_pass') ?>">
+                                        </div>
+                                        
+                                        <div class="form-group">
+                                            <label class="form-label" for="sitepass2">Confirmation du mot de passe</label>
+                                            <input type="password" class="form-control" id="sitepass2" name="admin_pass_confirm" value="<?= post_e('admin_pass_confirm') ?>" placeholder="Confirmez le mot de passe">
+                                        </div>
+                                    </div>
+                                </div>
 
-			$dir = rtrim(strstr($_SERVER['REQUEST_URI'].'?', '?', true), '/');
+                                <?php if (EVO_REPORT_EMAIL): ?>
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <input type="checkbox" name="report" id="report" value="1" checked>
+                                        <?= __('config.report') ?>
+                                    </label>
+                                </div>
+                                <?php endif ?>
+                            </div>
+                        <?php elseif ($cur_step == STEP_INSTALL): ?>
+                            <div class="step-content">                                
+                                <?php if ($failed): ?>
+                                    <div class="alert alert-error">
+                                        <h6><?= __('install.failed') ?></h6>
+                                        <span><?= __('install.failed_legend') ?></span>
+                                        <p><?= $failed ?></p>
+                                    </div>
+                                <?php elseif ($done): ?>
+                                    <div class="alert alert-success">
+                                        <h6><?= __('install.success') ?></h6>
+                                        <span><?= __('install.success_legend') ?></span>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label"><?= __('config.siteurl') ?></label>
+                                                <div class="form-control" style="background: var(--system-background-secondary); color: var(--system-label);">
+                                                    <?= $_POST['url'] ?>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label class="form-label"><?= __('config.adminurl') ?></label>
+                                                <div class="form-control" style="background: var(--system-background-secondary); color: var(--system-label);">
+                                                    <?= $_POST['url'] ?>/admin
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="form-label"><?= __('config.username') ?></label>
+                                                <div class="form-control" style="background: var(--system-background-secondary); color: var(--system-label);">
+                                                    <?= $_POST['admin'] ?>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label class="form-label"><?= __('config.password') ?></label>
+                                                <div class="form-control" style="background: var(--system-background-secondary); color: var(--system-label);">
+                                                    <?= $_POST['admin_pass'] ?>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endif; ?>
 
-			$url .= substr($dir, 0, strrpos($dir, '/'));
-			?>
-			<div>
-				<legend><?= __('steps.config') ?></legend>
-				<p><?= __('config.legend') ?></p>
-					<div class="mb-3 row">
-						<label for="sitename" class="col-sm-3 col-form-label text-end"><?= __('config.sitename') ?></label>
-						<div class="col-sm-9">
-							<input type="text" class="form-control" id="sitename" name="name" value="<?= post_e('name', 'Evo-CMS '.EVO_VERSION) ?>">
-						</div>
-					</div>
-					<div class="mb-3 row">
-						<label for="siteurl" class="col-sm-3 col-form-label text-end"><?= __('config.siteurl') ?></label>
-						<div class="col-sm-9">
-							<input type="text" class="form-control" id="siteurl" name="url" value="<?= post_e('url', $url) ?>">
-						</div>
-					</div>
-					<div class="mb-3 row">
-						<label for="sitemail" class="col-sm-3 col-form-label text-end"><?= __('config.siteemail') ?></label>
-						<div class="col-sm-9">
-							<input type="text" class="form-control" id="sitemail" name="email" placeholder="example@domain.com" value="<?= post_e('email') ?>">
-						</div>
-					</div>
-					<div class="mb-3 row">
-						<label for="sitelogin" class="col-sm-3 col-form-label text-end"><?= __('config.username') ?></label>
-						<div class="col-sm-9">
-							<input type="text" class="form-control" id="sitelogin" name="admin" value="admin" value="<?= post_e('admin') ?>">
-						</div>
-					</div>
-					<div class="mb-3 row">
-						<label for="sitepass" class="col-sm-3 col-form-label text-end"><?= __('config.password') ?><br><small><?= __('config.password2') ?></small></label>
-						<div class="col-sm-9">
-							<input type="password" class="form-control" id="sitepass" name="admin_pass" value="<?= post_e('admin_pass') ?>">
-							<input type="password" class="form-control" id="sitepass2" name="admin_pass_confirm" value="<?= post_e('admin_pass_confirm') ?>" placeholder="Confirmation">
-						</div>
-					</div>
-
-					<?php if (EVO_REPORT_EMAIL): ?>
-					<div class="mb-3 row"  data-bs-toggle="tooltip" title="<?= __('config.report_legend') ?>">
-						<label class="col-sm-3 col-form-label text-end"></label>
-						<div class="col-sm-9">
-						<input type="checkbox" name="report" id="report" value="1" checked> <label for="report"><?= __('config.report') ?></label>
-						</div>
-					</div>
-					<?php endif ?>
-				</div>
-<?php elseif ($cur_step == STEP_INSTALL): ?>
-			<legend><?= __('steps.finished') ?></legend>
-			<?php if ($failed) { ?>
-				<div class="alert alert-danger">
-				<p><?= __('install.failed_legend') ?></p>
-				<h4><?= __('install.failed') ?></h4>
-				<p><?= $failed ?></p>
-				</div>
-			<?php } elseif ($done) { ?>
-				<div class="alert alert-success">
-					<h4><?= __('install.success') ?></h4>
-					<p><?= __('install.success_legend') ?></p>
-				</div>
-				<div class="mb-3 row">
-					<label class="col-sm-4 col-form-label text-end"><?= __('config.siteurl') ?> : </label>
-					<div class="col-sm-8">
-						<div class="form-control"><?= $_POST['url'] ?></div>
-					</div>
-				</div>
-				<div class="mb-3 row">
-					<label class="col-sm-4 col-form-label text-end"><?= __('config.adminurl') ?> : </label>
-					<div class="col-sm-8">
-						<div class="form-control"><?= $_POST['url'] ?>/admin</div>
-					</div>
-				</div>
-				<div class="mb-3 row">
-					<label class="col-sm-4 col-form-label text-end"><?= __('config.username') ?> : </label>
-					<div class="col-sm-8">
-						<div class="form-control"><?= $_POST['admin'] ?></div>
-					</div>
-				</div>
-				<div class="mb-3 row">
-					<label class="col-sm-4 col-form-label text-end"><?= __('config.password') ?> : </label>
-					<div class="col-sm-8">
-						<div class="form-control"><?= $_POST['admin_pass'] ?></div>
-					</div>
-				</div>
-				<div class="text-center">
-					<button type="submit" name="step" value="<?= STEP_CLEANUP ?>" class="btn btn-success"><?= __('install.complete') ?></button>
-				</div>
-			<?php } ?>
-<?php endif; ?>
-							<br>
-							<p class="navbtn text-center">
+						<!-- Navigation -->
+						<div class="container step-navigation">
 							<input type="hidden" name="from_step" value="<?= $cur_step ?>">
-							<?php
-								if (empty($hide_nav)) {
-									if ($cur_step > 0)
-										echo '<a onclick="$(\'#step\').val(',($cur_step-1).').click();" class="btn btn-primary" role="submit">'.__('buttons.previous').'</a> ';
-									if ($next_step < max(array_keys($steps)))
-										echo '<button id="step" type="submit" name="step" value="' . $next_step . '" class="btn btn-primary" onclick="'. ($next_step >= STEP_CONFIG ? '$(\'#form-content,#progressbar\').toggle();' : '').'" role="submit">'.__('buttons.next').'</button>';
-								}
-							?>
-							</p>
 							<input type="hidden" name="payload" value="<?= is_array($payload) ? base64_encode(serialize($payload)) : $payload ?>">
-						</form>
-						<div id="progressbar" style="display:none;">
-							<legend><?= __('install.please_wait') ?>...</legend>
-							<div class="progress">
-							  <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
-								 <span class="visually-hidden">Endless progressbar</span>
-							  </div>
-							</div>
+							
+							<?php if (empty($hide_nav)): ?>
+								<?php if ($cur_step > 0): ?>
+									<button type="button" onclick="$('#step').val(<?= ($cur_step-1) ?>).click();" class="btn btn-secondary">
+										<?= __('buttons.previous') ?>
+									</button>
+								<?php else: ?>
+								<?php endif; ?>
+								
+								<?php if ($next_step <= max(array_keys($steps))): ?>
+									<button id="step" type="submit" name="step" value="<?= $next_step ?>" class="btn btn-primary" onclick="<?= ($next_step >= STEP_CONFIG ? '$(\'#form-content,#progressbar\').toggle();' : '') ?>">
+										<?= __('buttons.next') ?>
+									</button>
+								<?php endif; ?>
+							<?php elseif (isset($done) && $done): ?>
+								<div class="text-center">
+									<button type="submit" name="step" value="<?= STEP_CLEANUP ?>" class="btn btn-success btn-lg">
+										<?= __('install.complete') ?>
+									</button>
+								</div>
+							<?php endif; ?>
 						</div>
-					</div>
+					</form>
+                </div>
+            
+				<!-- Footer -->
+				<div class="installer-footer">
+					<div>Evo-CMS <?= EVO_VERSION ?></div>
+					<div>Evolution-Network</div>
 				</div>
 			</div>
-			<div class="row" id="footer">
-				<div class="float-start">Evo-CMS <?=EVO_VERSION?></div>
-				<div class="float-end">© Evolution-Network</div>
-			</div>
-		</div>
-	</body>
+    	</div>
+	</div>
+    <script>
+        $(function() {
+            $('[data-bs-toggle="tooltip"]').tooltip();
+        });
+    </script>
+</body>
 </html>
