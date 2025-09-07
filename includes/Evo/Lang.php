@@ -32,7 +32,7 @@ class Lang
 	public static function __callStatic($name, array $args)
 	{
 		if (!isset(self::$translator)) {
-			throw new exception('You must first set the translator with setTranslator');
+			throw new Exception('You must first set the translator with setTranslator');
 		}
 		return call_user_func_array([self::$translator, $name], $args);
 	}
