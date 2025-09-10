@@ -98,14 +98,17 @@ switch($cur_step) {
 				$_POST['db_type'] = 'sqlite';
 			}
 		}
-		
-		if (!isset($db_types[$_POST['db_type']])) {
+
+		$db_type = strtolower(trim($_POST['db_type']));
+
+		if (!isset($db_types[$db_type])) {
 			$warning = "Type de base de données invalide: " . $_POST['db_type'];
 			break;
 		}
-		
+
+		require_once '../includes/Database/db.'.$db_type.'.php';
+
 		// Validation des champs requis
-		$db_type = strtolower(trim($_POST['db_type']));
 		if ($db_type === 'mysql') {
 			if (empty($_POST['db_host'])) {
 				$warning = "L'hôte MySQL est requis";
@@ -129,23 +132,7 @@ switch($cur_step) {
 		$payload = [$_POST['db_host'], $_POST['db_user'], $_POST['db_pass'], $_POST['db_name'], $_POST['db_prefix'], $_POST['db_type']];
 
 		try {
-			require '../includes/Database/db.'.strtolower($_POST['db_type']).'.php';
-			$db_type = strtolower(trim($_POST['db_type']));
-			
-			if (empty($db_type)) {
-				throw new Exception("Type de base de données non spécifié");
-			}
-			
-			$db_file = '../includes/Database/db.' . $db_type . '.php';
-			
-			if (!file_exists($db_file)) {
-				throw new Exception("Fichier de base de données non trouvé: " . $db_file);
-			}
-			
-			require $db_file;
-			
 			Db::Connect($_POST['db_host'], $_POST['db_user'], $_POST['db_pass'], $_POST['db_name'], $_POST['db_prefix']);
-
 			if (Db::TableExists('users')) {
 				$warning = __('database.not_empty');
 			}
@@ -158,25 +145,24 @@ switch($cur_step) {
 	case STEP_CONFIG:
 		
 		if (isset($_POST['email'], $_POST['admin'], $_POST['admin_pass'], $_POST['url'], $_POST['name'], $_POST['payload'])) {
-			try {
-				if (!preg_match('#https?://.+#', $_POST['url']))
-					$warning .= __('config.bad_url') . '<br>';
-				if (!preg_match('#^.+@.+\..+$#', $_POST['email']))
-					$warning .= __('config.bad_email') . '<br>';
-				if (empty($_POST['admin']))
-					$warning .= __('config.bad_username') . '<br>';
-				if (empty($_POST['admin_pass']) || empty($_POST['admin_pass_confirm']))
-					$warning .= __('config.bad_password1') . '<br>';
-				elseif ($_POST['admin_pass_confirm'] !== $_POST['admin_pass'])
-					$warning .= __('config.bad_password2') . '<br>';
-
-				if ($warning) break;
-			} catch (Exception $e) {
-				$warning = "Erreur de validation: " . $e->getMessage();
-				break;
-			}
+			if (!preg_match('#https?://.+#', $_POST['url']))
+				$warning .= __('config.bad_url') . '<br>';
+			if (!preg_match('#^.+@.+\..+$#', $_POST['email']))
+				$warning .= __('config.bad_email') . '<br>';
+			if (empty($_POST['admin']))
+				$warning .= __('config.bad_username') . '<br>';
+			if (empty($_POST['admin_pass']) || empty($_POST['admin_pass_confirm']))
+				$warning .= __('config.bad_password1') . '<br>';
+			elseif ($_POST['admin_pass_confirm'] !== $_POST['admin_pass'])
+				$warning .= __('config.bad_password2') . '<br>';
 
 			$db = unserialize(base64_decode($_POST['payload']));
+			if (!$db || count($db) < 6 || !isset($db_types[$db[5]])) {
+				$warning .= "Payload invalide.<br>";
+			}
+
+			if ($warning) break;
+
 			$_POST['url'] = trim($_POST['url'], '/');
 			try {
 				require '../includes/Database/db.'.strtolower($db[5]).'.php';
