@@ -27,7 +27,7 @@ WORKDIR /var/www/html
 COPY . .
 
 RUN mkdir -p upload/avatars upload/thumbs logs backups \
-    && chown -R www-data:www-data upload logs backups \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 upload logs backups
 
 # Persistent data (survives container rebuilds/redeploys)
