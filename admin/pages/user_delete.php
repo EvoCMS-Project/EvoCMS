@@ -21,7 +21,7 @@ if (IS_POST && !App::POST('del_reason')) {
 }
 elseif (App::POST('del_confirmation')) {
 
-	echo '<div class="bs-callout bs-callout-success"><h4>'. __('admin/user_delete.delete_congrat') .'</h4><p>'. __('admin/user_delete.confirm_deletition') .' :<ul>';
+	echo '<div class="bs-callout bs-callout-success"><h4>'. __('admin/user_delete.alert_delete_congrat') .'</h4><p>'. __('admin/user_delete.confirm_deletition') .' :<ul>';
 
 	if ($c = Db::Delete('users', ['id' => $user_info['id']]))
 		echo '<li>'. __('admin/user_delete.profil') .'</li>';

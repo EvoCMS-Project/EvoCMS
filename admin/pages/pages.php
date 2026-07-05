@@ -79,3 +79,4 @@ $status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/p
 </form>
 
 </div>
+</div>

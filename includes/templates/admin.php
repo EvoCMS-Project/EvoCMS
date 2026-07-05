@@ -65,10 +65,6 @@
 		</div>
 		<div class="hidden divider"></div>
 		<?php include 'menu.php'; ?>
-		<div class="hidden divider"></div>
-		<div class="bottom center">
-			Evo-CMS <?= EVO_VERSION ?>
-		</div>
 	</div>
 
 	<div id="admin-wrapper">
@@ -77,40 +73,48 @@
 		<div id="admin-page">
 			<div class="plugin_header bg-grad-evo">
 				<div class="container header">
-					<div class="d-flex bd-highlight w-100">
-						<div class="p-2 w-100 bd-highlight">
-							<h3 class="text-white"><?= getCurrentPageInfo('html') ?></h3>
-							<p class="text-white-50 fs-large lead"><?= getCurrentPageInfo('description') ?></p>
+					<div class="plugin-header-inner">
+						<div class="plugin-header-content">
+							<h3 class="text-white plugin-header-title">
+								<i class="fas <?= getCurrentPageInfo('icon') ?>"></i>
+								<?= getCurrentPageInfo('title') ?>
+							</h3>
+							<p class="text-white-50 fs-large lead mb-0"><?= getCurrentPageInfo('description') ?></p>
 						</div>
-						<div class="p-2 flex-shrink-1 bd-highlight">
-							<span class="icon-background fas <?= getCurrentPageInfo('icon') ?>"></span>
-						</div>
+						<span class="icon-background fas <?= getCurrentPageInfo('icon') ?>" aria-hidden="true"></span>
 					</div>
 				</div>
 			</div>
-			<div class="alerts">
-			<?php
-				if (!empty($_success)) {
-					echo '<div class="alert alert-success alert-dismissable alert-dismissible auto-dismiss" role="alert">' . alert_close_button() . $_success . '</div>';
-				}
-				if (!empty($_warning)) {
-					echo '<div class="alert alert-danger alert-dismissable alert-dismissible" role="alert">' . alert_close_button() . $_warning . '</div>';
-				}
-				if (!empty($_notice)) {
-					echo '<div class="alert alert-warning alert-dismissable alert-dismissible" role="alert">' . alert_close_button() . $_notice . '</div>';
-				}
-			?>
+			<div class="admin-page-content container<?= admin_uses_panel_layout() ? '' : ' admin-page-content--full' ?>">
+				<div class="alerts">
+				<?php
+					if (!empty($_success)) {
+						echo '<div class="alert alert-success alert-dismissable alert-dismissible auto-dismiss" role="alert">' . alert_close_button() . $_success . '</div>';
+					}
+					if (!empty($_warning)) {
+						echo '<div class="alert alert-danger alert-dismissable alert-dismissible" role="alert">' . alert_close_button() . $_warning . '</div>';
+					}
+					if (!empty($_notice)) {
+						echo '<div class="alert alert-warning alert-dismissable alert-dismissible" role="alert">' . alert_close_button() . $_notice . '</div>';
+					}
+				?>
+				</div>
+				<?php if (admin_uses_panel_layout()): ?>
+				<div class="card admin-panel">
+					<?= $_content ?>
+				</div>
+				<?php else: ?>
+				<?= $_content ?>
+				<?php endif; ?>
 			</div>
-			<?= $_content ?>
 		</div>
 	<!-- FIN CONTENU -->
 
+	</div><!-- admin-wrapper -->
 
 	<!-- DEBUT FOOTER -->
-		<?php App::renderTemplate('footer.php', $variables); ?>
+	<?php admin_render_footer($variables); ?>
 	<!-- FIN FOOTER -->
-
-	</div><!-- admin-wrapper -->
 
 	<script>
 		if ((pos = window.location.href.indexOf('&')) > 1) {

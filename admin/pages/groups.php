@@ -183,7 +183,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 							}
 
 							if ($permissions_count === 0) {
-								echo '<em>'. __('admin/groups.groups.no_perms') .'</em>';
+								echo '<em>'. __('admin/groups.no_perms') .'</em>';
 							}
 						echo '</div>';
 					}
@@ -192,6 +192,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 					<button type="submit" name="update_group" value="<?php echo $cur_id?>" class="btn btn-success"><?= __('admin/groups.save') ?></button>
 				</div>
 			</div>
+		</div>
 		</div>
 	</form>
 	</div>

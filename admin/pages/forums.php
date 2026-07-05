@@ -60,7 +60,7 @@ elseif (App::POST('add_forum') !== null && App::POST('name'))
 			$forum_id = App::POST('add_forum');
 			$edit_mode = false;
 		} else {
-			App::setWarning(__('admin/alert_warning_add_forum'));
+			App::setWarning(__('admin/forums.alert_warning_add_forum'));
 		}
 	} else {
 		Db::Insert('forums', array(
@@ -127,7 +127,7 @@ elseif (App::POST('reorder_forums'))
 elseif (App::POST('delete_category'))
 {
 	if (Db::Get('SELECT * FROM {forums} WHERE cat = ?', $cat_id)) {
-		App::setWarning(__('admin/alert_warning_delete_category'));
+		App::setWarning(__('admin/forums.alert_warning_delete_category'));
 	} else {
 		Db::Delete('forums_cat', ['id' => $cat_id]);
 		App::setSuccess(__('admin/forums.alert_success_delete_category'));

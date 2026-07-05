@@ -30,7 +30,7 @@
 				echo "<hr>Last PHP error to occur (May or may not be relevant):\n";
 				print_r(error_get_last());
 			} else {
-				echo preg_replace('@(^|\n)(#[0-9]+ )(' . ROOT_DIR . ')?([^:]+).*@', '$1$2$4', $e->getTraceAsString());
+				echo preg_replace('@(^|\n)(#[0-9]+ )(' . preg_quote(ROOT_DIR, '@') . ')?([^:]+).*@', '$1$2$4', $e->getTraceAsString());
 			}
 		?></pre>
 	</body>

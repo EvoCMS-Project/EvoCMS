@@ -15,9 +15,9 @@ if (App::POST('mail||send-test-mail')) {
 	);
 
 	if ($success) {
-		App::setNotice(__('admin/settings.notice_email_sent'));
+		App::setNotice(__('admin/settings-alert.notice_email_sent'));
 	} else {
-		App::setWarning(__('admin/settings.warning_email_sent') .': <pre>'.html_encode($error).'</pre>');
+		App::setWarning(__('admin/settings-alert.warning_email_sent') .': <pre>'.html_encode($error).'</pre>');
 	}
 }
 

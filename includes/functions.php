@@ -119,14 +119,143 @@ function flag_icon_html(string $code, string $title = '', int $height = 15): str
 
 
 /**
+ * Indique si la page admin courante utilise le panneau carte standard.
+ */
+function admin_uses_panel_layout(): bool
+{
+	return App::GET('page') !== 'file_editor';
+}
+
+/**
+ * Affiche le pied de page admin en dehors de la zone de contenu.
+ */
+function admin_render_footer(array $variables = []): void
+{
+	echo '<div class="admin-footer">';
+	App::renderTemplate('footer.php', $variables);
+	echo '</div>';
+}
+
+function admin_card_header(string $content = ''): string
+{
+	return '<div class="card-header">' . $content . '</div>';
+}
+
+function admin_card_body_open(string $class = 'card-body'): string
+{
+	return '<div class="' . $class . '">';
+}
+
+function admin_card_body_close(): string
+{
+	return '</div>';
+}
+
+/**
+ * Affiche une grille de statistiques réutilisable dans l'admin.
+ *
+ * @param array<int, array{icon?: string, value?: string, label?: string, variant?: string}> $items
+ */
+function admin_stat_grid(array $items): string
+{
+	if (!$items) {
+		return '';
+	}
+
+	$variants = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
+	$html = '<div class="row g-3 admin-stat-grid">';
+
+	foreach ($items as $item) {
+		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$value = $item['value'] ?? '&mdash;';
+		$label = html_encode($item['label'] ?? '');
+		$icon_class = 'admin-stat-card__icon';
+
+		if (!empty($item['variant']) && in_array($item['variant'], $variants, true)) {
+			$icon_class .= ' admin-stat-card__icon--' . $item['variant'];
+		}
+
+		$html .= '<div class="col-6 col-xl-3">';
+		$html .= '<div class="admin-stat-card">';
+		$html .= '<div class="' . $icon_class . '"><i class="' . $icon . '" aria-hidden="true"></i></div>';
+		$html .= '<div class="admin-stat-card__content">';
+		$html .= '<span class="admin-stat-card__value">' . $value . '</span>';
+		$html .= '<span class="admin-stat-card__label">' . $label . '</span>';
+		$html .= '</div></div></div>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * Affiche une bannière d'état réutilisable dans l'admin.
+ *
+ * @param array{action: string, label: string, icon?: string, variant?: string}|null $action
+ */
+function admin_status_bar(string $variant, string $title, string $details = '', ?array $action = null): string
+{
+	$allowed = ['success', 'info', 'warning', 'danger'];
+	$variant = in_array($variant, $allowed, true) ? $variant : 'info';
+
+	$html = '<div class="admin-status-bar alert alert-' . $variant . ' mb-0">';
+	$html .= '<div class="d-flex flex-wrap justify-content-between align-items-center gap-2">';
+	$html .= '<div><strong>' . $title . '</strong>';
+
+	if ($details !== '') {
+		$html .= '<div class="small mt-1 text-muted">' . $details . '</div>';
+	}
+
+	$html .= '</div>';
+
+	if ($action) {
+		$btn_variant = html_encode($action['variant'] ?? 'secondary');
+		$html .= '<form method="post" class="m-0">';
+		$html .= '<input type="hidden" name="action" value="' . html_encode($action['action']) . '">';
+		$html .= '<button type="submit" class="btn btn-outline-' . $btn_variant . ' btn-sm">';
+
+		if (!empty($action['icon'])) {
+			$html .= '<i class="' . html_encode($action['icon']) . ' me-1"></i>';
+		}
+
+		$html .= html_encode($action['label']) . '</button></form>';
+	}
+
+	return $html . '</div></div>';
+}
+
+/**
  * Récupère les informations de la page courante dans l'admin
  * @param string $type 'icon', 'title', 'description', 'both', 'all', ou 'html'
  * @return string|array
  */
-
- function getCurrentPageInfo($type = 'both')
+function getCurrentPageInfo($type = 'both')
  {
 	 $page = App::GET('page');
+
+	 if ($page === 'modules' && ($pluginId = App::GET('plugin', ''))) {
+		 $module = App::getModule($pluginId);
+		 if ($module) {
+			 $icon = 'fa-cogs';
+			 $title = $module->infos->name;
+			 $description = $module->infos->name . ' v' . $module->infos->version;
+
+			 switch ($type) {
+				 case 'icon':
+					 return $icon;
+				 case 'title':
+					 return $title;
+				 case 'description':
+					 return $description;
+				 case 'both':
+					 return ['icon' => $icon, 'title' => $title];
+				 case 'all':
+					 return ['icon' => $icon, 'title' => $title, 'description' => $description];
+				 case 'html':
+				 default:
+					 return '<i class="fa ' . $icon . ' me-3"></i>' . html_encode($title);
+			 }
+		 }
+	 }
 	 
 	 $pageIcons = [
 		 '' => 'fa-info-circle',
@@ -217,7 +346,7 @@ function flag_icon_html(string $code, string $title = '', int $height = 15): str
 			 return ['icon' => $icon, 'title' => $title, 'description' => $description];
 		 case 'html':
 		 default:
-			 return '<i class="fa ' . $icon . ' mr-2"></i>' . $title;
+			 return '<i class="fa ' . $icon . ' me-3"></i>' . $title;
 	 }
  } 
 

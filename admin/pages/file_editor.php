@@ -3,7 +3,6 @@
 has_permission('admin.files', true);
 ?>
 <style>
-	#admin-page { padding: 0px !important; }
 	#footer { display:none; }
 </style>
 <script type="text/javascript" src="<?= App::getAsset('/includes/Editors/ace/ace.js') ?>"></script>
@@ -47,7 +46,7 @@ has_permission('admin.files', true);
 			} else {
 				$data .= '<li class="file ' . ($selected ? 'selected' : '') . '"><i class="far fa-sm fa-file"></i>';
 				if (is_editable($file)) {
-					$data .= '<a href="?page=file_editor&file=' . str_replace(ROOT_DIR, '', $path) . '">' . mb_strimwidth($file, 0, 22, "...") . '</a>';
+					$data .= '<a href="?page=file_editor&file=' . str_replace(ROOT_DIR, '', $path) . '">' . Format::truncate($file, 22) . '</a>';
 				} else {
 					$data .= $file;
 				}
