@@ -1,116 +1,96 @@
-<?php defined('EVO') or die('Que fais-tu là?'); ?>
-<ul class="stats-circular">
-	<li class="center php">
-		<a href="?page=pages">
-			<p><?= Db::Get('select count(*) from {pages} where type = "article"') ?></p>
-			<label><?= __('admin/dashboard.circle_Articles') ?></label>
-		</a>
-	</li>
-	<li class="center php">
-		<a href="?page=pages">
-			<p><?= Db::Get('select count(*) from {pages} where type <> "article"') ?></p>
-			<label><?= __('admin/dashboard.circle_Pages') ?></label>
-		</a>
-	</li>
-	<li class="center mysql">
-		<a href="?page=comments">
-			<p><?= Db::Get('select count(*) from {comments}') ?></p>
-			<label><?= __('admin/dashboard.circle_Comments') ?></label>
-		</a>
-	</li>
-	<li class="center db_ver">
-		<a href="?page=gallery">
-			<p><?= Db::Get('select count(*) from {files}') ?></p>
-			<label><?= __('admin/dashboard.circle_Files') ?></label>
-		</a>
-	</li>
-	<li class="center cms_version">
-		<a href="?page=forums">
-			<p><?= Db::Get('select count(*) from {forums_topics}') ?></p>
-			<label><?= __('admin/dashboard.circle_Discuss') ?></label>
-		</a>
-	</li>
-	<li class="center cms_version">
-		<a href="?page=forums">
-			<p><?= Db::Get('select count(*) from {forums_posts}') ?></p>
-			<label><?= __('admin/dashboard.circle_msg_forum') ?></label>
-		</a>
-	</li>
-	<li class="center rev_date">
-		<a href="?page=users">
-			<p><?= Db::Get('select count(*) from {users} where id <> 0') ?></p>
-			<label><?= __('admin/dashboard.circle_Members') ?></label>
-		</a>
-	</li>
-	<li class="center cms_version">
-		<a href="?page=polls">
-			<p><?= Db::Get('select 0') ?></p>
-			<label><?= __('admin/dashboard.circle_Modules') ?></label>
-		</a>
-	</li>
-</ul>
+<?php defined('EVO') or die('Que fais-tu là?');
 
-<hr class="my-4">
+$load_avg = function_exists('sys_getloadavg') && ($load = sys_getloadavg())
+	? number_format($load[0], 2, '.', '')
+	: '&mdash;';
 
-<div class="row">
-	<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="padding-top: 5px">
-		<ul class="stat">
-			<li class="stat-title left"><?= __('admin/dashboard.info_software') ?></li>
-			<li class="stat-value right"><?= EVO_VERSION ?> (<?= date('Y-m-d', strtotime(EVO_RELEASEDATE)) ?>)</li>
-			<div class="clearfix"></div>
-			<li class="stat-title left"><?= __('admin/dashboard.info_commit') ?></li>
-			<li class="stat-value right"><?= EVO_BUILD ?> (<?= date('Y-m-d', strtotime(EVO_BUILDDATE)) ?>)</li>
-			<div class="clearfix"></div>
-			<li class="stat-title left"><?= __('admin/dashboard.info_space') ?></li>
-			<li class="stat-value right"><?= Format::size(Db::Get('select sum(size) from {files}')) ?></li>
-		</ul>
-	</div>
-	<div class="col-xs-12 col-sm-6 col-md-6 col-lg-6 col-xl-6" style="padding-top: 5px">
-		<ul class="stat">
-			<li class="stat-title left"><?= __('admin/dashboard.info_php') ?></li>
-			<li class="stat-value right"><a href="?page=phpinfo"><?= preg_replace('/\+.+$/', '', phpversion()); ?></a></li>
-			<div class="clearfix"></div>
-			<li class="stat-title left"><?= __('admin/dashboard.info_sql') ?></li>
-			<li class="stat-value right"><?= Db::DriverName() . ' ' . Db::ServerVersion() ?></li>
-			<div class="clearfix"></div>
-			<li class="stat-title left"><?= __('admin/dashboard.info_load') ?></li>
-			<li class="stat-value right">0</li>
-		</ul>
-	</div>
+$dashboard_stats = [
+	['icon' => 'fa fa-file-alt', 'value' => (string) Db::Get('select count(*) from {pages} where type = "article"'), 'label' => __('admin/dashboard.circle_Articles'), 'variant' => 'primary', 'url' => '?page=pages'],
+	['icon' => 'fa fa-copy', 'value' => (string) Db::Get('select count(*) from {pages} where type <> "article"'), 'label' => __('admin/dashboard.circle_Pages'), 'variant' => 'info', 'url' => '?page=pages'],
+	['icon' => 'fa fa-comments', 'value' => (string) Db::Get('select count(*) from {comments}'), 'label' => __('admin/dashboard.circle_Comments'), 'variant' => 'success', 'url' => '?page=comments'],
+	['icon' => 'fa fa-images', 'value' => (string) Db::Get('select count(*) from {files}'), 'label' => __('admin/dashboard.circle_Files'), 'variant' => 'warning', 'url' => '?page=gallery'],
+	['icon' => 'fa fa-comment-dots', 'value' => (string) Db::Get('select count(*) from {forums_topics}'), 'label' => __('admin/dashboard.circle_Discuss'), 'variant' => 'secondary', 'url' => '?page=forums'],
+	['icon' => 'fa fa-reply-all', 'value' => (string) Db::Get('select count(*) from {forums_posts}'), 'label' => __('admin/dashboard.circle_msg_forum'), 'variant' => 'secondary', 'url' => '?page=forums'],
+	['icon' => 'fa fa-users', 'value' => (string) Db::Get('select count(*) from {users} where id <> 0'), 'label' => __('admin/dashboard.circle_Members'), 'variant' => 'danger', 'url' => '?page=users'],
+	['icon' => 'fa fa-cogs', 'value' => (string) count(App::getModules()), 'label' => __('admin/dashboard.circle_Modules'), 'variant' => 'primary', 'url' => '?page=modules'],
+];
+
+$dashboard_panels = [
+	[
+		'title' => __('admin/dashboard.section_cms'),
+		'icon' => 'fa fa-cube',
+		'accent' => 'primary',
+		'items' => [
+			['label' => __('admin/dashboard.info_software'), 'value' => html_encode(EVO_VERSION) . ' <span class="text-muted">(' . date('Y-m-d', strtotime(EVO_RELEASEDATE)) . ')</span>'],
+			['label' => __('admin/dashboard.info_commit'), 'value' => html_encode(EVO_BUILD) . ' <span class="text-muted">(' . date('Y-m-d', strtotime(EVO_BUILDDATE)) . ')</span>'],
+			['label' => __('admin/dashboard.info_space'), 'value' => html_encode(Format::size(Db::Get('select sum(size) from {files}')))],
+		],
+	],
+	[
+		'title' => __('admin/dashboard.section_environment'),
+		'icon' => 'fa fa-server',
+		'accent' => 'info',
+		'items' => [
+			['label' => __('admin/dashboard.info_php'), 'value' => '<a href="?page=phpinfo">' . html_encode(preg_replace('/\+.+$/', '', phpversion())) . '</a>'],
+			['label' => __('admin/dashboard.info_sql'), 'value' => html_encode(Db::DriverName() . ' ' . Db::ServerVersion())],
+			['label' => __('admin/dashboard.info_load'), 'value' => $load_avg],
+		],
+	],
+	[
+		'title' => __('admin/dashboard.info_dev'),
+		'icon' => 'fa fa-code',
+		'accent' => 'amber',
+		'items' => [
+			['label' => 'Yan Bourgeois', 'value' => 'Designer <span class="text-muted">(Coolternet)</span>'],
+			['label' => 'Alex Duchesne', 'value' => 'Développeur <span class="text-muted">(Alexus)</span>'],
+			['label' => __('admin/dashboard.info_credits'), 'value' => '<a href="#credits" class="admin-dashboard__credits-link" data-bs-toggle="modal" data-bs-target="#credits">' . html_encode(__('admin/dashboard.view_credits')) . '</a>'],
+		],
+	],
+];
+?>
+
+<div class="admin-dashboard">
+	<?= admin_stat_grid($dashboard_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
+	<?= admin_info_grid($dashboard_panels, ['variant' => 'modern', 'columns' => 3, 'class' => 'mb-0']) ?>
 </div>
-<table class="ui celled table">
-	<tr>
-		<td><?= __('admin/dashboard.info_dev') ?></td>
-		<td>
-			Yan Bourgeois <small>(Coolternet)</small> : Designer<br>
-			Alex Duchesne <small>(Alexus)</small>: Développeur<br>
-			<a href="#credits" data-bs-toggle="modal" data-bs-target="#credits"><small>voir plus</small></a>
-		</td>
-	</tr>
-</table>
 
-<div id="credits" class="modal fade">
-<div class="modal-dialog" role="document">
-    <div class="modal-content">
-	<div class="modal-body">
-		<h3><?= __('admin/dashboard.info_credits') ?> :</h3>
-		===<br>
-			<a href="http://raymondhill.net/blog/?p=441">FineDiff</a> - MIT<br>
-			<a href="http://parsedown.org">Parsedown</a> - MIT<br>
-			<a href="https://github.com/clouddueling/mysqldump-php">MySQLDump</a> - MIT<br>
-			<a href="http://maxmind.com">GeoIP</a> - LGPL<br>
-			<a href="http://www.adminer.org/">Adminer</a> - Apache License<br>
-			<br>
-			<a href="http://jquery.com">jQuery</a> - MIT<br>
-			<a href="http://getbootstrap.com">Bootstrap</a> - MIT<br>
-			<a href="http://ckeditor.com/">ckeditor</a> - MPL<br>
-			<a href="http://fancyapps.com/fancybox">fancybox</a> - MIT<br>
-			<a href="http://markitup.jaysalvat.com/">markitup</a> - MIT<br>
-			<br>
-			<a href="http://fortawesome.github.io/Font-Awesome/">Font-Awesome</a> - SIL OFL 1.1<br>
-			<a href="http://www.famfamfam.com/lab/icons/silk/">famfamfam - Silk</a> - CC BY 2.5<br>
-			Nomicons - CC BY 2.5<br>
-		</div>
+<div id="credits" class="modal fade" tabindex="-1" aria-labelledby="credits-title" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+		<div class="modal-content border-0 shadow admin-credits-modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="credits-title"><?= __('admin/dashboard.info_credits') ?></h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= __('messages/form.cancel') ?>"></button>
+			</div>
+			<div class="modal-body admin-credits-modal">
+				<div class="admin-credits-group">
+					<h6>PHP</h6>
+					<ul class="list-unstyled mb-0">
+						<li><a href="http://raymondhill.net/blog/?p=441">FineDiff</a> <span class="text-muted">&mdash; MIT</span></li>
+						<li><a href="http://parsedown.org">Parsedown</a> <span class="text-muted">&mdash; MIT</span></li>
+						<li><a href="https://github.com/clouddueling/mysqldump-php">MySQLDump</a> <span class="text-muted">&mdash; MIT</span></li>
+						<li><a href="http://maxmind.com">GeoIP</a> <span class="text-muted">&mdash; LGPL</span></li>
+						<li><a href="http://www.adminer.org/">Adminer</a> <span class="text-muted">&mdash; Apache License</span></li>
+					</ul>
+				</div>
+				<div class="admin-credits-group">
+					<h6>Frontend</h6>
+					<ul class="list-unstyled mb-0">
+						<li><a href="http://jquery.com">jQuery</a> <span class="text-muted">&mdash; MIT</span></li>
+						<li><a href="http://getbootstrap.com">Bootstrap</a> <span class="text-muted">&mdash; MIT</span></li>
+						<li><a href="http://ckeditor.com/">CKEditor</a> <span class="text-muted">&mdash; MPL</span></li>
+						<li><a href="http://fancyapps.com/fancybox">Fancybox</a> <span class="text-muted">&mdash; MIT</span></li>
+						<li><a href="http://markitup.jaysalvat.com/">MarkItUp</a> <span class="text-muted">&mdash; MIT</span></li>
+					</ul>
+				</div>
+				<div class="admin-credits-group mb-0">
+					<h6>Icons</h6>
+					<ul class="list-unstyled mb-0">
+						<li><a href="http://fortawesome.github.io/Font-Awesome/">Font Awesome</a> <span class="text-muted">&mdash; SIL OFL 1.1</span></li>
+						<li><a href="http://www.famfamfam.com/lab/icons/silk/">famfamfam Silk</a> <span class="text-muted">&mdash; CC BY 2.5</span></li>
+						<li>Nomicons <span class="text-muted">&mdash; CC BY 2.5</span></li>
+					</ul>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

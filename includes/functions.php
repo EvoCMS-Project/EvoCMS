@@ -154,34 +154,410 @@ function admin_card_body_close(): string
 /**
  * Affiche une grille de statistiques réutilisable dans l'admin.
  *
- * @param array<int, array{icon?: string, value?: string, label?: string, variant?: string}> $items
+ * @param array<int, array{icon?: string, value?: string, label?: string, variant?: string, url?: string}> $items
+ * @param array{class?: string, variant?: 'default'|'kpi'} $options
  */
-function admin_stat_grid(array $items): string
+function admin_stat_grid(array $items, array $options = []): string
 {
 	if (!$items) {
 		return '';
 	}
 
+	$class = $options['class'] ?? 'mb-4';
+	$variant = $options['variant'] ?? 'default';
+
+	if ($variant === 'kpi') {
+		$variants = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
+		$html = '<div class="row g-2 admin-stat-grid admin-stat-grid--kpi ' . html_encode($class) . '">';
+
+		foreach ($items as $item) {
+			$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+			$value = $item['value'] ?? '&mdash;';
+			$label = html_encode($item['label'] ?? '');
+			$url = $item['url'] ?? '';
+			$tag = $url !== '' ? 'a' : 'div';
+			$card_class = 'admin-kpi-card' . ($tag === 'a' ? ' admin-kpi-card--linked' : '');
+			$attrs = $tag === 'a' ? ' href="' . html_encode($url) . '"' : '';
+			$icon_class = 'admin-kpi-card__icon';
+
+			if (!empty($item['variant']) && in_array($item['variant'], $variants, true)) {
+				$icon_class .= ' admin-kpi-card__icon--' . $item['variant'];
+			}
+
+			$html .= '<div class="col-6 col-lg-3">';
+			$html .= '<' . $tag . ' class="' . $card_class . '"' . $attrs . '>';
+			$html .= '<span class="' . $icon_class . '"><i class="' . $icon . '" aria-hidden="true"></i></span>';
+			$html .= '<span class="admin-kpi-card__body">';
+			$html .= '<span class="admin-kpi-card__value">' . $value . '</span>';
+			$html .= '<span class="admin-kpi-card__label">' . $label . '</span>';
+			$html .= '</span>';
+			$html .= '</' . $tag . '></div>';
+		}
+
+		return $html . '</div>';
+	}
+
 	$variants = ['primary', 'success', 'info', 'warning', 'danger', 'secondary'];
-	$html = '<div class="row g-3 admin-stat-grid">';
+	$html = '<div class="row g-3 admin-stat-grid ' . html_encode($class) . '">';
 
 	foreach ($items as $item) {
 		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
 		$value = $item['value'] ?? '&mdash;';
 		$label = html_encode($item['label'] ?? '');
 		$icon_class = 'admin-stat-card__icon';
+		$url = $item['url'] ?? '';
+		$tag = $url !== '' ? 'a' : 'div';
+		$card_class = 'admin-stat-card' . ($tag === 'a' ? ' admin-stat-card--linked' : '');
+		$attrs = $tag === 'a' ? ' href="' . html_encode($url) . '"' : '';
 
 		if (!empty($item['variant']) && in_array($item['variant'], $variants, true)) {
 			$icon_class .= ' admin-stat-card__icon--' . $item['variant'];
 		}
 
 		$html .= '<div class="col-6 col-xl-3">';
-		$html .= '<div class="admin-stat-card">';
+		$html .= '<' . $tag . ' class="' . $card_class . '"' . $attrs . '>';
 		$html .= '<div class="' . $icon_class . '"><i class="' . $icon . '" aria-hidden="true"></i></div>';
 		$html .= '<div class="admin-stat-card__content">';
 		$html .= '<span class="admin-stat-card__value">' . $value . '</span>';
 		$html .= '<span class="admin-stat-card__label">' . $label . '</span>';
-		$html .= '</div></div></div>';
+		$html .= '</div></' . $tag . '></div>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * Affiche un titre de section réutilisable dans l'admin.
+ */
+function admin_section_title(string $title, string $class = 'mb-3'): string
+{
+	return '<h6 class="admin-section-title ' . html_encode($class) . '">' . html_encode($title) . '</h6>';
+}
+
+/**
+ * Affiche un tableau de statistiques classique réutilisable dans l'admin.
+ *
+ * @param array<int, array{icon?: string, value?: string, label?: string, url?: string}> $items
+ */
+function admin_stat_table(array $items, array $options = []): string
+{
+	if (!$items) {
+		return '';
+	}
+
+	$class = $options['class'] ?? 'mb-4';
+	$html = '<div class="table-responsive ' . html_encode($class) . '">';
+	$html .= '<table class="table table-bordered table-sm admin-stat-table mb-0">';
+	$html .= '<thead><tr>';
+	$html .= '<th scope="col">' . html_encode(__('admin/dashboard.table_metric')) . '</th>';
+	$html .= '<th scope="col" class="text-end">' . html_encode(__('admin/dashboard.table_value')) . '</th>';
+	$html .= '</tr></thead><tbody>';
+
+	foreach ($items as $item) {
+		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$value = $item['value'] ?? '&mdash;';
+		$label = html_encode($item['label'] ?? '');
+		$url = $item['url'] ?? '';
+
+		$html .= '<tr>';
+
+		if ($url !== '') {
+			$html .= '<td><a href="' . html_encode($url) . '" class="admin-stat-table__link">';
+			$html .= '<i class="' . $icon . ' text-muted me-2" aria-hidden="true"></i>' . $label;
+			$html .= '</a></td>';
+			$html .= '<td class="text-end"><a href="' . html_encode($url) . '" class="admin-stat-table__link admin-stat-table__value">' . $value . '</a></td>';
+		} else {
+			$html .= '<td><i class="' . $icon . ' text-muted me-2" aria-hidden="true"></i>' . $label . '</td>';
+			$html .= '<td class="text-end admin-stat-table__value">' . $value . '</td>';
+		}
+
+		$html .= '</tr>';
+	}
+
+	return $html . '</tbody></table></div>';
+}
+
+/**
+ * Affiche un panneau d'informations clé/valeur réutilisable dans l'admin.
+ *
+ * @param array<int, array{title?: string, icon?: string, items: array<int, array{label: string, value?: string}>}> $panels
+ * @param array{class?: string, variant?: 'panel'|'table'|'modern', columns?: int} $options
+ */
+function admin_info_grid(array $panels, array $options = []): string
+{
+	if (!$panels) {
+		return '';
+	}
+
+	$class = $options['class'] ?? 'mb-4';
+	$variant = $options['variant'] ?? 'panel';
+	$columns = (int) ($options['columns'] ?? (count($panels) === 1 ? 1 : 2));
+	$columns = max(1, min(3, $columns));
+
+	switch ($columns) {
+		case 1:
+			$column_class = 'col-12';
+			break;
+		case 3:
+			$column_class = 'col-md-6 col-lg-4';
+			break;
+		default:
+			$column_class = 'col-md-6';
+	}
+	$accents = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'amber'];
+	$panel_class = $variant === 'modern' ? ' admin-info-panel--modern' : '';
+
+	if ($variant === 'table') {
+		$html = '<div class="row g-1 admin-info-grid ' . html_encode($class) . '">';
+
+		foreach ($panels as $panel) {
+			$html .= '<div class="' . $column_class . '">';
+			$html .= '<div class="table-responsive">';
+			$html .= '<table class="table table-bordered table-sm admin-info-table mb-0">';
+
+			if (!empty($panel['title'])) {
+				$html .= '<caption>' . html_encode($panel['title']) . '</caption>';
+			}
+
+			$html .= '<tbody>';
+
+			foreach ($panel['items'] as $item) {
+				$html .= '<tr>';
+				$html .= '<th scope="row">' . html_encode($item['label']) . '</th>';
+				$html .= '<td>' . ($item['value'] ?? '&mdash;') . '</td>';
+				$html .= '</tr>';
+			}
+
+			$html .= '</tbody></table></div></div>';
+		}
+
+		return $html . '</div>';
+	}
+
+	$html = '<div class="row g-1 admin-info-grid ' . html_encode($class) . '">';
+
+	foreach ($panels as $panel) {
+		$html .= '<div class="' . $column_class . '">';
+		$panel_accent = $panel['accent'] ?? '';
+
+		if ($variant === 'modern' && $panel_accent !== '' && in_array($panel_accent, $accents, true)) {
+			$panel_class_with_accent = $panel_class . ' admin-info-panel--accent-' . $panel_accent;
+		} else {
+			$panel_class_with_accent = $panel_class;
+		}
+
+		$html .= '<div class="admin-info-panel' . $panel_class_with_accent . '">';
+
+		if (!empty($panel['title'])) {
+			$html .= '<div class="admin-info-panel__header">';
+
+			if ($variant === 'modern') {
+				if (!empty($panel['icon'])) {
+					$html .= '<span class="admin-info-panel__badge"><i class="' . html_encode($panel['icon']) . '" aria-hidden="true"></i></span>';
+				}
+
+				$html .= '<span class="admin-info-panel__title">' . html_encode($panel['title']) . '</span>';
+			} else {
+				if (!empty($panel['icon'])) {
+					$html .= '<i class="' . html_encode($panel['icon']) . ' me-2" aria-hidden="true"></i>';
+				}
+
+				$html .= html_encode($panel['title']);
+			}
+
+			$html .= '</div>';
+		}
+
+		$html .= '<dl class="admin-info-panel__list mb-0">';
+
+		foreach ($panel['items'] as $item) {
+			$html .= '<div class="admin-info-panel__row">';
+			$html .= '<dt>' . html_encode($item['label']) . '</dt>';
+			$html .= '<dd>' . ($item['value'] ?? '&mdash;') . '</dd>';
+			$html .= '</div>';
+		}
+
+		$html .= '</dl></div></div>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * Affiche une grille de tuiles métriques modernes réutilisable dans l'admin.
+ *
+ * @param array<int, array{icon?: string, value?: string, label?: string, variant?: string, url?: string}> $items
+ */
+function admin_metric_tiles(array $items, array $options = []): string
+{
+	if (!$items) {
+		return '';
+	}
+
+	$variants = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'amber'];
+	$class = $options['class'] ?? 'mb-0';
+	$html = '<div class="admin-metric-tiles ' . html_encode($class) . '">';
+
+	foreach ($items as $item) {
+		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$value = $item['value'] ?? '&mdash;';
+		$label = html_encode($item['label'] ?? '');
+		$url = $item['url'] ?? '';
+		$tag = $url !== '' ? 'a' : 'div';
+		$item_class = 'admin-metric-tile';
+
+		if (!empty($item['variant']) && in_array($item['variant'], $variants, true)) {
+			$item_class .= ' admin-metric-tile--' . $item['variant'];
+		}
+
+		$attrs = $tag === 'a' ? ' href="' . html_encode($url) . '"' : '';
+
+		$html .= '<' . $tag . ' class="' . $item_class . '"' . $attrs . '>';
+		$html .= '<span class="admin-metric-tile__orb"><i class="' . $icon . '" aria-hidden="true"></i></span>';
+		$html .= '<span class="admin-metric-tile__body">';
+		$html .= '<span class="admin-metric-tile__value">' . $value . '</span>';
+		$html .= '<span class="admin-metric-tile__label">' . $label . '</span>';
+		$html .= '</span></' . $tag . '>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * Affiche des cartes de détails modernes réutilisables dans l'admin.
+ *
+ * @param array<int, array{title?: string, icon?: string, accent?: string, items: array<int, array{label: string, value?: string}>}> $sections
+ */
+function admin_detail_cards(array $sections, array $options = []): string
+{
+	if (!$sections) {
+		return '';
+	}
+
+	$accents = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'amber'];
+	$class = $options['class'] ?? '';
+	$html = '<div class="admin-detail-cards ' . html_encode($class) . '">';
+
+	foreach ($sections as $section) {
+		$card_class = 'admin-detail-card';
+		$accent = $section['accent'] ?? '';
+
+		if ($accent !== '' && in_array($accent, $accents, true)) {
+			$card_class .= ' admin-detail-card--' . $accent;
+		}
+
+		$html .= '<article class="' . $card_class . '">';
+
+		if (!empty($section['title'])) {
+			$html .= '<header class="admin-detail-card__head">';
+
+			if (!empty($section['icon'])) {
+				$html .= '<span class="admin-detail-card__orb"><i class="' . html_encode($section['icon']) . '" aria-hidden="true"></i></span>';
+			}
+
+			$html .= '<h6 class="admin-detail-card__title">' . html_encode($section['title']) . '</h6>';
+			$html .= '</header>';
+		}
+
+		$html .= '<dl class="admin-detail-card__list mb-0">';
+
+		foreach ($section['items'] as $item) {
+			$html .= '<div class="admin-detail-card__row">';
+			$html .= '<dt>' . html_encode($item['label']) . '</dt>';
+			$html .= '<dd>' . ($item['value'] ?? '&mdash;') . '</dd>';
+			$html .= '</div>';
+		}
+
+		$html .= '</dl></article>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * Affiche une barre de métriques unifiée réutilisable dans l'admin.
+ *
+ * @param array<int, array{icon?: string, value?: string, label?: string, variant?: string, url?: string}> $items
+ */
+function admin_metrics_strip(array $items, array $options = []): string
+{
+	if (!$items) {
+		return '';
+	}
+
+	$variants = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'amber'];
+	$class = $options['class'] ?? 'mb-3';
+	$html = '<div class="admin-metrics-strip ' . html_encode($class) . '">';
+
+	foreach ($items as $item) {
+		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$value = $item['value'] ?? '&mdash;';
+		$label = html_encode($item['label'] ?? '');
+		$url = $item['url'] ?? '';
+		$tag = $url !== '' ? 'a' : 'div';
+		$item_class = 'admin-metrics-strip__item';
+
+		if (!empty($item['variant']) && in_array($item['variant'], $variants, true)) {
+			$item_class .= ' admin-metrics-strip__item--' . $item['variant'];
+		}
+
+		$attrs = $tag === 'a' ? ' href="' . html_encode($url) . '"' : '';
+
+		$html .= '<' . $tag . ' class="' . $item_class . '"' . $attrs . '>';
+		$html .= '<span class="admin-metrics-strip__icon"><i class="' . $icon . '" aria-hidden="true"></i></span>';
+		$html .= '<span class="admin-metrics-strip__value">' . $value . '</span>';
+		$html .= '<span class="admin-metrics-strip__label">' . $label . '</span>';
+		$html .= '</' . $tag . '>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * Affiche un panneau de détails multi-sections réutilisable dans l'admin.
+ *
+ * @param array<int, array{title?: string, icon?: string, accent?: string, items: array<int, array{label: string, value?: string}>}> $sections
+ */
+function admin_detail_board(array $sections, array $options = []): string
+{
+	if (!$sections) {
+		return '';
+	}
+
+	$accents = ['primary', 'success', 'info', 'warning', 'danger', 'secondary', 'amber'];
+	$class = $options['class'] ?? '';
+	$html = '<div class="admin-detail-board ' . html_encode($class) . '">';
+
+	foreach ($sections as $section) {
+		$section_class = 'admin-detail-board__section';
+		$accent = $section['accent'] ?? '';
+
+		if ($accent !== '' && in_array($accent, $accents, true)) {
+			$section_class .= ' admin-detail-board__section--' . $accent;
+		}
+
+		$html .= '<section class="' . $section_class . '">';
+
+		if (!empty($section['title'])) {
+			$html .= '<div class="admin-detail-board__head">';
+
+			if (!empty($section['icon'])) {
+				$html .= '<i class="' . html_encode($section['icon']) . '" aria-hidden="true"></i>';
+			}
+
+			$html .= '<span>' . html_encode($section['title']) . '</span></div>';
+		}
+
+		$html .= '<dl class="admin-detail-board__list mb-0">';
+
+		foreach ($section['items'] as $item) {
+			$html .= '<div class="admin-detail-board__row">';
+			$html .= '<dt>' . html_encode($item['label']) . '</dt>';
+			$html .= '<dd>' . ($item['value'] ?? '&mdash;') . '</dd>';
+			$html .= '</div>';
+		}
+
+		$html .= '</dl></section>';
 	}
 
 	return $html . '</div>';
