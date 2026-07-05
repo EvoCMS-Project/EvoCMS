@@ -202,12 +202,12 @@ if (!$data || !isset($data->Themes, $data->Modules, $data->Langues)) {
 	<div class="card" style="margin: 24px 40px 40px 40px;margin-top: -70px;">
 		<div class="card-header">
 			<ul class="nav nav-tabs card-header-tabs" id="tab" role="tablist">
-			<li class="nav-item" role="tab"><a class="nav-link active" id="installed-tab" data-toggle="tab" href="#installed" role="tab" aria-controls="installed" aria-selected="true">Composants installés</a></li>
-			<li class="nav-item" role="tab"><a class="nav-link" id="themes-tab" data-toggle="tab" href="#themes" role="tab" aria-controls="themes" aria-selected="false">Thèmes graphiques</a></li>
-			<li class="nav-item" role="tab"><a class="nav-link" id="modules-tab" data-toggle="tab" href="#modules" role="tab" aria-controls="modules" aria-selected="false">Modules</a></li>
-			<li class="nav-item" role="tab"><a class="nav-link" id="lang-tab" data-toggle="tab" href="#lang" role="tab" aria-controls="lang" aria-selected="false">Langues</a></li>
-			<li class="nav-item" role="tab"><a class="nav-link" id="import-tab" data-toggle="tab" href="#import" role="tab" aria-controls="import" aria-selected="false">Importer</a></li>
-			<li class="nav-item" role="tab"><a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Paramètres</a></li>
+			<li class="nav-item" role="tab"><a class="nav-link active" id="installed-tab" data-bs-toggle="tab" href="#installed" role="tab" aria-controls="installed" aria-selected="true">Composants installés</a></li>
+			<li class="nav-item" role="tab"><a class="nav-link" id="themes-tab" data-bs-toggle="tab" href="#themes" role="tab" aria-controls="themes" aria-selected="false">Thèmes graphiques</a></li>
+			<li class="nav-item" role="tab"><a class="nav-link" id="modules-tab" data-bs-toggle="tab" href="#modules" role="tab" aria-controls="modules" aria-selected="false">Modules</a></li>
+			<li class="nav-item" role="tab"><a class="nav-link" id="lang-tab" data-bs-toggle="tab" href="#lang" role="tab" aria-controls="lang" aria-selected="false">Langues</a></li>
+			<li class="nav-item" role="tab"><a class="nav-link" id="import-tab" data-bs-toggle="tab" href="#import" role="tab" aria-controls="import" aria-selected="false">Importer</a></li>
+			<li class="nav-item" role="tab"><a class="nav-link" id="settings-tab" data-bs-toggle="tab" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Paramètres</a></li>
 			</ul>
 		</div>
 		<div class="card-body tab-content" id="TabContent">
@@ -369,7 +369,7 @@ if (!$data || !isset($data->Themes, $data->Modules, $data->Langues)) {
 					<tbody class="table-hover">
 						<?php foreach ($lang as $key => $value) : ?>						
 							<tr>
-								<td class="text-muted"><img src="<?= App::getAsset('/img/flags/'.strtolower($value->flag).'.png'); ?>" style="height:15px;" title="<?= @COUNTRIES[$value->flag] ?>"/> <?= $value->name ?></td>
+								<td class="text-muted"><?= flag_icon_html($value->flag, @COUNTRIES[$value->flag] ?? $value->name) ?> <?= html_encode($value->name) ?></td>
 								<td class="text-muted"><?= $value->author ?></td>
 								<td>
 									<div class="progress" style="margin-top: 5px;">

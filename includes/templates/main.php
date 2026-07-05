@@ -54,16 +54,13 @@
 			<div class="alerts">
 			<?php
 				if (!empty($_success)) {
-					echo '<div class="alert alert-success alert-dismissable auto-dismiss"><button type="button" class="close"
-					data-dismiss="alert" aria-hidden="true">&times;</button>'.$_success.'</div>';
+					echo '<div class="alert alert-success alert-dismissable alert-dismissible auto-dismiss" role="alert">' . alert_close_button() . $_success . '</div>';
 				}
 				if (!empty($_warning)) {
-					echo '<div class="alert alert-danger alert-dismissable"><button type="button" class="close"
-					data-dismiss="alert" aria-hidden="true">&times;</button>'.$_warning.'</div>';
+					echo '<div class="alert alert-danger alert-dismissable alert-dismissible" role="alert">' . alert_close_button() . $_warning . '</div>';
 				}
 				if (!empty($_notice)) {
-					echo '<div class="alert alert-warning alert-dismissable"><button type="button" class="close"
-					data-dismiss="alert" aria-hidden="true">&times;</button>'.$_notice.'</div>';
+					echo '<div class="alert alert-warning alert-dismissable alert-dismissible" role="alert">' . alert_close_button() . $_notice . '</div>';
 				}
 			?>
 			</div>

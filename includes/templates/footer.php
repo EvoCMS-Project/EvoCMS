@@ -9,6 +9,15 @@
 			<div id="debug" style="display:none"><?php if (has_permission('admin.sql')) echo Widgets::SQLQueries(Db::$queries); ?></div>
 		</div>
 	<?php endif; ?>
+	<?php if ($prism = App::getAsset('js/prism.min.js')): ?>
+	<script src="<?= $prism ?>"></script>
+	<?php endif; ?>
+	<?php if ($tablednd = App::getAsset('js/jquery.tablednd.js')): ?>
+	<script src="<?= $tablednd ?>"></script>
+	<?php endif; ?>
+	<?php if ($fancybox = App::getAsset('js/fancybox/jquery.fancybox.js')): ?>
+	<script src="<?= $fancybox ?>"></script>
+	<?php endif; ?>
 	<script src="<?= App::getAsset('js/evo-cms.js') ?>"></script>
 
 	<?php App::trigger('footer'); ?>

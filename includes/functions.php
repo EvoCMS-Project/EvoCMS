@@ -92,6 +92,33 @@ function fetch_remote_url(string $url, int $timeout = 15): ?string
 
 
 /**
+ * Accessible close button for Bootstrap dismissible alerts.
+ */
+function alert_close_button(string $label = 'Fermer'): string
+{
+	return '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="' . html_encode($label) . '"></button>';
+}
+
+
+/**
+ * Render a country flag icon with graceful fallback when the PNG is missing.
+ */
+function flag_icon_html(string $code, string $title = '', int $height = 15): string
+{
+	$code = strtolower(trim($code));
+	$aliases = ['en' => 'gb'];
+	$fileCode = $aliases[$code] ?? $code;
+	$title = $title ?: (@COUNTRIES[strtoupper($code)] ?? strtoupper($code));
+
+	if ($url = App::getAsset("img/flags/{$fileCode}.png")) {
+		return '<img src="' . html_encode($url) . '" style="height:' . (int)$height . 'px;" alt="' . html_encode($title) . '" title="' . html_encode($title) . '">';
+	}
+
+	return '<span class="flag-code text-muted" title="' . html_encode($title) . '">' . html_encode(strtoupper($code)) . '</span>';
+}
+
+
+/**
  * Récupère les informations de la page courante dans l'admin
  * @param string $type 'icon', 'title', 'description', 'both', 'all', ou 'html'
  * @return string|array

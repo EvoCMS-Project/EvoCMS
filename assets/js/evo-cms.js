@@ -80,6 +80,9 @@ function ServerPoll() {
 
 
 function draganddrop() {
+	if (!$.fn.tableDnD) {
+		return;
+	}
 	$('.sortable').tableDnD({
 		onDrop: function (table, row) {
 			$.post('', $.tableDnD.serialize() + '&csrf=' + csrf, function (data) { $(table).html($('#' + $(table).attr('id'), data).html()); draganddrop(); });
@@ -320,7 +323,9 @@ function autocomplete(callback, query, css) {
 
 
 function pageload() {
-	Prism.highlightAll();
+	if (window.Prism) {
+		Prism.highlightAll();
+	}
 	draganddrop();
 	// Bootstrap 5 tooltips initialization
 	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]:not([title=""])'));

@@ -1,7 +1,7 @@
 <?php defined('EVO') or die('Que fais-tu là?');
 
 echo  '<?xml version="1.0" encoding="UTF-8"?>'.
-		'<?xml-stylesheet type="text/css" href="' . App::getAsset('css/style.css') . '" ?>'.
+		'<?xml-stylesheet type="text/css" href="' . (App::getAsset('css/style.css') ?: App::getAsset('css/website.css')) . '" ?>'.
 		'<rss version="2.0"
 			xmlns:content="http://purl.org/rss/1.0/modules/content/"
 			xmlns:wfw="http://wellformedweb.org/CommentAPI/"

@@ -1,0 +1,42 @@
+/* RSS feed stylesheet */
+rss, channel, item, title, link, description, pubDate, generator {
+	display: block;
+}
+
+channel > title {
+	font-size: 1.5rem;
+	font-weight: 700;
+	margin-bottom: 0.5rem;
+}
+
+channel > description {
+	color: #555;
+	margin-bottom: 1rem;
+}
+
+item {
+	border-top: 1px solid #dee2e6;
+	padding: 1rem 0;
+}
+
+item > title {
+	font-size: 1.125rem;
+	font-weight: 600;
+	margin-bottom: 0.25rem;
+}
+
+item > link {
+	color: #0d6efd;
+	word-break: break-all;
+	margin-bottom: 0.5rem;
+}
+
+item > pubDate {
+	color: #6c757d;
+	font-size: 0.875rem;
+	margin-bottom: 0.5rem;
+}
+
+item > description {
+	line-height: 1.5;
+}

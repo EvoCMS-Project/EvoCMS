@@ -10,8 +10,13 @@
 
 <link href="<?= App::getAsset('css/shared.css') ?>" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" href="<?= App::getURL('feed') ?>">
-<?php if ($icon = App::getAsset('favicon.ico')): ?>
-<link href="<?= $icon ?>" rel="shortcut icon">
+<?php
+$favicon = App::getAsset('favicon.ico')
+	?: App::getAsset('favicon.png')
+	?: App::getAsset('img/evo-logo.png');
+if ($favicon):
+?>
+<link href="<?= $favicon ?>" rel="icon">
 <?php endif; ?>
 
 <script src="<?= App::getAsset('js/vendor.js') ?>"></script>
