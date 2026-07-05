@@ -167,7 +167,7 @@ class App
 	/**
 	 *  Core login function.
 	 */
-	public static function sessionStart($user_id = null, bool $remember = null): bool
+	public static function sessionStart($user_id = null, ?bool $remember = null): bool
 	{
 		$cookie_name = self::getConfig('cookie.name') ?: 'evo_cms';
 		$login_cookie_name = "{$cookie_name}_login";
@@ -431,7 +431,7 @@ class App
 	/**
 	 *  Check if current visitor matches one of our ban rules
 	 */
-	public static function checkBanlist(array $visitor = null)
+	public static function checkBanlist(?array $visitor = null)
 	{
 		if (rand(0, 5) === 1) {
 			foreach(Db::QueryAll('select * from {banlist} where expires <> 0 and expires < '. time()) as $ban) {
@@ -518,7 +518,7 @@ class App
 	/**
 	 * Route and then run the first script matching the route
 	 */
-	public static function run(array $routes = null)
+	public static function run(?array $routes = null)
 	{
 		try {
 			ob_start();
@@ -562,7 +562,7 @@ class App
 	/**
 	 * Render and outbut a template
 	 */
-	public static function render(string $template = '', array $variables = [], int $http_code = null)
+	public static function render(string $template = '', array $variables = [], ?int $http_code = null)
 	{
 		while(ob_get_status() && ob_end_clean());
 
@@ -636,7 +636,7 @@ class App
 	/**
 	 * Like getLocalURL but it will transform to ?p=$page&id= if rewriting is disabled
 	 */
-	public static function getURL(string $page = '/', $args = [], string $hash = null)
+	public static function getURL(string $page = '/', $args = [], ?string $hash = null)
 	{
 		/* Assume id */
 		$args = is_array($args) ? $args : ['id' => $args];
@@ -661,7 +661,7 @@ class App
 	/**
 	 *
 	 */
-	public static function getLocalURL(string $path = '/', $args = [], string $hash = null, bool $auto_scheme = true)
+	public static function getLocalURL(string $path = '/', $args = [], ?string $hash = null, bool $auto_scheme = true)
 	{
 		$url = self::getConfig('url');
 		if ($auto_scheme || !preg_match('!^(https?:|http:)//!i', $url)) {
@@ -679,7 +679,7 @@ class App
 	/**
 	 *
 	 */
-	public static function getAdminURL(string $page = '/', $args = [], string $hash = null, bool $auto_scheme = true)
+	public static function getAdminURL(string $page = '/', $args = [], ?string $hash = null, bool $auto_scheme = true)
 	{
 		if (trim($page, '/') !== '') {
 			$args = ['page' => $page] + $args;
@@ -865,7 +865,7 @@ class App
 	/**
 	 * Add crumb level to the navigation crumbs
 	 */
-	public static function addCrumb(string $title, string $link = null)
+	public static function addCrumb(string $title, ?string $link = null)
 	{
 		self::$crumbs[] = [$title, $link];
 	}
@@ -932,7 +932,7 @@ class App
 	/**
 	 *  Verify if a group is granted a permission.
 	 */
-	public static function groupHasPermission(int $group_id, string $permission, int $rel_id = null): bool
+	public static function groupHasPermission(int $group_id, string $permission, ?int $rel_id = null): bool
 	{
 		static $roles = [], $permissions = [];
 
@@ -971,7 +971,7 @@ class App
 	/**
 	 * Undocumented function
 	 */
-	public static function GET(string $key = null, $default = null)
+	public static function GET(?string $key = null, $default = null)
 	{
 		if ($key === null) {
 			return self::$GET;
@@ -983,7 +983,7 @@ class App
 	/**
 	 * Undocumented function
 	 */
-	public static function POST(string $key = null, $default = null)
+	public static function POST(?string $key = null, $default = null)
 	{
 		if ($key === null) {
 			return self::$POST;
