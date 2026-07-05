@@ -39,6 +39,59 @@ function html_encode($string)
 
 
 /**
+ * Fetch remote URL content (HTTPS/HTTP) with curl or stream wrappers.
+ */
+function fetch_remote_url(string $url, int $timeout = 15): ?string
+{
+	if (function_exists('curl_init')) {
+		$curl = curl_init($url);
+		if ($curl === false) {
+			return null;
+		}
+
+		curl_setopt_array($curl, [
+			CURLOPT_RETURNTRANSFER => true,
+			CURLOPT_FOLLOWLOCATION => true,
+			CURLOPT_CONNECTTIMEOUT => $timeout,
+			CURLOPT_TIMEOUT => $timeout,
+			CURLOPT_USERAGENT => 'Evo-CMS/' . EVO_VERSION,
+			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_SSL_VERIFYHOST => 0,
+		]);
+
+		$content = curl_exec($curl);
+		$status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+		curl_close($curl);
+
+		if ($content !== false && $status >= 200 && $status < 300) {
+			return $content;
+		}
+	}
+
+	$scheme = parse_url($url, PHP_URL_SCHEME);
+	if ($scheme && !in_array(strtolower($scheme), stream_get_wrappers(), true)) {
+		return null;
+	}
+
+	$context = stream_context_create([
+		'http' => [
+			'method' => 'GET',
+			'timeout' => $timeout,
+			'header' => "User-Agent: Evo-CMS/" . EVO_VERSION . "\r\n",
+		],
+		'ssl' => [
+			'verify_peer' => false,
+			'allow_self_signed' => true,
+		],
+	]);
+
+	$content = @file_get_contents($url, false, $context);
+
+	return $content !== false ? $content : null;
+}
+
+
+/**
  * Récupère les informations de la page courante dans l'admin
  * @param string $type 'icon', 'title', 'description', 'both', 'all', ou 'html'
  * @return string|array

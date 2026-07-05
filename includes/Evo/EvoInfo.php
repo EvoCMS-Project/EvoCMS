@@ -10,6 +10,7 @@ class EvoInfo
 	public $time;
 	public $author;
 	public $contributors = [];
+	public $authors = [];
 	public $homepage;
 	public $download;
 	public $manifest;
@@ -24,6 +25,31 @@ class EvoInfo
 		}
 
 		$this->exports = $this->exports ?: ['plugin'];
+		$this->authors = $this->normalizeAuthors();
+	}
+
+	public function getAuthors(): array
+	{
+		return $this->authors;
+	}
+
+	protected function normalizeAuthors(): array
+	{
+		if (!empty($this->authors)) {
+			return is_array($this->authors) ? $this->authors : [$this->authors];
+		}
+
+		$authors = [];
+
+		if (!empty($this->author)) {
+			$authors[] = $this->author;
+		}
+
+		if (!empty($this->contributors)) {
+			$authors = array_merge($authors, is_array($this->contributors) ? $this->contributors : [$this->contributors]);
+		}
+
+		return $authors;
 	}
 
 	public function checkForUpdates(): ?self

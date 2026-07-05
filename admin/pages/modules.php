@@ -166,11 +166,22 @@ table th {
 <?php return; }  ?>
 
 <?php
-    $list = file_get_contents("https://dev.evolution-network.ca/plugin_checker.json");
-	$data = json_decode($list);
-    $gui = $data->Themes;
+$catalog_url = 'https://evolution-network.ca/plugin_checker.json';
+$catalog_json = fetch_remote_url($catalog_url);
+$data = $catalog_json ? json_decode($catalog_json) : null;
+
+if (!$data || !isset($data->Themes, $data->Modules, $data->Langues)) {
+	if ($catalog_json === null) {
+		App::setNotice('Impossible de récupérer le catalogue en ligne. Vérifiez que PHP peut accéder à Internet (extensions curl ou openssl).');
+	}
+	$gui = [];
+	$mod = [];
+	$lang = [];
+} else {
+	$gui = $data->Themes;
 	$mod = $data->Modules;
 	$lang = $data->Langues;
+}
 ?>
 
 <form method="post">
@@ -220,7 +231,7 @@ table th {
                                             echo "<tr>
                                             <td><a href='" . html_encode($module->homepage) . "' target='_blank'>" . html_encode($module->name) . "</a></td>
                                             <td>" . html_encode($module->description) . "</td>
-                                            <td>" . implode("\n", is_array($module->authors) ? array_map('html_encode', $module->authors) : [html_encode($module->authors)]) . "</td>
+                                            <td>" . implode("\n", array_map('html_encode', $module->getAuthors())) . "</td>
                                             <td>1.3.x</td>
                                             <td>" . html_encode($module->version) . "</td>
                                             <td class='right'>";
@@ -263,7 +274,7 @@ table th {
                                             echo "<tr>
                                             <td><a href='" . html_encode($module->homepage) . "' target='_blank'>" . html_encode($module->name) . "</a></td>
                                             <td>" . html_encode($module->description) . "</td>
-                                            <td>" . implode("\n", is_array($module->authors) ? array_map('html_encode', $module->authors) : [html_encode($module->authors)]) . "</td>
+                                            <td>" . implode("\n", array_map('html_encode', $module->getAuthors())) . "</td>
                                             <td>1.3.x</td>
                                             <td>" . html_encode($module->version) . "</td>
                                             <td class='right'>";

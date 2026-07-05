@@ -81,7 +81,6 @@
 						<div class="p-2 w-100 bd-highlight">
 							<h3 class="text-white"><?= getCurrentPageInfo('html') ?></h3>
 							<p class="text-white-50 fs-large lead"><?= getCurrentPageInfo('description') ?></p>
-							<?php if($current_plugin){ echo $current_plugin->nom; } ?>
 						</div>
 						<div class="p-2 flex-shrink-1 bd-highlight">
 							<span class="icon-background fas <?= getCurrentPageInfo('icon') ?>"></span>
