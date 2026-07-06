@@ -608,6 +608,9 @@ div.image_selector  {
 	margin-right: 0px;
 	--file-editor-tree-width: 270px;
 	--file-editor-toolbar-height: 3rem;
+	--file-editor-scrollbar-size: 6px;
+	--file-editor-scrollbar-thumb: rgba(255, 255, 255, 0.25);
+	--file-editor-scrollbar-thumb-hover: rgba(255, 255, 255, 0.35);
 	display: flex;
 	flex-direction: column;
 	flex-wrap: nowrap;
@@ -815,9 +818,9 @@ body.file-editor-fullscreen:has(#file_editor) #admin-page {
 }
 
 #file_editor #files_tree {
-	background: rgb(60, 63, 65) !important;
-	padding: 10px;
-	color: gray;
+	background: linear-gradient(180deg, #34373a 0%, #2b2d30 100%);
+	padding: 0.625rem 0.5rem;
+	color: rgba(255, 255, 255, 0.55);
 	height: 100% !important;
 	min-height: 0;
 	overflow: hidden;
@@ -828,6 +831,7 @@ body.file-editor-fullscreen:has(#file_editor) #admin-page {
 	flex: 0 0 var(--file-editor-tree-width);
 	position: relative;
 	box-sizing: border-box;
+	border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 #file_editor #files_tree > .collapsible {
@@ -835,6 +839,25 @@ body.file-editor-fullscreen:has(#file_editor) #admin-page {
 	min-height: 0;
 	overflow-y: auto;
 	margin: 0;
+	scrollbar-width: thin;
+	scrollbar-color: var(--file-editor-scrollbar-thumb) transparent;
+}
+
+#file_editor #files_tree > .collapsible::-webkit-scrollbar {
+	width: var(--file-editor-scrollbar-size);
+}
+
+#file_editor #files_tree > .collapsible::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+#file_editor #files_tree > .collapsible::-webkit-scrollbar-thumb {
+	background: var(--file-editor-scrollbar-thumb);
+	border-radius: 999px;
+}
+
+#file_editor #files_tree > .collapsible::-webkit-scrollbar-thumb:hover {
+	background: var(--file-editor-scrollbar-thumb-hover);
 }
 
 #file_editor #files_edit {
@@ -947,15 +970,29 @@ body.file-editor-resizing * {
 
 #file_editor #files_tree a {
 	text-decoration: none;
+	color: rgba(255, 255, 255, 0.72);
+	border-radius: 0.25rem;
+	transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 #file_editor #files_tree a:hover,
-#file_editor #files_tree a:focus {
+#file_editor #files_tree a:focus-visible {
 	text-decoration: none;
+	color: #fff;
+	background: rgba(255, 255, 255, 0.08);
+	outline: none;
+}
+
+#file_editor #files_tree .file {
+	color: rgba(255, 255, 255, 0.55);
 }
 
 #file_editor #files_tree .file a {
-	color: white;
+	color: rgba(255, 255, 255, 0.72);
+}
+
+#file_editor #files_tree .file.selected a {
+	color: var(--admin-accent, #ffc107);
 }
 
 #file_editor .file-editor-toolbar--empty .file-editor-toolbar__when-file {
@@ -1017,7 +1054,7 @@ body.file-editor-resizing * {
 	overflow-x: auto;
 	overflow-y: hidden;
 	scrollbar-width: thin;
-	scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+	scrollbar-color: var(--file-editor-scrollbar-thumb) transparent;
 }
 
 #file_editor .file-editor-toolbar__breadcrumb::-webkit-scrollbar {
@@ -1025,7 +1062,7 @@ body.file-editor-resizing * {
 }
 
 #file_editor .file-editor-toolbar__breadcrumb::-webkit-scrollbar-thumb {
-	background: rgba(255, 255, 255, 0.25);
+	background: var(--file-editor-scrollbar-thumb);
 	border-radius: 999px;
 }
 
@@ -1303,6 +1340,30 @@ body.file-editor-resizing * {
 	height: 100% !important;
 }
 
+#file_editor #code_editor .ace_scrollbar {
+	background: transparent;
+	scrollbar-width: thin;
+	scrollbar-color: var(--file-editor-scrollbar-thumb) transparent;
+}
+
+#file_editor #code_editor .ace_scrollbar::-webkit-scrollbar {
+	width: var(--file-editor-scrollbar-size);
+	height: var(--file-editor-scrollbar-size);
+}
+
+#file_editor #code_editor .ace_scrollbar::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+#file_editor #code_editor .ace_scrollbar::-webkit-scrollbar-thumb {
+	background: var(--file-editor-scrollbar-thumb);
+	border-radius: 999px;
+}
+
+#file_editor #code_editor .ace_scrollbar::-webkit-scrollbar-thumb:hover {
+	background: var(--file-editor-scrollbar-thumb-hover);
+}
+
 #file_editor .file-editor-empty {
 	flex: 1 1 auto;
 	display: flex;
@@ -1402,11 +1463,11 @@ body.file-editor-resizing * {
 }
 
 #file_editor .collapsible .file.selected a {
-	font-weight: bold;
+	font-weight: 600;
 }
 
 #file_editor .folder-icon {
-	color: #f0ad4e;
+	color: var(--admin-accent, #ffc107);
 }
 
 .table-users td {

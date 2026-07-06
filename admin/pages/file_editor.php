@@ -437,6 +437,41 @@ function is_editable($file) {
 		}
 	}
 
+	function refreshAceLayout(aceInstance, resetScroll) {
+		if (!aceInstance || !aceInstance.renderer) {
+			return;
+		}
+
+		if (resetScroll !== false) {
+			aceInstance.renderer.setScrollTop(0);
+			aceInstance.renderer.setScrollLeft(0);
+		}
+
+		aceInstance.resize(true);
+		aceInstance.renderer.onResize(true);
+	}
+
+	function setAceMode(aceInstance, ext, callback) {
+		var modeMap = {
+			js: 'javascript',
+			htm: 'html',
+			md: 'markdown',
+			htaccess: 'apache_conf',
+			conf: 'ini',
+			txt: 'plain_text',
+			htpasswd: 'plain_text',
+			tpl: 'twig'
+		};
+		var modeId = modeMap[ext] || ext || 'text';
+
+		aceInstance.session.setMode('ace/mode/' + modeId, function() {
+			refreshAceLayout(aceInstance, false);
+			if (typeof callback === 'function') {
+				callback();
+			}
+		});
+	}
+
 	function setTreeWidth(width, shouldResizeEditor) {
 		width = Math.max(minWidth, Math.min(maxWidth, Math.round(width)));
 		$editorRoot[0].style.setProperty('--file-editor-tree-width', width + 'px');
@@ -451,12 +486,17 @@ function is_editable($file) {
 			return editor;
 		}
 
+		var aceScript = document.querySelector('script[src*="ace/ace.js"]');
+		if (aceScript && ace.config) {
+			ace.config.set('basePath', aceScript.src.replace(/\/ace\.js(\?.*)?$/, ''));
+		}
+
 		editor = ace.edit('code_editor');
 		editor.setTheme($('select[name="theme"]').val() || '<?= App::getConfig('file_editor.theme') ?>');
 		editor.setOption('fontSize', '<?= (int) App::getConfig('file_editor.fontSize') ?: 12 ?>px');
 		editor.setOption('showPrintMargin', false);
 		editor.setOption('wrap', true);
-		editor.setOption('scrollPastEnd', 0.5);
+		editor.setOption('scrollPastEnd', 0);
 
 		editor.getSession().on('change', function() {
 			$textarea.val(editor.getSession().getValue());
@@ -684,12 +724,12 @@ function is_editable($file) {
 		$emptyState.prop('hidden', true);
 		$codeEditor.prop('hidden', false);
 
-		var aceInstance = setEditorContent(payload.content);
-		aceInstance.session.setMode('ace/mode/' + (payload.ext || 'text'));
-		aceInstance.setReadOnly(!payload.writable);
-
 		window.requestAnimationFrame(function() {
-			resizeAceEditor();
+			var aceInstance = setEditorContent(payload.content);
+			setAceMode(aceInstance, payload.ext, function() {
+				aceInstance.setReadOnly(!payload.writable);
+				refreshAceLayout(aceInstance);
+			});
 		});
 	}
 
@@ -897,11 +937,12 @@ function is_editable($file) {
 
 	if (currentFile) {
 		setReadonlyState(<?= ($resolved && is_writable($file)) ? 'true' : 'false' ?>);
-		var aceInstance = setEditorContent($textarea.val());
-		aceInstance.session.setMode('ace/mode/<?= $resolved ? html_encode($ext) : 'text' ?>');
-		aceInstance.setReadOnly(<?= ($resolved && is_writable($file)) ? 'false' : 'true' ?>);
 		window.requestAnimationFrame(function() {
-			resizeAceEditor();
+			var aceInstance = setEditorContent($textarea.val());
+			setAceMode(aceInstance, '<?= $resolved ? html_encode($ext) : 'text' ?>', function() {
+				aceInstance.setReadOnly(<?= ($resolved && is_writable($file)) ? 'false' : 'true' ?>);
+				refreshAceLayout(aceInstance);
+			});
 		});
 	}
 
