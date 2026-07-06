@@ -170,7 +170,7 @@ if (IS_POST) {
 	if (App::POST('theme')) {
 		$tab = 'theme';
 	} elseif (preg_match('/^(theme|modules)\|/', key(App::POST()) ?: '')) {
-		$tab = 'themeconfig';
+		$tab = 'theme';
 	} elseif ($posted_tab = App::POST('admin_settings_tab')) {
 		$tab = $posted_tab;
 	} elseif (App::POST('mail||send-test-mail')) {
@@ -184,10 +184,6 @@ $settings_tabs = [
 	'social' => ['label' => __('admin/general.tab_social'), 'icon' => 'fa-share-alt'],
 	'theme' => ['label' => __('admin/general.tab_theme'), 'icon' => 'fa-palette'],
 ];
-
-if (App::getTheme()->settings) {
-	$settings_tabs['themeconfig'] = ['label' => __('admin/general.tab_tconfig'), 'icon' => 'fa-paint-brush'];
-}
 ?>
 
 <section class="admin-tabs-board">
@@ -260,18 +256,12 @@ if (App::getTheme()->settings) {
 		<?php endif; ?>
 	<?= admin_settings_tab_close() ?>
 
-	<?= admin_settings_tab_open('theme', $tab === 'theme') ?>
-		<?= admin_settings_theme_panel($_themes, (string)App::getConfig('theme')) ?>
+	<?= admin_settings_tab_open('theme', $tab === 'theme' || $tab === 'themeconfig') ?>
+		<?= admin_settings_theme_tab(
+			$_themes,
+			(string)App::getConfig('theme'),
+			App::getTheme()->settings ?: null
+		) ?>
 	<?= admin_settings_tab_close() ?>
-
-	<?php if (App::getTheme()->settings): ?>
-		<?= admin_settings_tab_open('themeconfig', $tab === 'themeconfig') ?>
-			<?= admin_settings_section(
-				__('admin/general.theme_title1'),
-				settings_form(App::getTheme()->settings),
-				['icon' => 'fa-paint-brush']
-			) ?>
-		<?= admin_settings_tab_close() ?>
-	<?php endif; ?>
 </div>
 </section>

@@ -455,80 +455,19 @@ class Widgets
 			$buffer .= '<form method="post" role="form" class="form-horizontal" enctype="multipart/form-data" id="'.$form.'">';
 		}
 
-		foreach($fields as $name => $props)
-		{
-			$subfields = $props['type'] === 'multiple' ? $props['fields'] : [$name => $props];
+		foreach (self::formBuilderGroups($fields) as $group) {
+			if ($group['type'] === 'row') {
+				$count = count($group['fields']);
+				$buffer .= '<div class="admin-settings-fields-row admin-settings-fields-row--' . min($count, 4) . '">';
 
-			$buffer .= '<div class="mb-3 row">';
+				foreach ($group['fields'] as [$name, $props]) {
+					$buffer .= self::formBuilderField($form, $name, $props, true);
+				}
 
-			$buffer .= '<label class="col-sm-4 col-form-label text-end" for="' . $form.'-'.md5(key($subfields)) . '">' . $props['label'] . ' ';
-
-			if (!empty($props['help'])) {
-				$buffer .= ' <i class="fa fa-question-circle" title="' . html_encode($props['help']) . '"></i>';
+				$buffer .= '</div>';
+			} else {
+				$buffer .= self::formBuilderField($form, $group['name'], $group['props'], false);
 			}
-
-			$buffer .= '</label>';
-
-			$buffer .= '<div class="col-sm-6">';
-
-			foreach($subfields as $key => $field) {
-				$fieldId = $form.'-'.md5($key);
-				$name = str_replace('.', '||', $key); // PHP will eat the . in POST
-				$field += ['value' => '', 'default' => '', 'attributes' => [], 'placeholder' => ''];
-				$base_attributes = ['id' => $fieldId, 'name' => $name, 'class' => 'form-control'];
-
-				if (isset($field['default']) && is_scalar($field['default'])) {
-					$field['attributes']['data-default'] = $field['default'];
-				}
-
-				$attributes = self::htmlAttributes((array)$field['attributes'] + $base_attributes);
-
-				switch($field['type']) {
-					case 'textarea':
-						$buffer .= '<textarea ' .$attributes . '>' . html_encode($field['value']) . '</textarea>';
-						break;
-
-					case 'checkbox':
-						$buffer .= '<input type="checkbox" value="' . html_encode($field['value']) . '" ' . (empty($field['checked']) ? '' : 'checked') . ' class="" ' .$attributes . '>'.
-								'<label for="' . $fieldId . '" class="normal"> ' . html_encode($field['label']) . '</label><br>';
-						break;
-
-					case 'select': case 'enum':
-						$buffer .= self::select(null, (array)$field['choices'], $field['value'], true, $attributes);
-						break;
-
-
-					case 'multi':
-						$buffer .= self::select(null, (array)$field['choices'], (array)$field['value'], true, "multiple $attributes");
-						break;
-
-					case 'boolean': case 'bool':
-						$buffer .= self::select(null, [0 => 'Non', 1 => 'Oui'], $field['value'], true, $attributes);
-						break;
-
-					case 'avatar':
-						break;
-
-					case 'image':
-						$buffer .= self::imageField($name, $field, $fieldId);
-						break;
-
-					default: // text,password,color,number,etc...
-						$value = html_encode($field['value']);
-						// Pour les champs de couleur, s'assurer qu'il y a une valeur par défaut valide
-						if ($field['type'] === 'color' && empty($value)) {
-							$value = '#000000'; // Valeur par défaut pour les champs de couleur
-						}
-						$buffer .= '<input type="'.$field['type'].'" value="' . $value . '" ' .$attributes . '>';
-						break;
-				}
-
-				if (!empty($field['allow_reset'])) { //  && isset($field['default'])
-					$buffer .= '<label class="normal"><input data-reset="'.$fieldId.'" name="' . $name . '" type="checkbox" '.($field['default'] == $field['value'] ? 'checked' : '').' value="'.html_encode(addslashes($field['default'])).'"> Valeur par défaut</label>';
-				}
-			}
-
-			$buffer .= '</div></div>';
 		}
 
 		if ($submit_label !== null && $submit_label !== false && $submit_label !== '') {
@@ -545,6 +484,125 @@ class Widgets
 		}
 
 		return $buffer;
+	}
+
+
+	/**
+	 * @return array<int, array{type: 'field', name: string, props: array}|array{type: 'row', fields: array<int, array{0: string, 1: array}>}>
+	 */
+	private static function formBuilderGroups(array $fields): array
+	{
+		$groups = [];
+		$current_row = null;
+		$current_group = [];
+
+		foreach ($fields as $name => $props) {
+			$row = $props['row'] ?? null;
+
+			if ($row !== null) {
+				if ($row === $current_row) {
+					$current_group[] = [$name, $props];
+				} else {
+					if ($current_group) {
+						$groups[] = ['type' => 'row', 'fields' => $current_group];
+					}
+
+					$current_row = $row;
+					$current_group = [[$name, $props]];
+				}
+			} else {
+				if ($current_group) {
+					$groups[] = ['type' => 'row', 'fields' => $current_group];
+					$current_row = null;
+					$current_group = [];
+				}
+
+				$groups[] = ['type' => 'field', 'name' => $name, 'props' => $props];
+			}
+		}
+
+		if ($current_group) {
+			$groups[] = ['type' => 'row', 'fields' => $current_group];
+		}
+
+		return $groups;
+	}
+
+
+	private static function formBuilderField(string $form, string $name, array $props, bool $in_row): string
+	{
+		$subfields = $props['type'] === 'multiple' ? $props['fields'] : [$name => $props];
+		$row_class = 'mb-3 row' . ($in_row ? ' admin-settings-fields-row__item' : '');
+		$label_class = $in_row ? 'col-12 col-form-label' : 'col-sm-4 col-form-label text-end';
+		$input_class = $in_row ? 'col-12' : 'col-sm-6';
+		$buffer = '<div class="' . $row_class . '">';
+		$buffer .= '<label class="' . $label_class . '" for="' . $form . '-' . md5((string) key($subfields)) . '">' . $props['label'] . ' ';
+
+		if (!empty($props['help'])) {
+			$buffer .= ' <i class="fa fa-question-circle" title="' . html_encode($props['help']) . '"></i>';
+		}
+
+		$buffer .= '</label>';
+		$buffer .= '<div class="' . $input_class . '">';
+
+		foreach ($subfields as $key => $field) {
+			$fieldId = $form . '-' . md5($key);
+			$name = str_replace('.', '||', $key);
+			$field += ['value' => '', 'default' => '', 'attributes' => [], 'placeholder' => ''];
+			$base_attributes = ['id' => $fieldId, 'name' => $name, 'class' => 'form-control'];
+
+			if (isset($field['default']) && is_scalar($field['default'])) {
+				$field['attributes']['data-default'] = $field['default'];
+			}
+
+			$attributes = self::htmlAttributes((array) $field['attributes'] + $base_attributes);
+
+			switch ($field['type']) {
+				case 'textarea':
+					$buffer .= '<textarea ' . $attributes . '>' . html_encode($field['value']) . '</textarea>';
+					break;
+
+				case 'checkbox':
+					$buffer .= '<input type="checkbox" value="' . html_encode($field['value']) . '" ' . (empty($field['checked']) ? '' : 'checked') . ' class="" ' . $attributes . '>'
+						. '<label for="' . $fieldId . '" class="normal"> ' . html_encode($field['label']) . '</label><br>';
+					break;
+
+				case 'select': case 'enum':
+					$buffer .= self::select(null, (array) $field['choices'], $field['value'], true, $attributes);
+					break;
+
+				case 'multi':
+					$buffer .= self::select(null, (array) $field['choices'], (array) $field['value'], true, "multiple $attributes");
+					break;
+
+				case 'boolean': case 'bool':
+					$buffer .= self::select(null, [0 => 'Non', 1 => 'Oui'], $field['value'], true, $attributes);
+					break;
+
+				case 'avatar':
+					break;
+
+				case 'image':
+					$buffer .= self::imageField($name, $field, $fieldId);
+					break;
+
+				default:
+					$value = html_encode($field['value']);
+
+					if ($field['type'] === 'color' && empty($value)) {
+						$value = '#000000';
+					}
+
+					$buffer .= '<input type="' . $field['type'] . '" value="' . $value . '" ' . $attributes . '>';
+					break;
+			}
+
+			if (!empty($field['allow_reset'])) {
+				$buffer .= '<label class="normal"><input data-reset="' . $fieldId . '" name="' . $name . '" type="checkbox" ' . ($field['default'] == $field['value'] ? 'checked' : '') . ' value="' . html_encode(addslashes($field['default'])) . '"> Valeur par défaut</label>';
+			}
+		}
+
+		return $buffer . '</div></div>';
 	}
 
 

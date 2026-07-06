@@ -23,9 +23,9 @@ $server_types = [
 	'shoutcast' => 'SHOUTcast',
 ];
 
-
 $cur_serv = $fields;
 $inserts = array_filter(array_intersect_key(App::POST(), $cur_serv)) + $fields;
+$tab = App::GET('tab', 'list');
 
 if (App::POST('save') && isset($server_types[$inserts['type']])) {
 
@@ -34,9 +34,14 @@ if (App::POST('save') && isset($server_types[$inserts['type']])) {
 
 	if ($inserts['name'] === '' || $inserts['address'] == '') {
 		App::setWarning(__('admin/general.server_alert_host_miss'));
+		$tab = 'form';
 	} else if ($inserts['id']) {
-		if (Db::Update('servers', $inserts, ['id' => $inserts['id']]))
+		if (Db::Update('servers', $inserts, ['id' => $inserts['id']])) {
 			App::setSuccess(__('admin/general.server_alert_server_updtd'));
+			$tab = 'list';
+		} else {
+			$tab = 'form';
+		}
 	} else {
 		unset($inserts['id']);
 		try {
@@ -47,11 +52,16 @@ if (App::POST('save') && isset($server_types[$inserts['type']])) {
 		}
 		if ($success) {
 			App::setSuccess(__('admin/general.server_alert_server_added'));
+			$tab = 'list';
+		} else {
+			$tab = 'form';
 		}
 	}
 
-	if (Db::$error)
+	if (Db::$error) {
 		App::setWarning((string)Db::$error);
+		$tab = 'form';
+	}
 }
 elseif (App::POST('del_serv')) {
 	if (Db::Delete('servers', ['id' => App::POST('del_serv')])) {
@@ -59,97 +69,55 @@ elseif (App::POST('del_serv')) {
 	} else {
 		App::setWarning(__('admin/general.server_alert_server_ndltd'));
 	}
+	$tab = 'list';
 }
+
 $servers = Db::QueryAll('select * FROM {servers} ORDER BY name ASC', true);
 
 if (isset($servers[App::POST('edit_serv', App::POST('id'))])) {
 	$cur_serv = $servers[App::POST('edit_serv', App::POST('id'))];
+	$tab = 'form';
+} elseif ($tab === 'form' && App::GET('edit')) {
+	$edit_id = (int) App::GET('edit');
+	if (isset($servers[$edit_id])) {
+		$cur_serv = $servers[$edit_id];
+	}
 }
+
+if (IS_POST && App::POST('edit_serv')) {
+	$tab = 'form';
+}
+
+if ($tab === 'form' && IS_POST && App::POST('save')) {
+	$cur_serv = array_merge($fields, $inserts);
+}
+
+$servers_stats = admin_servers_build_stats($servers, $server_types);
+$delete_confirm = html_encode(__('admin/servers.delete_confirm'));
+
+$servers_nav = [
+	'list' => ['label' => __('admin/servers.tab_list'), 'icon' => 'fa-list'],
+	'form' => [
+		'label' => $cur_serv['id'] ? __('admin/servers.tab_edit') : __('admin/servers.tab_form'),
+		'icon' => $cur_serv['id'] ? 'fa-pencil-alt' : 'fa-plus-circle',
+	],
+];
 ?>
-<legend><?= __('admin/general.server_list_title') ?></legend>
-<form method="post">
-<?php if (!$servers): ?>
-	<div style="text-align: center;" class="alert alert-warning"><?= __('admin/general.server_none') ?></div>
-<?php else: ?>
-	<table class="table">
-		<thead>
-			<tr>
-				<th></th>
-				<th><?= __('admin/general.server_name') ?></th>
-				<th><?= __('admin/general.server_type') ?></th>
-				<th><?= __('admin/general.server_ip') ?></th>
-				<th>Polling</th>
-				<th> </th>
-			</tr>
-		</thead>
-		<tbody>
-		<?php
-			foreach ($servers as $serv)
-			{
-				$type = html_encode($server_types[$serv['type']] ?? $serv['type'].'?');
-				echo "<tr>";
-					echo '<td><img src="'. App::getAsset('/img/servers/'.$serv['type'].'.png'). '" width="28" title="'.$type.'" /></td>';
-					echo '<td><a href="' . App::getURL('server', $serv['id']) . '">' . html_encode($serv['name']).'</a></td>';
-					echo '<td>'.$type.'</td>';
-					echo '<td>'.html_encode($serv['address']).'</td>';
-					echo '<td>'.($serv['poll_interval'] ?: 'off').'</td>';
-					echo '<td>
-						<button name="edit_serv" value="'.$serv['id'].'" class="btn btn-sm btn-primary" title="'. __('admin/general.server_btn_title_edit') .'"><i class="fa fa-pencil-alt"></i></button>
-						<button name="del_serv" value="'.$serv['id'].'" class="btn btn-sm btn-danger" title="'. __('admin/general.server_btn_title_delete') .'" onclick="return confirm(\'Sur?\');"><i class="far fa-trash-alt"></i>
-						</button>';
-					echo '</td>';
-				echo "</tr>";
-			}
-		?>
-		</tbody>
-	</table>
-<?php endif; ?>
-</form>
-</br>
-<form class="form-horizontal" method="post" id="edit">
-<?php
-	if ($cur_serv['id'])
-		echo '<legend>'. __('admin/general.server_edit_title') .' '.$cur_serv['id'].'</legend>';
-	else
-		echo '<legend>'. __('admin/general.server_add_title') .'</legend>';
-?>
-	<div class="mb-3 row">
-		<label class="col-sm-3 col-form-label text-end" for="name"><?= __('admin/general.server_name') ?> :</label>
-		<div class="col-sm-8 controls">
-				<input class="form-control" id="name" name="name" type="text" value="<?=html_encode($cur_serv['name'])?>">
-		</div>
-	</div>
 
-	<div class="mb-3 row">
-		<label class="col-sm-3 col-form-label text-end" for="account"><?= __('admin/general.server_type') ?> :</label>
-		<div class="col-sm-8 controls">
-			<?= Widgets::select('type', $server_types, $cur_serv['type'], true, 'class="form-control" id="account"') ?>
-		</div>
-	</div>
+<div class="admin-dashboard admin-servers">
+	<?= admin_stat_grid($servers_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
 
-	<div class="mb-3 row">
-		<label class="col-sm-3 col-form-label text-end" for="address"><?= __('admin/general.server_ip') ?> <i class="fa fa-question-circle" title="<?= __('admin/general.server_title_ph') ?>"></i> :</label>
-		<div class="col-sm-8 controls">
-			<input class="form-control" id="address" name="address" type="text" value="<?=html_encode($cur_serv['address'])?>">
-		</div>
-	</div>
+	<section class="admin-tabs-board admin-servers-board">
+		<?= admin_servers_nav($servers_nav, $tab) ?>
 
-	<div class="mb-3 row">
-		<label class="col-sm-3 col-form-label text-end" for="password"><?= __('admin/general.server_password') ?> <i class="fa fa-question-circle" title="..."></i> :</label>
-		<div class="col-sm-8 controls">
-			<input class="form-control" id="password" name="password" type="text" value="<?=html_encode($cur_serv['password'])?>">
-		</div>
-	</div>
+		<div class="tab-content admin-tabs-board__body admin-servers-board__body admin-tabs-panel admin-servers-board__body--content">
+			<?= admin_servers_tab_open('list', $tab === 'list') ?>
+				<?= admin_servers_list_board($servers, $server_types, $delete_confirm) ?>
+			<?= admin_servers_tab_close() ?>
 
-	<div class="mb-3 row">
-		<label class="col-sm-3 col-form-label text-end" for="poll_interval">Polling <small>(secondes)</small> :</label>
-		<div class="col-sm-8 controls">
-			<input class="form-control" id="poll_interval" name="poll_interval" type="text" value="<?=$cur_serv['poll_interval']?>">
+			<?= admin_servers_tab_open('form', $tab === 'form') ?>
+				<?= admin_servers_form_board($cur_serv, $server_types) ?>
+			<?= admin_servers_tab_close() ?>
 		</div>
-	</div>
-
-	<div class="text-center">
-		<input type="hidden" name="id" value="<?=$cur_serv ? $cur_serv['id'] : 0?>">
-		<button class="btn btn-primary" name="save" value="1" type="submit"><?= __('admin/general.server_btn_save') ?></button> <button class="btn btn-danger"><?= __('admin/menu.btn_cancel') ?></button>
-	</div>
-</form>
+	</section>
+</div>

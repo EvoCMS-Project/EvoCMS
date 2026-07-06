@@ -265,15 +265,72 @@ function admin_settings_prepare(array $settings): array
 }
 
 /**
+ * Regroupe des champs consécutifs sur une même ligne responsive.
+ *
+ * @param array<string, array<string, mixed>> $settings
+ */
+function admin_settings_group_fields_row(array $settings, int $columns = 2, ?callable $matcher = null): array
+{
+	$matcher ??= static fn(array $field): bool => ($field['type'] ?? '') === 'image';
+	$result = [];
+	$pending = [];
+
+	$flush = static function () use (&$result, &$pending, $columns): void {
+		if (!$pending) {
+			return;
+		}
+
+		if (count($pending) === 1) {
+			$result += $pending;
+		} else {
+			$row_id = 'row-' . md5(implode(',', array_keys($pending)));
+
+			foreach ($pending as $key => $field) {
+				$field['row'] = $row_id;
+				$result[$key] = $field;
+			}
+		}
+
+		$pending = [];
+	};
+
+	foreach ($settings as $key => $field) {
+		if ($matcher($field)) {
+			$pending[$key] = $field;
+
+			if (count($pending) >= $columns) {
+				$flush();
+			}
+		} else {
+			$flush();
+			$result[$key] = $field;
+		}
+	}
+
+	$flush();
+
+	return $result;
+}
+
+/**
  * Affiche plusieurs sous-sections dans une seule carte avec un bouton Enregistrer.
  *
- * @param array<int, array{title?: string, icon?: string, description?: string, settings?: array, empty?: string, extra?: string}> $groups
+ * @param array<int, array{title?: string, icon?: string, description?: string, settings?: array, content?: string, body_class?: string, empty?: string, extra?: string}> $groups
  */
 function admin_settings_grouped_form(string $tab_id, array $groups, array $options = []): string
 {
 	$submit_label = $options['submit'] ?? __('form.save');
+	$show_submit = ($options['submit'] ?? null) !== false;
 	$class = $options['class'] ?? '';
 	$form_id = 'admin-settings-form-' . random_hash(4);
+	$has_settings = false;
+
+	foreach ($groups as $group) {
+		if (!empty($group['settings'])) {
+			$has_settings = true;
+			break;
+		}
+	}
 
 	$html = '<form method="post" role="form" class="form-horizontal admin-settings-grouped-form ' . html_encode($class) . '" enctype="multipart/form-data" id="' . html_encode($form_id) . '">';
 	$html .= '<input type="hidden" name="admin_settings_tab" value="' . html_encode($tab_id) . '">';
@@ -304,11 +361,14 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 			$html .= '</div></header>';
 		}
 
-		$html .= '<div class="admin-settings-subsection__body">';
+		$body_class = trim($group['body_class'] ?? '');
+		$html .= '<div class="admin-settings-subsection__body' . ($body_class !== '' ? ' ' . $body_class : '') . '">';
 
 		$settings = $group['settings'] ?? [];
 
-		if (!$settings && !empty($group['empty'])) {
+		if (!empty($group['content'])) {
+			$html .= $group['content'];
+		} elseif (!$settings && !empty($group['empty'])) {
 			$html .= admin_settings_empty($group['empty'], $group['icon'] ?? 'fa-inbox');
 		} else {
 			$html .= Widgets::formBuilder(null, admin_settings_prepare($settings), false, null);
@@ -322,13 +382,43 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 	}
 
 	$html .= '</div>';
-	$html .= '<footer class="admin-settings-section__footer">';
-	$html .= '<div class="text-center"><input class="btn btn-primary" type="submit" value="' . html_encode($submit_label) . '"></div>';
-	$html .= '</footer></section>';
-	$html .= Widgets::formBuilderScript();
-	$html .= '</form>';
 
-	return $html;
+	if ($show_submit && $has_settings) {
+		$html .= '<footer class="admin-settings-section__footer">';
+		$html .= '<div class="text-center"><input class="btn btn-primary" type="submit" value="' . html_encode($submit_label) . '"></div>';
+		$html .= '</footer>';
+	}
+
+	$html .= '</section>';
+
+	if ($has_settings) {
+		$html .= Widgets::formBuilderScript();
+	}
+
+	return $html . '</form>';
+}
+
+/**
+ * Affiche une ligne de champ horizontal réutilisable dans l'admin.
+ */
+function admin_form_field_row(string $label, string $input, array $options = []): string
+{
+	$for = $options['for'] ?? '';
+	$hint = $options['hint'] ?? '';
+	$html = '<div class="mb-3 row">';
+	$html .= '<label class="col-sm-3 col-form-label text-end"';
+
+	if ($for !== '') {
+		$html .= ' for="' . html_encode($for) . '"';
+	}
+
+	$html .= '>' . html_encode($label);
+
+	if ($hint !== '') {
+		$html .= ' <i class="fa fa-question-circle" title="' . html_encode($hint) . '" aria-hidden="true"></i>';
+	}
+
+	return $html . '</label><div class="col-sm-8">' . $input . '</div></div>';
 }
 
 /**
@@ -494,14 +584,48 @@ function admin_settings_theme_grid(array $themes, string $activeDir): string
 	return $html . '</div>';
 }
 
-function admin_settings_theme_panel(array $themes, string $activeDir): string
+/**
+ * Contenu de sélection de thème pour un formulaire groupé admin.
+ *
+ * @param array<string, array{0: object, 1: string}> $themes
+ */
+function admin_settings_theme_selection(array $themes, string $activeDir): string
 {
-	$content = '<form method="post" class="admin-settings-theme-form" enctype="multipart/form-data">'
+	return '<div class="admin-settings-theme-form">'
 		. admin_settings_theme_grid($themes, $activeDir)
 		. '<p class="admin-settings-theme-form__hint">' . __('admin/general.theme_tips') . '</p>'
-		. '</form>';
+		. '</div>';
+}
 
-	return admin_settings_section(__('admin/general.tab_theme'), $content, ['icon' => 'fa-palette']);
+/**
+ * Affiche l'onglet thème complet : sélection + préférences du thème actif.
+ *
+ * @param array<string, array{0: object, 1: string}> $themes
+ * @param array<string, array<string, mixed>>|null $themeSettings
+ */
+function admin_settings_theme_tab(array $themes, string $activeDir, ?array $themeSettings = null): string
+{
+	$groups = [
+		[
+			'title' => __('admin/general.tab_theme'),
+			'icon' => 'fa-palette',
+			'content' => admin_settings_theme_selection($themes, $activeDir),
+			'body_class' => 'container',
+		],
+	];
+
+	if ($themeSettings) {
+		$groups[] = [
+			'title' => __('admin/general.theme_title1'),
+			'icon' => 'fa-paint-brush',
+			'settings' => admin_settings_group_fields_row($themeSettings),
+			'body_class' => 'container',
+		];
+	}
+
+	return admin_settings_grouped_form('theme', $groups, [
+		'submit' => $themeSettings ? null : false,
+	]);
 }
 
 function admin_settings_test_mail(?string $email = null): string
@@ -974,12 +1098,25 @@ function admin_modules_table(array $columns, array $rows, array $options = []): 
 
 		$html .= '<span class="admin-modules-table__caption-text">' . html_encode($options['caption']) . '</span>';
 		$html .= '</div>';
+
+		if (!empty($options['toolbar_actions'])) {
+			$html .= '<div class="admin-modules-table__toolbar-actions">' . $options['toolbar_actions'] . '</div>';
+		}
+
 		$html .= '<span class="admin-modules-table__count">' . count($rows) . '</span>';
 		$html .= '</div>';
 	}
 
 	$html .= '<div class="table-responsive admin-modules-table-scroll">';
 	$html .= '<table class="table admin-modules-table mb-0';
+
+	if ($layout === 'reports') {
+		$html .= ' admin-reports-table';
+	}
+
+	if ($layout === 'servers') {
+		$html .= ' admin-servers-table';
+	}
 
 	if ($variant === 'info') {
 		$html .= ' admin-modules-table--info';
@@ -1027,6 +1164,24 @@ function admin_modules_table_colgroup(string $layout): string
 {
 	if ($layout === 'info') {
 		return '<colgroup><col class="admin-modules-col-label"><col class="admin-modules-col-value"></colgroup>';
+	}
+
+	if ($layout === 'reports') {
+		return '<colgroup>'
+			. '<col class="admin-reports-col-content">'
+			. '<col class="admin-reports-col-reporter">'
+			. '<col class="admin-reports-col-reason">'
+			. '<col class="admin-reports-col-actions">'
+			. '</colgroup>';
+	}
+
+	if ($layout === 'servers') {
+		return '<colgroup>'
+			. '<col class="admin-servers-col-item">'
+			. '<col class="admin-servers-col-type">'
+			. '<col class="admin-servers-col-polling">'
+			. '<col class="admin-servers-col-actions">'
+			. '</colgroup>';
 	}
 
 	return '<colgroup>'
@@ -1550,6 +1705,532 @@ function admin_modules_installed_item(string $plugin_id, object $module, array $
 		'homepage' => $module->homepage ?? '',
 		'type' => ($module->exports[0] ?? 'plugin') === 'theme' ? 'theme' : 'plugin',
 	];
+}
+
+/**
+ * Navigation de la page serveurs admin.
+ *
+ * @param array<string, array{label: string, icon?: string}> $tabs
+ */
+function admin_servers_nav(array $tabs, string $active): string
+{
+	return admin_tabs($tabs, [
+		'active' => $active,
+		'type' => 'bootstrap',
+		'aria_label' => __('admin/servers.main_title'),
+	]);
+}
+
+function admin_servers_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-servers-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_servers_tab_close(): string
+{
+	return '</div>';
+}
+
+function admin_servers_empty(string $message, string $icon = 'fa-server'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+/**
+ * @param array<int, array<string, mixed>> $servers
+ * @param array<string, string> $server_types
+ */
+function admin_servers_build_stats(array $servers, array $server_types): array
+{
+	$polling_active = 0;
+	$types_used = [];
+
+	foreach ($servers as $server) {
+		if (!empty($server['poll_interval'])) {
+			$polling_active++;
+		}
+
+		$type = (string) ($server['type'] ?? '');
+
+		if ($type !== '' && isset($server_types[$type])) {
+			$types_used[$type] = true;
+		}
+	}
+
+	return [
+		['icon' => 'fa fa-server', 'value' => (string) count($servers), 'label' => __('admin/servers.stats_total'), 'variant' => 'primary'],
+		['icon' => 'fa fa-sync', 'value' => (string) $polling_active, 'label' => __('admin/servers.stats_polling'), 'variant' => 'success'],
+		['icon' => 'fa fa-layer-group', 'value' => (string) count($types_used), 'label' => __('admin/servers.stats_types'), 'variant' => 'info'],
+		['icon' => 'fa fa-power-off', 'value' => (string) (count($servers) - $polling_active), 'label' => __('admin/servers.stats_offline'), 'variant' => 'warning'],
+	];
+}
+
+/**
+ * @return array<int, string>
+ */
+function admin_servers_columns(): array
+{
+	return [
+		html_encode(__('admin/general.server_name')),
+		html_encode(__('admin/general.server_type')),
+		html_encode(__('admin/servers.table_polling')),
+		html_encode(__('admin/modules.table_action')),
+	];
+}
+
+function admin_servers_polling_cell($poll_interval): string
+{
+	$poll_interval = (int) $poll_interval;
+
+	if ($poll_interval <= 0) {
+		return '<span class="admin-modules-status admin-modules-status--is-inactive">'
+			. '<span class="admin-modules-status__dot" aria-hidden="true"></span>'
+			. html_encode(__('admin/servers.polling_off'))
+			. '</span>';
+	}
+
+	return '<span class="admin-modules-chip">'
+		. html_encode(__('admin/servers.polling_seconds', ['%n%' => (string) $poll_interval]))
+		. '</span>';
+}
+
+/**
+ * @param array<string, mixed> $server
+ * @param array<string, string> $server_types
+ */
+function admin_servers_item_cell(array $server, array $server_types): string
+{
+	$type = (string) ($server['type'] ?? '');
+	$icon_src = App::getAsset('/img/servers/' . rawurlencode($type) . '.png');
+	$avatar = '<img src="' . html_encode($icon_src) . '" width="28" height="28" alt="" loading="lazy">';
+	$name = (string) ($server['name'] ?? '');
+	$address = (string) ($server['address'] ?? '');
+	$url = App::getURL('server', (int) ($server['id'] ?? 0));
+
+	$html = '<div class="admin-modules-item">';
+	$html .= '<span class="admin-modules-item__avatar admin-modules-item__avatar--custom">' . $avatar . '</span>';
+	$html .= '<span class="admin-modules-item__content">';
+	$html .= '<a href="' . html_encode($url) . '" class="admin-modules-item__link">' . html_encode($name) . '</a>';
+
+	if ($address !== '') {
+		$html .= '<span class="admin-modules-item__desc">' . html_encode($address) . '</span>';
+	}
+
+	$html .= '</span></div>';
+
+	return $html;
+}
+
+function admin_servers_type_cell(array $server, array $server_types): string
+{
+	$type = (string) ($server['type'] ?? '');
+	$label = $server_types[$type] ?? $type;
+
+	if ($label === '' || $label === '--------') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	return '<span class="admin-modules-chip admin-servers-type-chip">' . html_encode($label) . '</span>';
+}
+
+/**
+ * @param array<string, mixed> $server
+ */
+function admin_servers_actions(array $server, string $delete_confirm): string
+{
+	return admin_modules_actions_group(
+		admin_modules_action_button(
+			'edit_serv',
+			(string) ($server['id'] ?? ''),
+			'fas fa-pencil-alt',
+			__('admin/general.server_btn_title_edit'),
+			'btn-outline-primary'
+		)
+		. admin_modules_action_button(
+			'del_serv',
+			(string) ($server['id'] ?? ''),
+			'far fa-trash-alt',
+			__('admin/general.server_btn_title_delete'),
+			'btn-outline-danger',
+			'onclick="return confirm(\'' . $delete_confirm . '\');"'
+		)
+	);
+}
+
+/**
+ * @param array<string, mixed> $server
+ * @param array<string, string> $server_types
+ * @return array<int, string>
+ */
+function admin_servers_table_row(array $server, array $server_types, string $delete_confirm): array
+{
+	return [
+		admin_servers_item_cell($server, $server_types),
+		admin_servers_type_cell($server, $server_types),
+		admin_servers_polling_cell($server['poll_interval'] ?? 0),
+		admin_modules_table_actions_cell(admin_servers_actions($server, $delete_confirm)),
+	];
+}
+
+/**
+ * @param array<int, array<string, mixed>> $servers
+ * @param array<string, string> $server_types
+ */
+function admin_servers_list_board(array $servers, array $server_types, string $delete_confirm): string
+{
+	if (!$servers) {
+		return admin_servers_empty(__('admin/general.server_none'));
+	}
+
+	$rows = [];
+
+	foreach ($servers as $server) {
+		$rows[] = admin_servers_table_row($server, $server_types, $delete_confirm);
+	}
+
+	$html = '<form method="post" class="admin-servers-list-form">';
+	$html .= admin_modules_table(admin_servers_columns(), $rows, [
+		'caption' => __('admin/general.server_list_title'),
+		'icon' => 'fa fa-server',
+		'accent' => 'primary',
+		'layout' => 'servers',
+		'class' => 'admin-servers-table-wrap',
+	]);
+
+	return $html . '</form>';
+}
+
+/**
+ * @param array<string, mixed> $server
+ * @param array<string, string> $server_types
+ */
+function admin_servers_form_connection_fields(array $server, array $server_types): string
+{
+	$html = admin_form_field_row(
+		__('admin/general.server_name'),
+		'<input class="form-control" id="server-name" name="name" type="text" value="' . html_encode((string) ($server['name'] ?? '')) . '" required>',
+		['for' => 'server-name']
+	);
+
+	$html .= admin_form_field_row(
+		__('admin/general.server_type'),
+		Widgets::select('type', $server_types, (string) ($server['type'] ?? ''), true, 'class="form-control" id="server-type"'),
+		['for' => 'server-type']
+	);
+
+	$html .= admin_form_field_row(
+		__('admin/general.server_ip'),
+		'<input class="form-control" id="server-address" name="address" type="text" value="' . html_encode((string) ($server['address'] ?? '')) . '" required>',
+		['for' => 'server-address', 'hint' => __('admin/general.server_title_ph')]
+	);
+
+	$html .= admin_form_field_row(
+		__('admin/general.server_password'),
+		'<input class="form-control" id="server-password" name="password" type="text" value="' . html_encode((string) ($server['password'] ?? '')) . '" autocomplete="off">',
+		['for' => 'server-password', 'hint' => __('admin/servers.password_hint')]
+	);
+
+	return $html;
+}
+
+/**
+ * @param array<string, mixed> $server
+ */
+function admin_servers_form_polling_fields(array $server): string
+{
+	return admin_form_field_row(
+		__('admin/servers.table_polling'),
+		'<input class="form-control" id="server-poll-interval" name="poll_interval" type="number" min="0" step="1" value="' . html_encode((string) (int) ($server['poll_interval'] ?? 0)) . '">',
+		['for' => 'server-poll-interval']
+	);
+}
+
+/**
+ * @param array<string, mixed> $server
+ * @param array<string, string> $server_types
+ */
+function admin_servers_form_board(array $server, array $server_types): string
+{
+	$is_edit = !empty($server['id']);
+	$submit_label = $is_edit ? __('admin/general.server_btn_edit_save') : __('admin/general.server_btn_save');
+
+	$html = '<div class="admin-servers-form admin-servers-form--config">';
+
+	if ($is_edit) {
+		$html .= admin_servers_item_cell($server, $server_types);
+	}
+
+	$html .= '<form method="post" role="form" class="form-horizontal admin-settings-grouped-form admin-servers-form__form" id="admin-servers-form">';
+	$html .= '<section class="admin-settings-section admin-settings-section--grouped">';
+	$html .= '<div class="admin-settings-section__body admin-settings-section__body--grouped">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-plug" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/servers.form_connection')) . '</h3>';
+
+	if (!$is_edit) {
+		$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/servers.form_intro')) . '</p>';
+	}
+
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body">';
+	$html .= admin_servers_form_connection_fields($server, $server_types);
+	$html .= '</div></div>';
+
+	$html .= '<hr class="admin-settings-subsection__divider">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-sync" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/servers.form_polling')) . '</h3>';
+	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/servers.form_polling_hint')) . '</p>';
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body">';
+	$html .= admin_servers_form_polling_fields($server);
+	$html .= '</div></div>';
+
+	$html .= '</div>';
+	$html .= '<footer class="admin-settings-section__footer">';
+	$html .= '<div class="text-center">';
+	$html .= '<input type="hidden" name="id" value="' . html_encode((string) (int) ($server['id'] ?? 0)) . '">';
+	$html .= '<button class="btn btn-primary" name="save" value="1" type="submit">';
+	$html .= '<i class="fas fa-save me-1" aria-hidden="true"></i>' . html_encode($submit_label);
+	$html .= '</button> ';
+	$html .= '<a class="btn btn-outline-secondary" href="?page=servers&amp;tab=list">' . html_encode(__('admin/menu.btn_cancel')) . '</a>';
+	$html .= '</div></footer>';
+	$html .= '</section></form></div>';
+
+	return $html;
+}
+
+/**
+ * Métadonnées visuelles d'un type de signalement.
+ *
+ * @return array{label: string, icon: string, accent: string}
+ */
+function admin_reports_type_meta(string $type): array
+{
+	static $map = [
+		'forum' => ['label' => 'admin/general.report_cat_forum', 'icon' => 'fa-comments', 'accent' => 'primary'],
+		'comment' => ['label' => 'admin/general.report_cat_comment', 'icon' => 'fa-comment', 'accent' => 'info'],
+		'profile' => ['label' => 'admin/general.report_cat_profil', 'icon' => 'fa-user', 'accent' => 'warning'],
+	];
+
+	return $map[$type] ?? ['label' => '', 'icon' => 'fa-flag', 'accent' => 'secondary'];
+}
+
+function admin_reports_type_label(string $type): string
+{
+	$meta = admin_reports_type_meta($type);
+
+	return $meta['label'] !== '' ? __($meta['label']) : ucfirst($type);
+}
+
+function admin_reports_link(array $report): string
+{
+	switch ($report['type'] ?? '') {
+		case 'forum':
+			return App::getURL('forums', ['pid' => $report['rel_id']], 'alert' . $report['rel_id']);
+		case 'comment':
+			return App::getURL('pageview', $report['page_id'], 'alert' . $report['rel_id']);
+		case 'profile':
+			return App::getURL('user', $report['rel_id']);
+		default:
+			return '#';
+	}
+}
+
+function admin_reports_content_cell(array $report): string
+{
+	$summary = Format::truncate(strip_tags((string) ($report['message'] ?? '')), 120);
+	$link = admin_reports_link($report);
+	$type_meta = admin_reports_type_meta($report['type'] ?? '');
+
+	return admin_modules_item_cell($summary !== '' ? $summary : __('admin/reports.content_missing'), [
+		'description' => admin_reports_type_label($report['type'] ?? '') . ' #' . (int) ($report['rel_id'] ?? 0),
+		'url' => $link,
+		'icon' => $type_meta['icon'],
+		'accent' => $type_meta['accent'],
+	]);
+}
+
+function admin_reports_reporter_cell(array $report): string
+{
+	$reporter = trim((string) ($report['username'] ?? ''));
+
+	if ($reporter === '') {
+		$reporter = trim((string) ($report['user_ip'] ?? ''));
+
+		if ($reporter === '') {
+			$reporter = __('admin/reports.anonymous');
+		}
+	}
+
+	$date = !empty($report['reported'])
+		? html_encode(Format::today((int) $report['reported'], true))
+		: '<span class="admin-modules-muted">&mdash;</span>';
+
+	return '<div class="admin-reports-reporter">'
+		. '<span class="admin-reports-reporter__name">' . html_encode($reporter) . '</span>'
+		. '<span class="admin-reports-reporter__date">' . $date . '</span>'
+		. '</div>';
+}
+
+function admin_reports_reason_cell(array $report): string
+{
+	$reason = trim((string) ($report['reason'] ?? ''));
+
+	if ($reason === '') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	return '<span class="admin-reports-reason">' . html_encode($reason) . '</span>';
+}
+
+function admin_reports_actions_cell(array $report): string
+{
+	$link = admin_reports_link($report);
+	$dismiss_confirm = html_encode(__('admin/reports.btn_dismiss_confirm'), ENT_QUOTES);
+
+	$actions = admin_modules_action_link(
+		$link,
+		'fa fa-eye',
+		__('admin/reports.btn_view'),
+		'btn-outline-primary'
+	);
+
+	$actions .= admin_modules_action_button(
+		'dismiss',
+		(string) ($report['id'] ?? ''),
+		'fa fa-check',
+		__('admin/reports.btn_dismiss'),
+		'btn-outline-warning',
+		'onclick="return confirm(\'' . $dismiss_confirm . '\');"'
+	);
+
+	return admin_modules_table_actions_cell($actions);
+}
+
+/**
+ * Construit les KPI de la page signalements.
+ *
+ * @param array<string, array{type: string, cnt: int|string}> $type_counts
+ */
+function admin_reports_build_stats(int $total_pending, array $type_counts): array
+{
+	$stats = [[
+		'icon' => 'fa fa-flag',
+		'value' => (string) $total_pending,
+		'label' => __('admin/reports.stats_total'),
+		'variant' => 'danger',
+	]];
+
+	$known = [
+		'forum' => ['icon' => 'fa fa-comments', 'label' => __('admin/reports.stats_forum'), 'variant' => 'primary'],
+		'comment' => ['icon' => 'fa fa-comment', 'label' => __('admin/reports.stats_comment'), 'variant' => 'info'],
+		'profile' => ['icon' => 'fa fa-user', 'label' => __('admin/reports.stats_profile'), 'variant' => 'warning'],
+	];
+
+	foreach ($known as $type => $meta) {
+		$count = 0;
+
+		foreach ($type_counts as $row) {
+			if (($row['type'] ?? '') === $type) {
+				$count = (int) ($row['cnt'] ?? 0);
+				break;
+			}
+		}
+
+		$stats[] = [
+			'icon' => $meta['icon'],
+			'value' => (string) $count,
+			'label' => $meta['label'],
+			'variant' => $meta['variant'],
+		];
+	}
+
+	return $stats;
+}
+
+/**
+ * Affiche les filtres par type pour la page signalements.
+ *
+ * @param array<string, array{type: string}> $types
+ * @param array<int, string> $selected_types
+ */
+function admin_reports_filters(array $types, array $selected_types): string
+{
+	if (!$types) {
+		return '';
+	}
+
+	$html = '<div class="admin-reports-filters">';
+	$html .= '<span class="admin-reports-filters__label">' . html_encode(__('admin/reports.filter_label')) . '</span>';
+	$html .= '<div class="admin-reports-filters__list">';
+
+	foreach ($types as $type => $row) {
+		$type_name = $row['type'] ?? $type;
+		$checked = empty($selected_types) || in_array($type_name, $selected_types, true);
+		$meta = admin_reports_type_meta($type_name);
+
+		$html .= '<label class="admin-reports-filter-chip' . ($checked ? ' admin-reports-filter-chip--active' : '') . '">';
+		$html .= '<input type="checkbox" name="types[]" value="' . html_encode($type_name) . '"' . ($checked ? ' checked' : '') . ' class="admin-reports-filter-chip__input">';
+		$html .= '<span class="admin-reports-filter-chip__content">';
+		$html .= '<i class="fas ' . html_encode($meta['icon']) . '" aria-hidden="true"></i>';
+		$html .= html_encode(admin_reports_type_label($type_name));
+		$html .= '</span></label>';
+	}
+
+	return $html . '</div></div>';
+}
+
+function admin_reports_empty(string $message, string $icon = 'fa-flag'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+/**
+ * Affiche le tableau des signalements.
+ *
+ * @param array<int, array<string, mixed>> $reports
+ */
+function admin_reports_table(array $reports, array $options = []): string
+{
+	if (!$reports) {
+		return admin_reports_empty(
+			$options['empty'] ?? __('admin/reports.empty_filtered'),
+			$options['empty_icon'] ?? 'fa-filter'
+		);
+	}
+
+	$columns = [
+		__('admin/reports.table_content'),
+		__('admin/reports.table_reporter'),
+		__('admin/reports.table_reason'),
+		__('admin/reports.table_actions'),
+	];
+
+	$rows = [];
+
+	foreach ($reports as $report) {
+		$rows[] = [
+			admin_reports_content_cell($report),
+			admin_reports_reporter_cell($report),
+			admin_reports_reason_cell($report),
+			admin_reports_actions_cell($report),
+		];
+	}
+
+	return admin_modules_table($columns, $rows, [
+		'caption' => $options['caption'] ?? __('admin/reports.caption'),
+		'icon' => $options['icon'] ?? 'fa fa-flag',
+		'accent' => $options['accent'] ?? 'danger',
+		'class' => trim('admin-reports-table-wrap ' . ($options['class'] ?? '')),
+		'layout' => 'reports',
+	]);
 }
 
 /**
