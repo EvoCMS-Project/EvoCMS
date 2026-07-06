@@ -332,27 +332,85 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 }
 
 /**
+ * Navigation par onglets réutilisable pour l'administration.
+ *
+ * @param array<string, array{label: string, icon?: string, badge?: string, disabled?: bool, href?: string}> $tabs
+ * @param array{
+ *   active?: string,
+ *   type?: 'bootstrap'|'link',
+ *   page?: string,
+ *   class?: string,
+ *   id?: string,
+ *   aria_label?: string
+ * } $options
+ */
+function admin_tabs(array $tabs, array $options = []): string
+{
+	$active = $options['active'] ?? '';
+	$type = $options['type'] ?? 'bootstrap';
+	$page = $options['page'] ?? '';
+	$extra_class = trim($options['class'] ?? '');
+	$id = $options['id'] ?? '';
+	$aria_label = $options['aria_label'] ?? '';
+
+	$classes = trim('nav nav-tabs admin-tabs ' . $extra_class);
+	$html = '<ul class="' . html_encode($classes) . '" role="tablist"';
+
+	if ($id !== '') {
+		$html .= ' id="' . html_encode($id) . '"';
+	}
+
+	if ($aria_label !== '') {
+		$html .= ' aria-label="' . html_encode($aria_label) . '"';
+	}
+
+	$html .= '>';
+
+	foreach ($tabs as $tab_id => $tab) {
+		$is_active = $active === $tab_id;
+		$link_class = 'nav-link' . ($is_active ? ' active' : '');
+
+		if (!empty($tab['disabled'])) {
+			$link_class .= ' disabled';
+		}
+
+		$html .= '<li class="nav-item" role="presentation">';
+		$html .= '<a class="' . $link_class . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '"';
+
+		if ($type === 'link') {
+			$href = $tab['href'] ?? ('?page=' . rawurlencode($page) . '&tab=' . rawurlencode((string) $tab_id));
+			$html .= ' href="' . html_encode($href) . '"';
+		} else {
+			$href = $tab['href'] ?? ('#' . $tab_id);
+			$html .= ' id="' . html_encode($tab_id) . '-tab" data-bs-toggle="tab" href="' . html_encode($href) . '" aria-controls="' . html_encode($tab_id) . '"';
+		}
+
+		$html .= '>';
+
+		if (!empty($tab['icon'])) {
+			$html .= '<i class="fas ' . html_encode($tab['icon']) . ' me-2" aria-hidden="true"></i>';
+		}
+
+		$html .= html_encode($tab['label']);
+
+		if (!empty($tab['badge'])) {
+			$html .= ' ' . $tab['badge'];
+		}
+
+		$html .= '</a></li>';
+	}
+
+	return $html . '</ul>';
+}
+
+/**
  * Affiche les onglets de la page paramètres admin.
  *
  * @param array<string, array{label: string, icon?: string}> $tabs
  */
 function admin_settings_tabs(array $tabs, string $active): string
 {
-	$html = '<ul class="nav nav-tabs admin-settings__tabs" role="tablist">';
-
-	foreach ($tabs as $id => $tab) {
-		$is_active = $active === $id;
-		$html .= '<li class="nav-item" role="presentation">';
-		$html .= '<a class="nav-link' . ($is_active ? ' active' : '') . '" id="' . html_encode($id) . '-tab" data-bs-toggle="tab" href="#' . html_encode($id) . '" role="tab" aria-controls="' . html_encode($id) . '" aria-selected="' . ($is_active ? 'true' : 'false') . '">';
-
-		if (!empty($tab['icon'])) {
-			$html .= '<i class="fas ' . html_encode($tab['icon']) . ' me-2" aria-hidden="true"></i>';
-		}
-
-		$html .= html_encode($tab['label']) . '</a></li>';
-	}
-
-	return $html . '</ul>';
+	return admin_tabs($tabs, ['active' => $active, 'type' => 'bootstrap']);
 }
 
 function admin_settings_tab_open(string $id, bool $active): string
@@ -831,21 +889,12 @@ function admin_status_bar(string $variant, string $title, string $details = '', 
  */
 function admin_modules_nav(array $tabs, string $active): string
 {
-	$html = '<ul class="nav nav-tabs admin-modules__tabs" role="tablist" aria-label="' . html_encode(__('admin/modules.main_title')) . '">';
-
-	foreach ($tabs as $id => $tab) {
-		$is_active = $active === $id;
-		$html .= '<li class="nav-item" role="presentation">';
-		$html .= '<a class="nav-link' . ($is_active ? ' active' : '') . '" href="?page=modules&amp;tab=' . html_encode($id) . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '">';
-
-		if (!empty($tab['icon'])) {
-			$html .= '<i class="fas ' . html_encode($tab['icon']) . ' me-2" aria-hidden="true"></i>';
-		}
-
-		$html .= html_encode($tab['label']) . '</a></li>';
-	}
-
-	return $html . '</ul>';
+	return admin_tabs($tabs, [
+		'active' => $active,
+		'type' => 'link',
+		'page' => 'modules',
+		'aria_label' => __('admin/modules.main_title'),
+	]);
 }
 
 function admin_modules_empty(string $message, string $icon = 'fa-box-open'): string
@@ -1092,7 +1141,7 @@ function admin_modules_actions_group(string $content): string
 		return '<span class="admin-modules-muted">&mdash;</span>';
 	}
 
-	return '<div class="btn-group btn-group-sm admin-modules-actions" role="group">' . $content . '</div>';
+	return '<div class="admin-modules-actions" role="group">' . $content . '</div>';
 }
 
 function admin_modules_action_link(string $href, string $icon, string $label, string $class = 'btn-outline-secondary'): string

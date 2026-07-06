@@ -190,9 +190,10 @@ if (App::getTheme()->settings) {
 }
 ?>
 
+<section class="admin-tabs-board">
 <?= admin_settings_tabs($settings_tabs, $tab) ?>
 
-<div class="tab-content admin-settings">
+<div class="tab-content admin-settings admin-tabs-panel admin-tabs-board__body">
 	<?= admin_settings_tab_open('config', $tab === 'config') ?>
 		<?= admin_settings_grouped_form('config', [
 			[
@@ -273,3 +274,4 @@ if (App::getTheme()->settings) {
 		<?= admin_settings_tab_close() ?>
 	<?php endif; ?>
 </div>
+</section>

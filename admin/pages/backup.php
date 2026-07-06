@@ -613,19 +613,20 @@ $backup_type_labels = [
     <?php endif; ?>
 </div>
 
-<?= admin_card_header('<ul class="nav nav-tabs card-header-tabs" id="backup-tabs" role="tablist">
-    <li class="nav-item" role="presentation">
-        <a class="nav-link active" id="backup-create-tab" data-bs-toggle="tab" href="#backup-create" role="tab" aria-controls="backup-create" aria-selected="true">' . __('admin/system.backup_tab_create') . '</a>
-    </li>
-    <li class="nav-item" role="presentation">
-        <a class="nav-link" id="backup-schedule-tab" data-bs-toggle="tab" href="#backup-schedule" role="tab" aria-controls="backup-schedule" aria-selected="false">' . __('admin/system.backup_tab_schedule') . '</a>
-    </li>
-    <li class="nav-item" role="presentation">
-        <a class="nav-link" id="backup-list-tab" data-bs-toggle="tab" href="#backup-list" role="tab" aria-controls="backup-list" aria-selected="false">' . __('admin/system.backup_tab_list') . ' <span class="badge bg-secondary ms-1">' . count($backups) . '</span></a>
-    </li>
-</ul>') ?>
+<?= admin_card_header(admin_tabs([
+    'backup-create' => ['label' => __('admin/system.backup_tab_create')],
+    'backup-schedule' => ['label' => __('admin/system.backup_tab_schedule')],
+    'backup-list' => [
+        'label' => __('admin/system.backup_tab_list'),
+        'badge' => '<span class="badge bg-secondary ms-1">' . count($backups) . '</span>',
+    ],
+], [
+    'active' => 'backup-create',
+    'class' => 'card-header-tabs',
+    'id' => 'backup-tabs',
+])) ?>
 
-<div class="tab-content" id="backup-tab-content">
+<div class="tab-content admin-tabs-panel" id="backup-tab-content">
     <div class="tab-pane fade show active p-4" id="backup-create" role="tabpanel" aria-labelledby="backup-create-tab">
         <div class="row g-4">
             <div class="col-lg-8">

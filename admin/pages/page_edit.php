@@ -161,7 +161,7 @@ $rev2 = (int)App::REQ('rev2');
 // To do: Use fancy box gallery to choose image instead
 $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime_type like ? and origin = ?', 'image/%', 'website') ?: [], 'name', 'id');
 ?>
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs admin-tabs">
 	<li class="nav-item"><a class="nav-link active" href="#page_edit" data-bs-toggle="tab"><?= __('admin/page_edit.nav_edit') ?></a></li>
 	<?php if ($page['page_id']) { ?>
 		<li class="nav-item"><a class="nav-link" href="#page_hist" data-bs-toggle="tab"><?= __('admin/page_edit.nav_history') ?></a></li>
@@ -173,7 +173,7 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 <form method="post">
 	<input type="hidden" id="id" name="id" value="<?= $page['id'] ?>">
 	<input type="hidden" id="page_id" name="page_id" value="<?= $page['page_id'] ?>">
-	<div class="tab-content">
+	<div class="tab-content admin-tabs-panel">
 		<div class="tab-pane fade show active" id="page_edit">
 			<div class="control-group">
 				<div class="mb-3 row">

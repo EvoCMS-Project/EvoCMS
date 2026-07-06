@@ -22,7 +22,7 @@ $status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/p
 
 <legend style="padding-top:5px;"><?= __('admin/pages.title') ?></legend>
 
-<ul class="nav nav-tabs">
+<ul class="nav nav-tabs admin-tabs">
 	<li class="nav-item"><a class="nav-link active" href="#all" data-bs-toggle="tab"><?= __('admin/pages.table_all') ?></a></li>
 	<li class="nav-item"><a class="nav-link" href="#published" data-bs-toggle="tab"><?= __('admin/pages.table_published') ?></a></li>
 	<li class="nav-item"><a class="nav-link" href="#draft" data-bs-toggle="tab"><?= __('admin/pages.table_draft') ?></a></li>
@@ -30,7 +30,7 @@ $status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/p
 	<li class="nav-item ms-auto"><a class="nav-link" href="?page=page_edit" title="<?= __('admin/pages.btn_add_title') ?>"><i class="far fa-lg fa-file"></i> <?= __('admin/pages.btn_add') ?></a></li>
 </ul>
 
-<div class="tab-content">
+<div class="tab-content admin-tabs-panel">
 	<div class="tab-pane fade active show" id="all" style="padding: 1em;">
 
 <form action="?page=page_edit" method="post">

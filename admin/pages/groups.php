@@ -106,7 +106,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 			</div>
 
 		  <div class="col-md-9 order-1"  style="border-left:1px solid #ddd;">
-			<ul class="nav nav-tabs">
+			<ul class="nav nav-tabs admin-tabs">
 			  <li class="nav-item"><a class="nav-link active" href="#general" data-bs-toggle="tab"><?= __('admin/groups.tab_general') ?></a></li>
 				<?php
 				foreach($_permissions as $id => $perms) {
@@ -114,7 +114,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 				}
 				?>
 			</ul>
-			<div class="tab-content">
+			<div class="tab-content admin-tabs-panel">
 				<div class="tab-pane fade active show p-3" id="general">
 					<legend><?= __('admin/groups.config_title') ?> </legend>
 					<div class="mb-3 row" style="height: 30px;">

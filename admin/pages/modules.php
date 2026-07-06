@@ -144,8 +144,8 @@ $modules_stats = [
 
 <?php if ($current_plugin): ?>
 <div class="admin-dashboard admin-modules admin-modules--config">
-    <section class="admin-modules-board">
-        <div class="admin-modules-board__body admin-modules-board__body--config">
+    <section class="admin-tabs-board admin-modules-board">
+        <div class="admin-tabs-board__body admin-modules-board__body admin-tabs-panel admin-modules-board__body--config">
             <?= admin_modules_config_board($current_plugin) ?>
         </div>
     </section>
@@ -155,10 +155,10 @@ $modules_stats = [
 <div class="admin-dashboard admin-modules">
     <?= admin_stat_grid($modules_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
 
-    <section class="admin-modules-board">
+    <section class="admin-tabs-board admin-modules-board">
         <?= admin_modules_nav($modules_nav, $tab) ?>
 
-        <div class="admin-modules-board__body admin-modules-board__body--content">
+        <div class="admin-tabs-board__body admin-modules-board__body admin-tabs-panel admin-modules-board__body--content">
             <?php if ($catalog_unavailable && in_array($tab, ['themes', 'modules', 'lang'], true)): ?>
                 <div class="admin-modules-board__notice">
                     <?= admin_status_bar(
