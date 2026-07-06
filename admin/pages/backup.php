@@ -646,6 +646,7 @@ $backup_stats = [
                         <div class="col-lg-8">
                             <?php ob_start(); ?>
                             <form method="post" id="backupForm">
+                                <?= admin_csrf_field() ?>
                                 <input type="hidden" name="action" value="create_backup">
 
                                 <div class="row g-3">
@@ -717,6 +718,7 @@ $backup_stats = [
                         <div class="col-lg-6">
                             <?php ob_start(); ?>
                             <form method="post">
+                                <?= admin_csrf_field() ?>
                                 <input type="hidden" name="action" value="schedule_backup">
 
                                 <div class="row g-3">
@@ -847,6 +849,7 @@ $backup_stats = [
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= __('messages/form.cancel') ?>"></button>
             </div>
             <form id="restoreForm" method="post">
+                <?= admin_csrf_field() ?>
                 <input type="hidden" name="action" value="restore_backup">
                 <input type="hidden" name="backup_file" id="restoreFile">
                 <div class="modal-body">
@@ -881,6 +884,7 @@ $backup_stats = [
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= __('messages/form.cancel') ?>"></button>
             </div>
             <form method="post">
+                <?= admin_csrf_field() ?>
                 <input type="hidden" name="action" value="cleanup_old">
                 <div class="modal-body">
                     <div class="mb-3">
@@ -903,11 +907,13 @@ $backup_stats = [
 </div>
 
 <form id="deleteForm" method="post" class="d-none">
+    <?= admin_csrf_field() ?>
     <input type="hidden" name="action" value="delete_backup">
     <input type="hidden" name="backup_file" id="deleteFile">
 </form>
 
 <form id="deleteMultipleForm" method="post" class="d-none">
+    <?= admin_csrf_field() ?>
     <input type="hidden" name="action" value="delete_multiple">
     <div id="deleteFiles"></div>
 </form>

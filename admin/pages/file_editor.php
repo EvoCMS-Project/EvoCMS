@@ -276,6 +276,7 @@ function is_editable($file) {
 	data-label-save-error="<?= html_encode(__('admin/system.editor_alert_warning_save')) ?>"
 	data-current-file="<?= $resolved ? html_encode($rel_file) : '' ?>">
 	<form method="post" class="file-editor-form">
+		<?= admin_csrf_field() ?>
 		<div class="file-editor-toolbar<?= $resolved ? '' : ' file-editor-toolbar--empty' ?>">
 			<div class="file-editor-toolbar__context">
 				<ol class="breadcrumb file-editor-toolbar__breadcrumb" aria-label="<?= __('admin/system.editor_toolbar_path') ?>">

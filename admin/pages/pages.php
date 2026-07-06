@@ -67,6 +67,7 @@ if ($selected_statuses) {
 				</form>
 
 				<form action="?page=page_edit" method="post" class="admin-pages-list-form">
+					<?= admin_csrf_field() ?>
 					<input type="hidden" name="delete" value="1">
 					<?= admin_pages_table($pages, $status_labels, $delete_confirm) ?>
 

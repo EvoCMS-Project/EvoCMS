@@ -28,9 +28,11 @@ $users = Db::QueryAll("SELECT a.*, g.name as gname, g.color as color, b.reason a
 $ptotal = ceil(Db::Get('select count(*) from {users} as a left join {groups} as g on g.id = a.group_id where ' . $where, array_slice($args, 0, -2)) / $upp);
 ?>
 <form role="search" class="well" style="background:transparent" method="post">
+	<?= admin_csrf_field() ?>
 	<input id="filter" name="filter" type="text" class="form-control" value="<?php echo isset($_REQUEST['filter']) ? html_encode($_REQUEST['filter']) : '';?>" placeholder="<?= __('admin/users.search_placeholder') ?>">
 </form>
 <form method="post">
+<?= admin_csrf_field() ?>
 <div id="content">
 	<?php if (!$users): ?>
 		<div style="text-align: center;" class="alert alert-warning"><?= __('admin/users.alert_not_found') ?></div>

@@ -29,10 +29,12 @@ $req = Db::QueryAll('SELECT h.*, a.username as username, b.username as ausername
 ?>
 <?php if ($filter || $count > 0) { ?>
 <form role="search" class="well" method="post">
+	<?= admin_csrf_field() ?>
 	<input id="filter" type="text" class="form-control" placeholder="<?= __('admin/history.ph_search')?>">
 </form>
 <?php }?>
 <form method="post">
+	<?= admin_csrf_field() ?>
 	<div id="content">
 		<?php if (!$req): ?>
 			<div class="alert alert-warning text-center mt-2"><?= __('admin/history.alert_no_record')?></div>

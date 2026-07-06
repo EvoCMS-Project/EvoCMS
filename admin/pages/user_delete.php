@@ -74,6 +74,7 @@ elseif (App::POST('del_confirmation')) {
 }
 ?>
 <form method="post">
+	<?= admin_csrf_field() ?>
 	<label><input name="del_comments" value="1" type="checkbox" checked> <?= __('admin/user_delete.checkbox_comments') ?></label><br>
 	<label><input name="del_forum_posts" value="1" type="checkbox" checked> <?= __('admin/user_delete.checkbox_forum_posts') ?></label><br>
 	<label><input name="del_forum_topics" value="1" type="checkbox" checked> <?= __('admin/user_delete.checkbox_forum_topics') ?></label><br><br>

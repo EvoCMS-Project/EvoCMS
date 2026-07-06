@@ -52,6 +52,7 @@ if ($selected_types) {
 				<?= admin_reports_empty(__('admin/general.report_none')) ?>
 			<?php else: ?>
 				<form method="post" id="admin-reports-form" class="admin-reports-form">
+					<?= admin_csrf_field() ?>
 					<?= admin_reports_filters($types, $selected_types) ?>
 					<?= admin_reports_table($reports) ?>
 

@@ -3263,7 +3263,10 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-settings .form-horizontal .mb-3.row,
 .admin-servers-form .form-horizontal .mb-3.row,
 .admin-avatars-create-form .form-horizontal .mb-3.row,
-.admin-downloads-add-form .form-horizontal .mb-3.row {
+.admin-downloads-add-form .form-horizontal .mb-3.row,
+.admin-forums-config-form .mb-3.row,
+.admin-forums-editor-form .mb-3.row,
+.admin-forums-category-form .mb-3.row {
 	align-items: center;
 	margin-bottom: 1rem !important;
 }
@@ -3271,7 +3274,10 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-settings .form-horizontal .col-form-label,
 .admin-servers-form .form-horizontal .col-form-label,
 .admin-avatars-create-form .form-horizontal .col-form-label,
-.admin-downloads-add-form .form-horizontal .col-form-label {
+.admin-downloads-add-form .form-horizontal .col-form-label,
+.admin-forums-config-form .col-form-label,
+.admin-forums-editor-form .col-form-label,
+.admin-forums-category-form .col-form-label {
 	padding-top: 0;
 	padding-bottom: 0;
 	color: #455a64;
@@ -3292,7 +3298,8 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(textarea),
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(.admin-form-image),
 .admin-downloads-add-form .form-horizontal .mb-3.row:has(textarea),
-.admin-downloads-add-form .form-horizontal .mb-3.row:has(.admin-form-image) {
+.admin-downloads-add-form .form-horizontal .mb-3.row:has(.admin-form-image),
+.admin-forums-editor-form .mb-3.row:has(select[multiple]) {
 	align-items: flex-start;
 }
 
@@ -3303,7 +3310,8 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
 .admin-downloads-add-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
-.admin-downloads-add-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label {
+.admin-downloads-add-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
+.admin-forums-editor-form .mb-3.row:has(select[multiple]) .col-form-label {
 	padding-top: 0.5rem;
 }
 
@@ -3863,7 +3871,10 @@ a.admin-kpi-card--linked:focus-visible {
 	.admin-settings .form-horizontal .col-form-label,
 	.admin-servers-form .form-horizontal .col-form-label,
 	.admin-avatars-create-form .form-horizontal .col-form-label,
-	.admin-downloads-add-form .form-horizontal .col-form-label {
+	.admin-downloads-add-form .form-horizontal .col-form-label,
+	.admin-forums-config-form .col-form-label,
+	.admin-forums-editor-form .col-form-label,
+	.admin-forums-category-form .col-form-label {
 		text-align: left !important;
 	}
 
@@ -3892,6 +3903,7 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-modules-board,
 .admin-backup-board,
 .admin-reports-board,
+.admin-broadcast-board,
 .admin-servers-board,
 .admin-avatars-board,
 .admin-pages-board,
@@ -3915,6 +3927,7 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-modules-board__body,
 .admin-backup-board__body,
 .admin-reports-board__body,
+.admin-broadcast-board__body,
 .admin-servers-board__body,
 .admin-avatars-board__body,
 .admin-pages-board__body,
@@ -4673,7 +4686,8 @@ a.admin-kpi-card--linked:focus-visible {
 
 /* ── Admin reports ── */
 
-.admin-reports-board__body.admin-tabs-panel {
+.admin-reports-board__body.admin-tabs-panel,
+.admin-broadcast-board__body.admin-tabs-panel {
 	background: transparent;
 	border: none;
 	border-radius: 0;
@@ -4683,7 +4697,8 @@ a.admin-kpi-card--linked:focus-visible {
 	overflow: visible;
 }
 
-.admin-reports-board__body {
+.admin-reports-board__body,
+.admin-broadcast-board__body {
 	gap: 1rem;
 	padding: 0.25rem 0 0;
 }
@@ -4821,6 +4836,608 @@ a.admin-kpi-card--linked:focus-visible {
 	background: rgba(25, 118, 210, 0.12);
 	color: #1565c0;
 	box-shadow: inset 0 0 0 1px rgba(25, 118, 210, 0.08);
+}
+
+/* ── Admin forums ── */
+
+.admin-forums-board__body.admin-tabs-panel {
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	overflow: visible;
+}
+
+.admin-forums-board__body {
+	gap: 1rem;
+	padding: 0.25rem 0 0;
+}
+
+.admin-forums-board__body > .admin-settings-empty {
+	margin: 0;
+	padding: 2.5rem 1.5rem;
+	border: 1px solid rgba(255, 255, 255, 0.42);
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(20px) saturate(160%);
+	-webkit-backdrop-filter: blur(20px) saturate(160%);
+	box-shadow:
+		0 8px 32px rgba(38, 50, 56, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.admin-forums-panel,
+.admin-forums-category {
+	border: 1px solid rgba(255, 255, 255, 0.42);
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(20px) saturate(160%);
+	-webkit-backdrop-filter: blur(20px) saturate(160%);
+	box-shadow:
+		0 8px 32px rgba(38, 50, 56, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.65);
+	overflow: hidden;
+}
+
+.admin-forums-categories {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.admin-forums-category {
+	margin: 0;
+}
+
+.admin-forums-category__header {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.875rem 1.25rem;
+	background: linear-gradient(180deg, #f8fafb 0%, #f3f6f8 100%);
+	border-bottom: 1px solid rgba(38, 50, 56, 0.08);
+}
+
+.admin-forums-category__header .admin-modules-actions {
+	margin-left: auto;
+}
+
+.admin-forums-category__empty {
+	margin: 1rem;
+}
+
+.admin-forums-config-form,
+.admin-forums-editor-form,
+.admin-forums-category-form {
+	padding: 1.5rem 1.75rem 1.75rem;
+}
+
+.admin-forums-form-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.75rem;
+	margin-top: 1.25rem;
+	padding-top: 1rem;
+	border-top: 1px solid rgba(38, 50, 56, 0.08);
+}
+
+.admin-forums-permission-selects {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 1rem;
+}
+
+.admin-forums-permission-select {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	min-width: 0;
+}
+
+.admin-forums-permission-select strong {
+	color: #455a64;
+	font-size: 0.8125rem;
+}
+
+.admin-forums-icon-select {
+	font-family: 'Font Awesome 5 Free', 'Font Awesome 5 Brands', sans-serif;
+}
+
+.admin-forums-col-item { width: 30%; }
+.admin-forums-col-icon { width: 8%; }
+.admin-forums-col-posts { width: 10%; }
+.admin-forums-col-permissions { width: 34%; }
+.admin-forums-col-actions { width: 18%; }
+
+.admin-forums-item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.45rem;
+}
+
+.admin-forums-redirect {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	width: fit-content;
+	padding: 0.25rem 0.55rem;
+	border-radius: 999px;
+	background: rgba(255, 193, 7, 0.14);
+	color: #8a6400;
+	font-size: 0.75rem;
+}
+
+.admin-forums-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 0.5rem;
+	background: rgba(46, 120, 199, 0.1);
+	color: #2e78c7;
+}
+
+.admin-forums-permissions {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	min-width: 13rem;
+}
+
+.admin-forums-permissions__row {
+	display: grid;
+	grid-template-columns: 6.5rem minmax(0, 1fr);
+	gap: 0.5rem;
+	align-items: start;
+}
+
+.admin-forums-permissions__label {
+	color: #90a4ae;
+	font-size: 0.75rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.admin-forums-permissions__value {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem;
+	color: #455a64;
+	font-size: 0.8125rem;
+}
+
+.admin-forums-permission-group {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.1rem 0.45rem;
+	border-radius: 999px;
+	background: rgba(38, 50, 56, 0.06);
+	font-size: 0.75rem;
+	font-weight: 600;
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.admin-forums-panel,
+	.admin-forums-category,
+	.admin-forums-board__body > .admin-settings-empty {
+		background: #fff;
+	}
+}
+
+/* ── Admin broadcast ── */
+
+.admin-broadcast-form,
+.admin-broadcast-history-shell {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.admin-broadcast-board__pane {
+	min-width: 0;
+}
+
+.admin-broadcast-board__pane.show.active {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
+
+.admin-broadcast-compose {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+	gap: 1rem;
+	align-items: stretch;
+}
+
+.admin-broadcast-compose__main,
+.admin-broadcast-compose__sidebar,
+.admin-broadcast-compose__content,
+.admin-broadcast-result,
+.admin-broadcast-history {
+	border: 1px solid rgba(255, 255, 255, 0.42);
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(20px) saturate(160%);
+	-webkit-backdrop-filter: blur(20px) saturate(160%);
+	box-shadow:
+		0 8px 32px rgba(38, 50, 56, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.admin-broadcast-compose__main,
+.admin-broadcast-compose__content {
+	min-width: 0;
+	padding: 1.25rem 1.5rem;
+}
+
+.admin-broadcast-compose__content {
+	grid-column: 1 / -1;
+}
+
+.admin-broadcast-form__fields {
+	height: 100%;
+}
+
+.admin-broadcast-form__editor {
+	min-height: 22rem;
+	resize: vertical;
+}
+
+.admin-broadcast-compose__content .cke,
+.admin-broadcast-compose__content .cke_inner,
+.admin-broadcast-compose__content .cke_contents {
+	width: 100% !important;
+	max-width: none;
+}
+
+.admin-broadcast-compose__sidebar {
+	min-width: 0;
+	padding: 1rem;
+}
+
+.admin-broadcast-recipients {
+	display: flex;
+	flex-direction: column;
+	gap: 0.875rem;
+	height: 100%;
+}
+
+.admin-broadcast-recipients__header {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	padding-bottom: 0.75rem;
+	border-bottom: 1px solid rgba(38, 50, 56, 0.08);
+}
+
+.admin-broadcast-recipients__title {
+	font-size: 0.8125rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #455a64;
+}
+
+.admin-broadcast-recipients__hint {
+	font-size: 0.8125rem;
+	color: #78909c;
+}
+
+.admin-broadcast-selectbox {
+	position: relative;
+}
+
+.admin-broadcast-selectbox__toggle {
+	display: none;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	width: 100%;
+	min-height: 2.75rem;
+	padding: 0.625rem 0.75rem;
+	border: 1px solid rgba(38, 50, 56, 0.12);
+	border-radius: 0.625rem;
+	background: rgba(255, 255, 255, 0.72);
+	color: #455a64;
+	font-size: 0.875rem;
+	font-weight: 600;
+	text-align: left;
+}
+
+.admin-broadcast-selectbox__toggle[aria-expanded="true"] {
+	border-color: rgba(25, 118, 210, 0.35);
+	box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.08);
+}
+
+.admin-broadcast-selectbox__value {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.admin-broadcast-selectbox__menu {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+	max-height: 18rem;
+	overflow: auto;
+	padding: 0.5rem;
+	border: 1px solid rgba(38, 50, 56, 0.12);
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.96);
+	box-shadow: 0 16px 40px rgba(38, 50, 56, 0.16);
+}
+
+.admin-broadcast-selectbox__option {
+	display: flex;
+	align-items: center;
+	gap: 0.625rem;
+	margin: 0;
+	padding: 0.5rem 0.625rem;
+	border-radius: 0.5rem;
+	color: #546e7a;
+	cursor: pointer;
+	transition:
+		background 0.15s ease,
+		color 0.15s ease;
+}
+
+.admin-broadcast-selectbox__option:hover,
+.admin-broadcast-selectbox__option:has(.admin-broadcast-selectbox__input:checked) {
+	background: rgba(25, 118, 210, 0.1);
+	color: #1565c0;
+}
+
+.admin-broadcast-selectbox__input {
+	position: absolute;
+	opacity: 0;
+	width: 0;
+	height: 0;
+}
+
+.admin-broadcast-selectbox__checkbox {
+	position: relative;
+	flex: 0 0 1rem;
+	width: 1rem;
+	height: 1rem;
+	border: 2px solid rgba(84, 110, 122, 0.45);
+	border-radius: 0.25rem;
+	background: #fff;
+}
+
+.admin-broadcast-selectbox__checkbox::after {
+	content: "\f00c";
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	font-family: "Font Awesome 6 Free";
+	font-size: 0.625rem;
+	font-weight: 900;
+	opacity: 0;
+	transition:
+		opacity 0.15s ease;
+}
+
+.admin-broadcast-selectbox__input:checked + .admin-broadcast-selectbox__checkbox {
+	border-color: #1565c0;
+	background: #1565c0;
+}
+
+.admin-broadcast-selectbox__input:checked + .admin-broadcast-selectbox__checkbox::after {
+	opacity: 1;
+}
+
+.admin-broadcast-selectbox__label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.admin-broadcast-selectbox__count {
+	margin-left: auto;
+	padding: 0.125rem 0.5rem;
+	border-radius: 999px;
+	background: rgba(38, 50, 56, 0.08);
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: inherit;
+}
+
+@media (max-width: 991.98px) {
+	.admin-broadcast-selectbox__toggle {
+		display: flex;
+	}
+
+	.admin-broadcast-selectbox__menu {
+		position: absolute;
+		z-index: 20;
+		top: calc(100% + 0.375rem);
+		left: 0;
+		right: 0;
+		display: none;
+		background: rgba(255, 255, 255, 0.96);
+		box-shadow: 0 16px 40px rgba(38, 50, 56, 0.16);
+	}
+
+	.admin-broadcast-selectbox.is-open .admin-broadcast-selectbox__menu {
+		display: flex;
+	}
+}
+
+.admin-broadcast-result {
+	padding: 1rem;
+}
+
+.admin-broadcast-result__targets {
+	margin-top: 1rem;
+	padding: 1rem;
+	border: 1px solid rgba(38, 50, 56, 0.08);
+	border-radius: 0.625rem;
+	background: rgba(255, 255, 255, 0.62);
+	color: #455a64;
+	font-size: 0.875rem;
+	line-height: 1.7;
+}
+
+.admin-broadcast-history {
+	display: grid;
+	grid-template-columns: minmax(18rem, 26rem) minmax(0, 1fr);
+	min-height: 28rem;
+	overflow: hidden;
+}
+
+.admin-broadcast-history__list {
+	display: flex;
+	flex-direction: column;
+	max-height: 40rem;
+	overflow: auto;
+	border-right: 1px solid rgba(38, 50, 56, 0.08);
+}
+
+.admin-broadcast-history__item {
+	display: flex;
+	flex-direction: column;
+	gap: 0.375rem;
+	width: 100%;
+	padding: 1rem;
+	border: 0;
+	border-bottom: 1px solid rgba(38, 50, 56, 0.08);
+	background: transparent;
+	color: #546e7a;
+	text-align: left;
+	transition:
+		background 0.15s ease,
+		color 0.15s ease;
+}
+
+.admin-broadcast-history__item:hover,
+.admin-broadcast-history__item.active {
+	background: rgba(25, 118, 210, 0.08);
+	color: #263238;
+}
+
+.admin-broadcast-history__time {
+	align-self: flex-start;
+	padding: 0.125rem 0.5rem;
+	border-radius: 999px;
+	background: rgba(38, 50, 56, 0.08);
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: #607d8b;
+}
+
+.admin-broadcast-history__subject {
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: #263238;
+}
+
+.admin-broadcast-history__meta {
+	font-size: 0.8125rem;
+	line-height: 1.5;
+	color: #78909c;
+}
+
+.admin-broadcast-history__preview {
+	min-width: 0;
+	max-height: 40rem;
+	overflow: auto;
+	background: rgba(255, 255, 255, 0.42);
+}
+
+.admin-broadcast-preview__body {
+	padding: 1.5rem;
+	color: #37474f;
+}
+
+@media (max-width: 991.98px) {
+	.admin-broadcast-compose,
+	.admin-broadcast-history {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.admin-broadcast-history__list {
+		max-height: 18rem;
+		border-right: 0;
+		border-bottom: 1px solid rgba(38, 50, 56, 0.08);
+	}
+}
+
+@media (max-width: 991.98px) {
+	.admin-forums-permission-selects {
+		grid-template-columns: 1fr;
+	}
+
+	.admin-forums-category .admin-modules-table-scroll {
+		overflow: visible;
+	}
+
+	.admin-forums-table thead {
+		display: none;
+	}
+
+	.admin-forums-table tbody tr {
+		display: block;
+		border-bottom: 1px solid rgba(38, 50, 56, 0.08);
+	}
+
+	.admin-forums-table tbody td {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.admin-forums-table tbody td::before {
+		content: attr(data-label);
+		flex: 0 0 34%;
+		color: #90a4ae;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.admin-forums-table tbody td:first-child {
+		display: block;
+	}
+
+	.admin-forums-table tbody td:first-child::before {
+		display: none;
+	}
+}
+
+@media (max-width: 767.98px) {
+	.admin-forums-category__header {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.admin-forums-category__header .admin-modules-actions {
+		justify-content: flex-start;
+		margin-left: 0;
+	}
+
+	.admin-forums-form-actions {
+		justify-content: stretch;
+	}
+
+	.admin-forums-form-actions .btn {
+		flex: 1 1 auto;
+	}
 }
 
 .admin-reports-table-wrap .admin-modules-table__toolbar {
@@ -5926,13 +6543,59 @@ a.admin-kpi-card--linked:focus-visible {
 
 /* ── Admin comments ── */
 
+.admin-comments-board__body.admin-tabs-panel {
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	overflow: visible;
+}
+
+.admin-comments-board__body {
+	gap: 1rem;
+	padding: 0.25rem 0 0;
+}
+
+.admin-comments-board__body > .admin-settings-empty,
+.admin-comments-form > .admin-settings-empty {
+	margin: 0;
+	padding: 2.5rem 1.5rem;
+	border: 1px solid rgba(255, 255, 255, 0.42);
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(20px) saturate(160%);
+	-webkit-backdrop-filter: blur(20px) saturate(160%);
+	box-shadow:
+		0 8px 32px rgba(38, 50, 56, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
 .admin-comments-col-message { width: 46%; }
 .admin-comments-col-user { width: 18%; }
 .admin-comments-col-state { width: 14%; }
 .admin-comments-col-actions { width: 22%; }
 
 .admin-comments-form {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
 	margin: 0;
+	width: 100%;
+	min-width: 0;
+}
+
+.admin-comments-table-wrap {
+	border: 1px solid rgba(255, 255, 255, 0.42);
+	border-radius: 0.75rem;
+	background: rgba(255, 255, 255, 0.78);
+	backdrop-filter: blur(20px) saturate(160%);
+	-webkit-backdrop-filter: blur(20px) saturate(160%);
+	box-shadow:
+		0 8px 32px rgba(38, 50, 56, 0.08),
+		inset 0 1px 0 rgba(255, 255, 255, 0.65);
+	overflow: hidden;
 }
 
 .admin-comments-message {
@@ -5940,6 +6603,54 @@ a.admin-kpi-card--linked:focus-visible {
 	line-height: 1.5;
 	color: #37474f;
 	word-break: break-word;
+}
+
+.admin-comments-user {
+	display: flex;
+	flex-direction: column;
+	gap: 0.15rem;
+}
+
+.admin-comments-user__name {
+	color: #263238;
+	font-size: 0.875rem;
+	font-weight: 600;
+}
+
+.admin-comments-user__meta {
+	color: #90a4ae;
+	font-size: 0.75rem;
+	line-height: 1.4;
+}
+
+.admin-comments-state.admin-modules-status--is-success {
+	background: rgba(46, 125, 50, 0.1);
+	color: #2e7d32;
+}
+
+.admin-comments-state.admin-modules-status--is-success .admin-modules-status__dot {
+	background: #43a047;
+	box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.18);
+}
+
+.admin-comments-state.admin-modules-status--is-warning {
+	background: rgba(255, 193, 7, 0.16);
+	color: #9a6b00;
+}
+
+.admin-comments-state.admin-modules-status--is-warning .admin-modules-status__dot {
+	background: #ffc107;
+	box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.2);
+}
+
+.admin-comments-state.admin-modules-status--is-danger {
+	background: rgba(198, 40, 40, 0.1);
+	color: #c62828;
+}
+
+.admin-comments-state.admin-modules-status--is-danger .admin-modules-status__dot {
+	background: #e53935;
+	box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.18);
 }
 
 .admin-comments-row--pending {
@@ -5960,6 +6671,14 @@ a.admin-kpi-card--linked:focus-visible {
 	margin-bottom: 0;
 }
 
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+	.admin-comments-table-wrap,
+	.admin-comments-board__body > .admin-settings-empty,
+	.admin-comments-form > .admin-settings-empty {
+		background: #fff;
+	}
+}
+
 .admin-tabs-panel > .tab-pane.admin-page-edit-board__pane#comments {
 	padding: 0;
 }
@@ -5971,6 +6690,44 @@ a.admin-kpi-card--linked:focus-visible {
 }
 
 @media (max-width: 767.98px) {
+	.admin-comments-table-wrap .admin-modules-table-scroll {
+		overflow: visible;
+	}
+
+	.admin-comments-table thead {
+		display: none;
+	}
+
+	.admin-comments-table tbody tr {
+		display: block;
+		border-bottom: 1px solid rgba(38, 50, 56, 0.08);
+	}
+
+	.admin-comments-table tbody td {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.admin-comments-table tbody td::before {
+		content: attr(data-label);
+		flex: 0 0 34%;
+		color: #90a4ae;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	.admin-comments-table tbody td:first-child {
+		display: block;
+	}
+
+	.admin-comments-table tbody td:first-child::before {
+		display: none;
+	}
+
 	.admin-comments-table tbody td:last-child {
 		border-top: 1px solid rgba(38, 50, 56, 0.08) !important;
 		background: rgba(236, 239, 241, 0.35);

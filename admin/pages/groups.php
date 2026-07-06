@@ -71,6 +71,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 	<div class="card-header p-2"><h4><?= __('admin/groups.creation_title') ?></h4></div>
 	<div class="card-body">
 		<form class="form-horizontal" role="form" method="post">
+			<?= admin_csrf_field() ?>
 			<div class="mb-3 row">
 				<label class="col-sm-3 col-form-label text-end"><?= __('admin/groups.creation_name') ?></label>
 				<div class="col-sm-6">
@@ -88,6 +89,7 @@ $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
 	</div>
 	<div class="card-body">
 	<form method="post">
+		<?= admin_csrf_field() ?>
 		<div class="mb-3 row">
 
 			<div class="col-md-3 order-2">

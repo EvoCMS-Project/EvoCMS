@@ -3,29 +3,33 @@
 has_permission('admin.broadcast', true);
 set_time_limit(0);
 
-$subject = App::POST('sujet');
-$message = App::POST('message');
-$groups  = App::POST('groups');
-$cycle   = App::POST('cycle');
+$subject = (string) App::POST('sujet', '');
+$message = (string) App::POST('message', '');
+$selected_groups = App::POST('groups');
+$cycle   = (int) App::POST('cycle');
 $mail_id = 0;
 $mail_targets = [];
 
-if (IS_POST && (empty($subject) || empty($message) || empty($groups) || $cycle < 1)) {
+if (!is_array($selected_groups)) {
+	$selected_groups = [];
+}
+
+$selected_group_ids = array_map('intval', $selected_groups);
+
+if (IS_POST && (empty($subject) || empty($message) || empty($selected_group_ids) || $cycle < 1)) {
 	App::setWarning(__('admin/broadcast.alert_empty_field'));
 }
-elseif (IS_POST && is_array($groups)) {
-	$groups = array_map('intval', $groups);
-
-	if ($groups === [0]) {
+elseif (IS_POST) {
+	if (in_array(0, $selected_group_ids, true)) {
 		$users = Db::QueryAll('select username, email from {users} where newsletter = 1');
 	} else {
-		$users = Db::QueryAll('select username, email from {users} where group_id in ('.implode(',', $groups).')');
+		$users = Db::QueryAll('select username, email from {users} where group_id in ('.implode(',', $selected_group_ids).')');
 	}
 
 	Db::Insert('newsletter', [
 			'author'      => App::getCurrentUser()->id,
 			'date_sent'   => time(),
-			'groups'      => implode(',', $groups),
+			'groups'      => implode(',', $selected_group_ids),
 			'subject'     => $subject,
 			'message'     => $message,
 			'mail_sent'   => 0,
@@ -46,12 +50,13 @@ elseif (IS_POST && is_array($groups)) {
 	foreach($users as $user) {
 		$html = strtr($html_message, ['%username%' => $user['username']]);
 		$text = strtr($text_message, ['%username%' => $user['username']]);
+		$target = html_encode($user['username']) . ' &lt;' . html_encode($user['email']) . '&gt;';
 
 		if (App::sendmail($user['email'], $subject, $text, $html)) {
-			$mail_targets[] = __('admin/broadcast.state_sent_success').''.$user['username'].' &lt;'.$user['email'].'&gt;';
+			$mail_targets[] = html_encode(__('admin/broadcast.state_sent_success')) . ' ' . $target;
 			$mail_sent++;
 		} else {
-			$mail_targets[] = __('admin/broadcast.state_sent_error').''.$user['username'].' &lt;'.$user['email'].'&gt; <span style="color:red">'.__('admin/broadcast.state_sent_error_err').'</span>';
+			$mail_targets[] = html_encode(__('admin/broadcast.state_sent_error')) . ' ' . $target . ' <span class="text-danger">' . html_encode(__('admin/broadcast.state_sent_error_err')) . '</span>';
 			$mail_failed++;
 		}
 	}
@@ -90,132 +95,117 @@ foreach($groups as $group) {
 }
 $letters = Db::QueryAll('select u.username, n.* from {newsletter} as n left join {users} as u on u.id = n.author order by date_sent desc');
 
-$editors = [
-	'wysiwyg'  => 'WYSIWYG',
-	'markdown' => 'Markdown+',
+$broadcast_stats = admin_broadcast_build_stats($groups, $letters);
+$broadcast_tab = $mail_id ? 'history' : 'compose';
+$broadcast_nav = [
+	'compose' => ['label' => __('admin/broadcast.tab_compose'), 'icon' => 'fa-paper-plane'],
+	'history' => ['label' => __('admin/broadcast.tab_history'), 'icon' => 'fa-clock-rotate-left'],
 ];
 ?>
 
-<?php if (!$mail_id) { ?>
-	<legend><?= __('admin/broadcast.title') ?></legend>
-	<form method="post">
-	<input type="hidden" name="cycle" value="100">
-	<div class="row">
-		<div class="form-horizontal text-center col-sm-9">
-			<div class="mb-3 row">
-				<label class="col-sm-1 control-label" for="sujet"><?= __('admin/broadcast.form_subject') ?>:</label>
-				<div class="col-sm-12 control">
-					<input id="sujet" name="sujet" class="form-control" type="text" maxlength="32" value="<?= $subject ?>">
-				</div>
-			</div>
-			<div class="mb-3 row">
-				<label class="col-sm-1 control-label" for="id"><?= __('admin/broadcast.form_content') ?> :</label>
-				<div class="col-sm-12 control">
-					<textarea id="editor" name="message" class="form-control" style="height: 350px" placeholder="<?= __('admin/broadcast.form_content_ph') ?>..."><?= html_encode($message ?: nl2br($preset)) ?></textarea>
-				</div>
-			</div>
-			<button class="btn btn-primary" type="submit"><?= __('admin/broadcast.form_send') ?></button>
+<div class="admin-dashboard admin-broadcast">
+	<?= admin_stat_grid($broadcast_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
+
+	<section class="admin-tabs-board admin-broadcast-board">
+		<?= admin_broadcast_nav($broadcast_nav, $broadcast_tab) ?>
+
+		<div class="tab-content admin-tabs-board__body admin-broadcast-board__body admin-tabs-panel">
+			<?= admin_broadcast_tab_open('compose', $broadcast_tab === 'compose') ?>
+			<?php if ($mail_id): ?>
+				<?= admin_broadcast_result($mail_targets) ?>
+			<?php else: ?>
+				<?= admin_broadcast_form($subject, $message, $preset, $groups, $selected_group_ids) ?>
+			<?php endif; ?>
+			<?= admin_broadcast_tab_close() ?>
+
+			<?= admin_broadcast_tab_open('history', $broadcast_tab === 'history') ?>
+			<?= admin_broadcast_history($letters, $gmap, $mail_id) ?>
+			<?= admin_broadcast_tab_close() ?>
 		</div>
-
-		<div class="col-sm-3">
-			<table class="table table-lists" id="rcpt_groups">
-				<thead>
-					<th><?= __('admin/broadcast.table_group') ?></th>
-					<th style="width:35%"><?= __('admin/broadcast.table_members') ?></th>
-					<th style="width:10%"></th>
-				</thead>
-				<tbody>
-				<?php
-					foreach($groups as $group) {
-						echo '<tr style="cursor: pointer"><td>' . html_encode($group['name']) . '</td><td>' . $group['cnt'] . '</td><td><input name="groups[]" type="checkbox" value="' . $group['id'] .'" id="rcpt_group'.$group['id'].'"></td></tr>';
-					}
-				?>
-				</tbody>
-			</table>
-		</div>
-	</div>
-	</form>
-<?php } else { ?>
-
-<a href="#" onclick="$('#mailinglist').toggle()"><?= __('admin/broadcast.title_view') ?></a>
-<div id="mailinglist" hidden><?= implode('<br>', $mail_targets) ?></div>
-
-<?php } ?>
-<div class="text-right">
-	<a id="viewhistory" class="btn btn-info" href="#viewhistory"><?= __('admin/broadcast.btn_view') ?></a>
+	</section>
 </div>
-<hr>
 
-<div class="row" id="history" <?= $mail_id ? '' : 'style="display: none;"' ?>>
-	<div class="col-sm-6">
-		<div class="list-group" style="overflow-y: scroll; height:45vw">
-		<?php
-		foreach($letters as $letter) {
-			$groups = array_intersect_key($gmap, array_flip(explode(',', $letter['groups'])));
-			echo '
-				<a href="#message-'.$letter['id'].'" class="list-group-item">
-					<span class="badge">'.Format::today($letter['date_sent'], 'H:i').'</span>
-					<h4 class="list-group-item-heading">'.html_encode($letter['subject']).'</strong></h4>
-					<p class="list-group-item-text">'.
-						__('admin/broadcast.table_group'). ' : <em>' . html_encode(implode(', ', $groups)).'</em> &nbsp; '.
-						__('admin/broadcast.table_author'). ' : <em>' . html_encode($letter['username']) . '</em> &nbsp; '.
-						__('admin/broadcast.table_sent'). ' : <em>' . (($letter['mail_sent'] - $letter['mail_failed']) . '/' . $letter['mail_sent']) . '</em> '.
-					'</p>
-				</a>';
-		}
-		?>
-		</div>
-	</div>
-	<div class="col-sm-6">
-	<?php
-		foreach($letters as $letter) {
-			echo '<div class="panel panel-default message" id="message-' . $letter['id'] . '" style="display: none;">';
-			echo '<div class="panel-body">';
-			echo markdown2html($letter['message']);
-			echo '</div>';
-			echo '</div>';
-		}
-	?>
-	</div>
-</div>
 <?php include ROOT_DIR . '/includes/Editors/editors.php'; ?>
 <script>
-//<!--
-$('.alert').removeClass('auto-dismiss');
+(function () {
+	$('.alert').removeClass('auto-dismiss');
 
-$('#viewhistory').click(function() {
-	$('#history').toggle();
-});
+	var form = document.getElementById('admin-broadcast-form');
+	var recipientsBox = document.getElementById('admin-broadcast-recipients');
 
-$('#rcpt_groups > tbody tr').click(function() {
-	$(this).find('input').click();
-});
+	function syncRecipientsBox() {
+		if (!recipientsBox) {
+			return;
+		}
 
-$('input').click(function(e) {
-	if ($('#rcpt_groups input:checked').length == 0) {
-		$('#rcpt_groups > tbody tr').show();
-	} else if ($('#rcpt_groups input[value="0"]').prop('checked')) {
-		$('#rcpt_groups > tbody tr').hide();
-		$('#rcpt_groups > tbody tr:first').show();
-	} else {
-		$('#rcpt_groups > tbody tr').show();
-		$('#rcpt_groups > tbody tr:first').hide();
+		var value = recipientsBox.querySelector('.admin-broadcast-selectbox__value');
+		var selected = Array.prototype.slice.call(recipientsBox.querySelectorAll('.admin-broadcast-selectbox__input:checked'));
+		var labels = selected.map(function (input) {
+			return input.closest('.admin-broadcast-selectbox__option').querySelector('.admin-broadcast-selectbox__label').textContent.trim();
+		});
+
+		value.textContent = labels.length ? labels.join(', ') : value.dataset.placeholder;
 	}
-	e.stopPropagation();
-});
-$('#rcpt_groups > tbody tr:first').click();
 
+	if (form && recipientsBox) {
+		var toggle = recipientsBox.querySelector('.admin-broadcast-selectbox__toggle');
+		var menu = recipientsBox.querySelector('.admin-broadcast-selectbox__menu');
 
-$('#history .list-group-item').click(function() {
-	$('#history .list-group-item').removeClass('active');
-	$(this).addClass('active');
-	$('#history .message').hide();
-	$($(this).attr('href')).show();
-	return false;
-});
+		toggle.addEventListener('click', function () {
+			var expanded = toggle.getAttribute('aria-expanded') === 'true';
 
-$('#history [href="#message-<?= $mail_id ?>"]').click();
+			toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+			recipientsBox.classList.toggle('is-open', !expanded);
+		});
 
-load_editor('editor', '<?= App::getConfig('editor') ?>');
-//-->
+		recipientsBox.querySelectorAll('.admin-broadcast-selectbox__input').forEach(function (input) {
+			input.addEventListener('change', function () {
+				if (input.value === '0' && input.checked) {
+					recipientsBox.querySelectorAll('.admin-broadcast-selectbox__input:not([value="0"])').forEach(function (other) {
+						other.checked = false;
+					});
+				} else if (input.checked) {
+					var newsletter = recipientsBox.querySelector('.admin-broadcast-selectbox__input[value="0"]');
+
+					if (newsletter) {
+						newsletter.checked = false;
+					}
+				}
+
+				syncRecipientsBox();
+			});
+		});
+
+		document.addEventListener('click', function (event) {
+			if (!recipientsBox.contains(event.target)) {
+				toggle.setAttribute('aria-expanded', 'false');
+				recipientsBox.classList.remove('is-open');
+			}
+		});
+
+		syncRecipientsBox();
+	}
+
+	var history = document.getElementById('admin-broadcast-history');
+
+	if (history) {
+		history.querySelectorAll('.admin-broadcast-history__item').forEach(function (item) {
+			item.addEventListener('click', function () {
+				history.querySelectorAll('.admin-broadcast-history__item').forEach(function (entry) {
+					entry.classList.remove('active');
+				});
+				history.querySelectorAll('.admin-broadcast-preview').forEach(function (preview) {
+					preview.hidden = true;
+				});
+
+				item.classList.add('active');
+				document.getElementById(item.dataset.target).hidden = false;
+			});
+		});
+	}
+
+	if (document.getElementById('editor')) {
+		load_editor('editor', '<?= App::getConfig('editor') ?>');
+	}
+})();
 </script>

@@ -179,6 +179,7 @@ if ($page['page_id']) {
 
 	<section class="admin-tabs-board admin-page-edit-board">
 		<form method="post" id="admin-page-edit-form" class="admin-page-edit-form">
+			<?= admin_csrf_field() ?>
 			<input type="hidden" id="id" name="id" value="<?= (int) $page['id'] ?>">
 			<input type="hidden" id="page_id" name="page_id" value="<?= (int) $page['page_id'] ?>">
 

@@ -91,6 +91,7 @@ $menu_nav = [
 					<?= admin_menu_empty(__('admin/menu.not_found')) ?>
 				<?php else: ?>
 					<form method="post" id="admin-menu-list-form" class="admin-menu-list-form admin-reports-form" action="#menu-editor">
+						<?= admin_csrf_field() ?>
 						<?= admin_menu_table($tree, $delete_confirm) ?>
 					</form>
 				<?php endif; ?>

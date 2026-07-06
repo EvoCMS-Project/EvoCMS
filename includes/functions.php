@@ -2941,6 +2941,304 @@ function admin_reports_type_meta(string $type): array
 	return $map[$type] ?? ['label' => '', 'icon' => 'fa-flag', 'accent' => 'secondary'];
 }
 
+function admin_forums_empty(string $message, string $icon = 'fa-comments'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+/**
+ * Construit les KPI de l'éditeur de forums.
+ *
+ * @param array<int, array<string, mixed>> $categories
+ * @param array<int, array<string, mixed>> $forums
+ */
+function admin_forums_build_stats(array $categories, array $forums): array
+{
+	$total_posts = 0;
+	$redirects = 0;
+
+	foreach ($forums as $forum) {
+		$total_posts += (int) ($forum['num_posts'] ?? 0);
+
+		if (trim((string) ($forum['redirect'] ?? '')) !== '') {
+			$redirects++;
+		}
+	}
+
+	return [
+		['icon' => 'fa-solid fa-layer-group', 'value' => (string) count($categories), 'label' => __('admin/forums.stats_categories'), 'variant' => 'primary'],
+		['icon' => 'fa-solid fa-comments', 'value' => (string) count($forums), 'label' => __('admin/forums.stats_forums'), 'variant' => 'info'],
+		['icon' => 'fa-solid fa-reply-all', 'value' => (string) $total_posts, 'label' => __('admin/forums.stats_posts'), 'variant' => 'success'],
+		['icon' => 'fa-solid fa-arrow-up-right-from-square', 'value' => (string) $redirects, 'label' => __('admin/forums.stats_redirects'), 'variant' => 'warning'],
+	];
+}
+
+/**
+ * Affiche les actions d'une catégorie de forum.
+ */
+function admin_forums_category_actions(): string
+{
+	$actions = admin_modules_action_button(
+		'move_category',
+		'-1',
+		'fa-solid fa-arrow-up',
+		__('admin/forums.category_move_up'),
+		'btn-outline-secondary'
+	);
+
+	$actions .= admin_modules_action_button(
+		'move_category',
+		'1',
+		'fa-solid fa-arrow-down',
+		__('admin/forums.category_move_down'),
+		'btn-outline-secondary'
+	);
+
+	$actions .= admin_modules_action_button(
+		'edit_category',
+		'1',
+		'fa-solid fa-pencil',
+		__('admin/forums.table_btn_rename'),
+		'btn-outline-primary'
+	);
+
+	$delete_confirm = html_encode(__('admin/forums.delete_confirm'), ENT_QUOTES);
+	$actions .= admin_modules_action_button(
+		'delete_category',
+		'1',
+		'fa-regular fa-trash-can',
+		__('admin/general.btn_delete'),
+		'btn-outline-danger',
+		'onclick="return confirm(\'' . $delete_confirm . '\');"'
+	);
+
+	return admin_modules_table_actions_cell($actions);
+}
+
+/**
+ * @param array<int|string, array<string, mixed>> $groups
+ * @param array<int|string> $group_ids
+ */
+function admin_forums_group_badges(array $group_ids, array $groups): string
+{
+	$html = '';
+
+	foreach ($group_ids as $group_id) {
+		if (!isset($groups[$group_id])) {
+			continue;
+		}
+
+		$group = $groups[$group_id];
+		$html .= '<span class="admin-forums-permission-group group-color-' . html_encode((string) ($group['color'] ?? '')) . '">'
+			. html_encode((string) ($group['name'] ?? ''))
+			. '</span>';
+	}
+
+	return $html !== '' ? $html : '<span class="admin-modules-muted">&mdash;</span>';
+}
+
+/**
+ * @param array<string, mixed> $forum
+ * @param array<int|string, array<string, mixed>> $groups
+ */
+function admin_forums_permission_value(array $forum, array $groups, string $permission): string
+{
+	$key = 'forum.' . $permission;
+	$labels = [
+		'read' => ['empty' => __('admin/forums.table_read_none'), 'all' => __('admin/forums.table_read_all')],
+		'write' => ['empty' => __('admin/forums.table_write_none'), 'all' => __('admin/forums.table_write_all')],
+		'moderation' => ['empty' => __('admin/forums.table_mod_global'), 'all' => __('admin/forums.table_mod_global_all')],
+	];
+
+	if (!isset($forum[$key]) || !is_array($forum[$key])) {
+		return '<strong>' . html_encode($labels[$permission]['empty'] ?? '') . '</strong>';
+	}
+
+	$group_ids = $forum[$key];
+	$all_group_ids = array_map('strval', array_keys($groups));
+	$selected_ids = array_map('strval', $group_ids);
+
+	if (!array_diff($all_group_ids, $selected_ids)) {
+		return '<strong>' . html_encode($labels[$permission]['all'] ?? '') . '</strong>';
+	}
+
+	return admin_forums_group_badges($group_ids, $groups);
+}
+
+/**
+ * @param array<string, mixed> $forum
+ * @param array<int|string, array<string, mixed>> $groups
+ */
+function admin_forums_permissions_cell(array $forum, array $groups): string
+{
+	$rows = [
+		__('admin/forums.table_read') => admin_forums_permission_value($forum, $groups, 'read'),
+		__('admin/forums.table_forum_write_title') => admin_forums_permission_value($forum, $groups, 'write'),
+		__('admin/forums.table_forum_mod_title') => admin_forums_permission_value($forum, $groups, 'moderation'),
+	];
+
+	$html = '<div class="admin-forums-permissions">';
+
+	foreach ($rows as $label => $value) {
+		$html .= '<div class="admin-forums-permissions__row">'
+			. '<span class="admin-forums-permissions__label">' . html_encode($label) . '</span>'
+			. '<span class="admin-forums-permissions__value">' . $value . '</span>'
+			. '</div>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * @param array<string, mixed> $forum
+ */
+function admin_forums_item_cell(array $forum): string
+{
+	$name = trim((string) ($forum['name'] ?? ''));
+	$description = trim(strip_tags(bbcode2html((string) ($forum['description'] ?? ''))));
+	$redirect = trim((string) ($forum['redirect'] ?? ''));
+
+	$html = admin_modules_item_cell($name !== '' ? $name : '#' . (int) ($forum['id'] ?? 0), [
+		'description' => $description,
+		'url' => App::getURL('forums', $forum['id'] ?? 0),
+		'icon' => 'fa-comments',
+		'accent' => $redirect !== '' ? 'warning' : 'primary',
+	]);
+
+	if ($redirect !== '') {
+		$html .= '<span class="admin-forums-redirect">'
+			. '<i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>'
+			. html_encode(__('admin/forums.table_redirect')) . ' : '
+			. '<strong>' . html_encode($redirect) . '</strong>'
+			. '</span>';
+	}
+
+	return '<div class="admin-forums-item">' . $html . '</div>';
+}
+
+/**
+ * @param array<string, mixed> $forum
+ */
+function admin_forums_icon_cell(array $forum): string
+{
+	$icon = trim((string) ($forum['icon'] ?? ''));
+
+	if ($icon === '') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	return '<span class="admin-forums-icon"><i class="' . html_encode($icon) . '" aria-hidden="true"></i></span>';
+}
+
+/**
+ * @param array<string, mixed> $forum
+ */
+function admin_forums_actions_cell(array $forum): string
+{
+	$delete_confirm = html_encode(__('admin/forums.delete_confirm'), ENT_QUOTES);
+	$actions = admin_modules_action_button(
+		'edit_forum',
+		(string) ($forum['id'] ?? ''),
+		'fa-solid fa-pencil',
+		__('admin/forums.table_edit'),
+		'btn-outline-primary'
+	);
+
+	$actions .= admin_modules_action_button(
+		'del_forum',
+		(string) ($forum['id'] ?? ''),
+		'fa-regular fa-trash-can',
+		__('admin/forums.table_delete'),
+		'btn-outline-danger',
+		'onclick="return confirm(\'' . $delete_confirm . '\');"'
+	);
+
+	return admin_modules_table_actions_cell($actions);
+}
+
+/**
+ * @param array<string, mixed> $category
+ * @param array<int|string, array<string, mixed>> $groups
+ */
+function admin_forums_table(array $category, array $groups): string
+{
+	$forums = $category['forums'] ?? [];
+
+	if (!$forums) {
+		return admin_panel_empty(__('admin/forums.table_empty_category'), 'fa-comment-dots', [
+			'class' => 'admin-forums-category__empty',
+			'icon_style' => 'fas',
+		]);
+	}
+
+	$columns = [
+		__('admin/forums.table_name'),
+		__('admin/forums.table_ico'),
+		__('admin/forums.table_posts'),
+		__('admin/forums.table_access'),
+		__('admin/forums.table_actions'),
+	];
+
+	$html = '<div class="table-responsive admin-modules-table-scroll">';
+	$html .= '<table class="table admin-modules-table admin-forums-table sortable mb-0" id="reorder_forums[' . (int) ($category['id'] ?? 0) . ']">';
+	$html .= '<colgroup><col class="admin-forums-col-item"><col class="admin-forums-col-icon"><col class="admin-forums-col-posts"><col class="admin-forums-col-permissions"><col class="admin-forums-col-actions"></colgroup>';
+	$html .= '<thead><tr>';
+
+	foreach ($columns as $column) {
+		$html .= '<th scope="col">' . html_encode($column) . '</th>';
+	}
+
+	$html .= '</tr></thead><tbody>';
+
+	foreach ($forums as $forum) {
+		$html .= '<tr id="' . (int) ($forum['id'] ?? 0) . '">';
+		$html .= '<td data-label="' . html_encode($columns[0]) . '">' . admin_forums_item_cell($forum) . '</td>';
+		$html .= '<td data-label="' . html_encode($columns[1]) . '">' . admin_forums_icon_cell($forum) . '</td>';
+		$html .= '<td data-label="' . html_encode($columns[2]) . '"><span class="admin-modules-chip">' . (int) ($forum['num_posts'] ?? 0) . '</span></td>';
+		$html .= '<td data-label="' . html_encode($columns[3]) . '">' . admin_forums_permissions_cell($forum, $groups) . '</td>';
+		$html .= '<td data-label="' . html_encode($columns[4]) . '">' . admin_forums_actions_cell($forum) . '</td>';
+		$html .= '</tr>';
+	}
+
+	return $html . '</tbody></table></div>';
+}
+
+/**
+ * @param array<int, array<string, mixed>> $categories
+ * @param array<int|string, array<string, mixed>> $groups
+ */
+function admin_forums_categories_list(array $categories, array $groups): string
+{
+	if (!$categories) {
+		return admin_forums_empty(__('admin/forums.empty_categories'), 'fa-layer-group');
+	}
+
+	$html = '<div class="admin-forums-categories">';
+
+	foreach ($categories as $category) {
+		$id = (int) ($category['id'] ?? 0);
+		$name = (string) ($category['name'] ?? '');
+		$count = count($category['forums'] ?? []);
+
+		$html .= '<form method="post" class="admin-forums-category">';
+		$html .= admin_csrf_field();
+		$html .= '<input type="hidden" name="edit_mode" value="1">';
+		$html .= '<input type="hidden" name="cat_id" value="' . $id . '">';
+		$html .= '<div class="admin-forums-category__header">';
+		$html .= '<div class="admin-modules-table__caption">';
+		$html .= '<span class="admin-modules-table__caption-icon admin-modules-table__caption-icon--primary"><i class="fa-solid fa-layer-group" aria-hidden="true"></i></span>';
+		$html .= '<span class="admin-modules-table__caption-text">' . html_encode($name) . '</span>';
+		$html .= '</div>';
+		$html .= '<span class="admin-modules-table__count">' . $count . '</span>';
+		$html .= admin_forums_category_actions();
+		$html .= '</div>';
+		$html .= admin_forums_table($category, $groups);
+		$html .= '</form>';
+	}
+
+	return $html . '</div>';
+}
+
 function admin_reports_type_label(string $type): string
 {
 	$meta = admin_reports_type_meta($type);
@@ -3153,6 +3451,214 @@ function admin_reports_table(array $reports, array $options = []): string
 }
 
 /**
+ * Construit les KPI de la page newsletter.
+ *
+ * @param array<int, array{id?: int|string, cnt?: int|string}> $groups
+ * @param array<int, array<string, mixed>> $letters
+ */
+function admin_broadcast_build_stats(array $groups, array $letters): array
+{
+	$newsletter_members = 0;
+	$total_sent = 0;
+	$total_failed = 0;
+
+	foreach ($groups as $group) {
+		if ((int) ($group['id'] ?? -1) === 0) {
+			$newsletter_members = (int) ($group['cnt'] ?? 0);
+			break;
+		}
+	}
+
+	foreach ($letters as $letter) {
+		$total_sent += (int) ($letter['mail_sent'] ?? 0);
+		$total_failed += (int) ($letter['mail_failed'] ?? 0);
+	}
+
+	return [
+		[
+			'icon' => 'fa-solid fa-envelope-open-text',
+			'value' => (string) count($letters),
+			'label' => __('admin/broadcast.stats_campaigns'),
+			'variant' => 'primary',
+		],
+		[
+			'icon' => 'fa-solid fa-user-check',
+			'value' => (string) $newsletter_members,
+			'label' => __('admin/broadcast.stats_newsletter'),
+			'variant' => 'info',
+		],
+		[
+			'icon' => 'fa-solid fa-paper-plane',
+			'value' => (string) $total_sent,
+			'label' => __('admin/broadcast.stats_sent'),
+			'variant' => 'success',
+		],
+		[
+			'icon' => 'fa-solid fa-triangle-exclamation',
+			'value' => (string) $total_failed,
+			'label' => __('admin/broadcast.stats_failed'),
+			'variant' => $total_failed ? 'danger' : 'secondary',
+		],
+	];
+}
+
+function admin_broadcast_nav(array $tabs, string $active): string
+{
+	return admin_tabs($tabs, [
+		'active' => $active,
+		'type' => 'bootstrap',
+		'aria_label' => __('admin/broadcast.title'),
+	]);
+}
+
+function admin_broadcast_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-broadcast-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_broadcast_tab_close(): string
+{
+	return '</div>';
+}
+
+/**
+ * Affiche le formulaire d'envoi de newsletter.
+ *
+ * @param array<int, array{id: int|string, name: string, cnt: int|string}> $groups
+ * @param array<int, int> $selected_group_ids
+ */
+function admin_broadcast_form(string $subject, string $message, string $preset, array $groups, array $selected_group_ids): string
+{
+	if (!IS_POST && !$selected_group_ids) {
+		$selected_group_ids = [0];
+	}
+
+	$subject_input = '<input id="sujet" name="sujet" class="form-control" type="text" maxlength="32" value="' . html_encode($subject) . '">';
+	$message_input = '<textarea id="editor" name="message" class="form-control admin-broadcast-form__editor" placeholder="' . html_encode(__('admin/broadcast.form_content_ph')) . '...">' . html_encode($message ?: nl2br($preset)) . '</textarea>';
+
+	$html = '<form method="post" id="admin-broadcast-form" class="admin-broadcast-form">';
+	$html .= admin_csrf_field();
+	$html .= '<input type="hidden" name="cycle" value="100">';
+	$html .= '<div class="admin-broadcast-compose">';
+	$html .= '<div class="admin-broadcast-compose__main">';
+	$html .= '<div class="admin-form-fields-grid admin-broadcast-form__fields">';
+	$html .= admin_form_field_stack(__('admin/broadcast.form_subject'), $subject_input, ['for' => 'sujet']);
+	$html .= '</div></div>';
+	$html .= '<aside class="admin-broadcast-compose__sidebar">';
+	$html .= '<div class="admin-broadcast-recipients">';
+	$html .= '<div class="admin-broadcast-recipients__header">';
+	$html .= '<span class="admin-broadcast-recipients__title">' . html_encode(__('admin/broadcast.table_group')) . '</span>';
+	$html .= '<span class="admin-broadcast-recipients__hint">' . html_encode(__('admin/broadcast.recipients_hint')) . '</span>';
+	$html .= '</div>';
+	$selected_labels = [];
+
+	foreach ($groups as $group) {
+		$id = (int) ($group['id'] ?? 0);
+
+		if (in_array($id, $selected_group_ids, true)) {
+			$selected_labels[] = (string) ($group['name'] ?? '');
+		}
+	}
+
+	$html .= '<div class="admin-broadcast-selectbox" id="admin-broadcast-recipients">';
+	$html .= '<button class="admin-broadcast-selectbox__toggle" type="button" aria-expanded="false">';
+	$html .= '<span class="admin-broadcast-selectbox__value" data-placeholder="' . html_encode(__('admin/broadcast.recipients_placeholder')) . '">';
+	$html .= html_encode($selected_labels ? implode(', ', $selected_labels) : __('admin/broadcast.recipients_placeholder'));
+	$html .= '</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>';
+	$html .= '<div class="admin-broadcast-selectbox__menu">';
+
+	foreach ($groups as $group) {
+		$id = (int) ($group['id'] ?? 0);
+		$count = (int) ($group['cnt'] ?? 0);
+		$checked = in_array($id, $selected_group_ids, true);
+
+		$html .= '<label class="admin-broadcast-selectbox__option">';
+		$html .= '<input class="admin-broadcast-selectbox__input" name="groups[]" type="checkbox" value="' . $id . '"' . ($checked ? ' checked' : '') . '>';
+		$html .= '<span class="admin-broadcast-selectbox__checkbox" aria-hidden="true"></span>';
+		$html .= '<span class="admin-broadcast-selectbox__label">' . html_encode((string) ($group['name'] ?? '')) . '</span>';
+		$html .= '<span class="admin-broadcast-selectbox__count">' . $count . '</span>';
+		$html .= '</label>';
+	}
+
+	$html .= '</div></div></div></aside>';
+	$html .= '<div class="admin-broadcast-compose__content">';
+	$html .= '<div class="admin-form-fields-grid admin-broadcast-form__fields">';
+	$html .= admin_form_field_stack(__('admin/broadcast.form_content'), $message_input, ['for' => 'editor']);
+	$html .= '<div class="admin-form-fields-grid__actions"><button class="btn btn-primary" type="submit"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> ' . html_encode(__('admin/broadcast.form_send')) . '</button></div>';
+	$html .= '</div></div>';
+	$html .= '</div></form>';
+
+	return $html;
+}
+
+/**
+ * Affiche le résultat d'un envoi de newsletter.
+ *
+ * @param array<int, string> $mail_targets
+ */
+function admin_broadcast_result(array $mail_targets): string
+{
+	if (!$mail_targets) {
+		return '';
+	}
+
+	return '<div class="admin-broadcast-result">'
+		. '<button class="btn btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#admin-broadcast-targets" aria-expanded="false" aria-controls="admin-broadcast-targets">'
+		. '<i class="fa-solid fa-list-check" aria-hidden="true"></i> ' . html_encode(__('admin/broadcast.title_view'))
+		. '</button>'
+		. '<div class="collapse admin-broadcast-result__targets" id="admin-broadcast-targets">'
+		. implode('<br>', $mail_targets)
+		. '</div></div>';
+}
+
+/**
+ * Affiche l'historique des newsletters envoyées.
+ *
+ * @param array<int, array<string, mixed>> $letters
+ * @param array<int|string, string> $group_map
+ */
+function admin_broadcast_history(array $letters, array $group_map, int $active_id = 0): string
+{
+	$html = '<div class="admin-broadcast-history-shell">';
+
+	if (!$letters) {
+		return $html . admin_settings_empty(__('admin/broadcast.empty_history'), 'fa-envelope-open-text') . '</div>';
+	}
+
+	$active_id = $active_id ?: (int) ($letters[0]['id'] ?? 0);
+	$html .= '<div id="admin-broadcast-history" class="admin-broadcast-history">';
+	$html .= '<div class="admin-broadcast-history__list" role="list">';
+
+	foreach ($letters as $letter) {
+		$id = (int) ($letter['id'] ?? 0);
+		$letter_groups = array_intersect_key($group_map, array_flip(explode(',', (string) ($letter['groups'] ?? ''))));
+		$sent = (int) ($letter['mail_sent'] ?? 0);
+		$failed = (int) ($letter['mail_failed'] ?? 0);
+		$total = $sent + $failed;
+
+		$html .= '<button type="button" class="admin-broadcast-history__item' . ($id === $active_id ? ' active' : '') . '" data-target="admin-broadcast-message-' . $id . '">';
+		$html .= '<span class="admin-broadcast-history__time">' . html_encode(Format::today((int) ($letter['date_sent'] ?? 0), 'H:i')) . '</span>';
+		$html .= '<span class="admin-broadcast-history__subject">' . html_encode((string) ($letter['subject'] ?? '')) . '</span>';
+		$html .= '<span class="admin-broadcast-history__meta">';
+		$html .= html_encode(__('admin/broadcast.table_group')) . ' : <em>' . html_encode(implode(', ', $letter_groups)) . '</em>';
+		$html .= ' &middot; ' . html_encode(__('admin/broadcast.table_author')) . ' : <em>' . html_encode((string) ($letter['username'] ?? '')) . '</em>';
+		$html .= ' &middot; ' . html_encode(__('admin/broadcast.table_sent')) . ' : <em>' . $sent . '/' . $total . '</em>';
+		$html .= '</span></button>';
+	}
+
+	$html .= '</div><div class="admin-broadcast-history__preview">';
+
+	foreach ($letters as $letter) {
+		$id = (int) ($letter['id'] ?? 0);
+		$html .= '<article class="admin-broadcast-preview" id="admin-broadcast-message-' . $id . '"' . ($id === $active_id ? '' : ' hidden') . '>';
+		$html .= '<div class="admin-broadcast-preview__body">' . markdown2html((string) ($letter['message'] ?? '')) . '</div>';
+		$html .= '</article>';
+	}
+
+	return $html . '</div></div></div>';
+}
+
+/**
  * @return array<int, string>
  */
 function admin_comments_columns(): array
@@ -3161,7 +3667,7 @@ function admin_comments_columns(): array
 		__('admin/comments.table_msg'),
 		__('admin/comments.table_user'),
 		__('admin/comments.table_state'),
-		'&nbsp;',
+		__('admin/comments.table_actions'),
 	];
 }
 
@@ -3172,7 +3678,15 @@ function admin_comments_empty(string $message, string $icon = 'fa-comment'): str
 
 function admin_comments_message_cell(array $comment): string
 {
-	return '<div class="admin-comments-message">' . html_encode((string) ($comment['message'] ?? '')) . '</div>';
+	$message = trim(strip_tags((string) ($comment['message'] ?? '')));
+	$page_id = (int) ($comment['page_id'] ?? 0);
+
+	return admin_modules_item_cell($message !== '' ? Format::truncate($message, 140) : __('admin/comments.message_empty'), [
+		'description' => $page_id > 0 ? __('admin/comments.page_ref') . ' #' . $page_id : '',
+		'url' => $page_id > 0 ? App::getURL($page_id, [], '#msg' . (int) ($comment['id'] ?? 0)) : '',
+		'icon' => 'fa-comment',
+		'accent' => 'info',
+	]);
 }
 
 function admin_comments_user_cell(array $comment): string
@@ -3183,7 +3697,26 @@ function admin_comments_user_cell(array $comment): string
 		$user = trim((string) ($comment['poster_name'] ?? ''));
 	}
 
-	return '<span class="admin-comments-user">' . html_encode($user !== '' ? $user : '—') . '</span>';
+	$details = [];
+
+	if (!empty($comment['date'])) {
+		$details[] = Format::today((int) $comment['date'], true);
+	} elseif (!empty($comment['posted'])) {
+		$details[] = Format::today((int) $comment['posted'], true);
+	}
+
+	if (!empty($comment['user_ip'])) {
+		$details[] = (string) $comment['user_ip'];
+	}
+
+	$html = '<div class="admin-comments-user">';
+	$html .= '<span class="admin-comments-user__name">' . html_encode($user !== '' ? $user : __('admin/comments.user_anonymous')) . '</span>';
+
+	if ($details) {
+		$html .= '<span class="admin-comments-user__meta">' . html_encode(implode(' · ', $details)) . '</span>';
+	}
+
+	return $html . '</div>';
 }
 
 function admin_comments_state_cell(array $comment, array $status_labels): string
@@ -3200,7 +3733,10 @@ function admin_comments_state_cell(array $comment, array $status_labels): string
 		$variant = 'success';
 	}
 
-	return '<span class="badge text-bg-' . html_encode($variant) . ' admin-comments-state">' . html_encode($label) . '</span>';
+	return '<span class="admin-modules-status admin-comments-state admin-modules-status--is-' . html_encode($variant) . '">'
+		. '<span class="admin-modules-status__dot" aria-hidden="true"></span>'
+		. html_encode($label)
+		. '</span>';
 }
 
 function admin_comments_actions_cell(array $comment): string
@@ -3254,6 +3790,36 @@ function admin_comments_actions_cell(array $comment): string
 	}
 
 	return admin_modules_table_actions_cell($actions);
+}
+
+/**
+ * @param array<int, string> $status_labels
+ * @param array<int, int|string> $selected_states
+ */
+function admin_comments_filters(array $status_labels, array $selected_states): string
+{
+	if (!$status_labels) {
+		return '';
+	}
+
+	$html = '<div class="admin-reports-filters admin-comments-filters">';
+	$html .= '<span class="admin-reports-filters__label">' . html_encode(__('admin/comments.filter_label')) . '</span>';
+	$html .= '<div class="admin-reports-filters__list">';
+
+	foreach ($status_labels as $state => $label) {
+		$state = (int) $state;
+		$checked = in_array($state, array_map('intval', $selected_states), true);
+		$icon = $state === 0 ? 'fa-clock' : ($state === 2 ? 'fa-ban' : 'fa-check');
+
+		$html .= '<label class="admin-reports-filter-chip' . ($checked ? ' admin-reports-filter-chip--active' : '') . '">';
+		$html .= '<input type="checkbox" name="states[]" value="' . $state . '"' . ($checked ? ' checked' : '') . ' class="admin-reports-filter-chip__input admin-comments-filter-chip__input">';
+		$html .= '<span class="admin-reports-filter-chip__content">';
+		$html .= '<i class="fa-solid ' . html_encode($icon) . '" aria-hidden="true"></i>';
+		$html .= html_encode($label);
+		$html .= '</span></label>';
+	}
+
+	return $html . '</div></div>';
 }
 
 /**
@@ -3335,12 +3901,8 @@ function admin_comments_build_stats(int $total, int $pending, int $censored): ar
  * @param array<int, array<string, mixed>> $comments
  * @param array<int, string> $status_labels
  */
-function admin_comments_board(array $comments, int $total, int $page_num, int $page_id, array $status_labels): string
+function admin_comments_board(array $comments, int $total, int $page_num, int $page_id, array $status_labels, array $selected_states = [], bool $show_filters = false): string
 {
-	if (!$comments) {
-		return admin_comments_empty(__('admin/comments.no_comment'));
-	}
-
 	$form_action = '?page=comments';
 
 	if ($page_id > 0) {
@@ -3348,6 +3910,12 @@ function admin_comments_board(array $comments, int $total, int $page_num, int $p
 	}
 
 	$html = '<form method="post" action="' . html_encode($form_action) . '" class="admin-comments-form">';
+	$html .= admin_csrf_field();
+
+	if ($show_filters) {
+		$html .= admin_comments_filters($status_labels, $selected_states);
+	}
+
 	$html .= admin_comments_table($comments, $status_labels);
 
 	if ($total > 25) {
