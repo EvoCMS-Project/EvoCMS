@@ -256,8 +256,8 @@ foreach($categories as $id => $c) {
 
 			echo '</small></td>';
 			echo '<td style="width:90px;">'.
-					'<button name="edit_forum" value="'.$forum['id'].'" class="btn btn-sm btn-primary" title="'. __('admin/forums.table_edit') .'"><i class="fa fa-pencil-alt"></i></button> '.
-					'<button name="del_forum" value="'.$forum['id'].'" class="btn btn-sm btn-danger" title="'. __('admin/forums.table_delete') .'" onclick="return confirm(\'Sur?\');"><i class="far fa-trash-alt"></i></button>'.
+					'<button name="edit_forum" value="'.$forum['id'].'" class="btn btn-sm btn-primary" title="'. __('admin/forums.table_edit') .'"><i class="fa-solid fa-pencil"></i></button> '.
+					'<button name="del_forum" value="'.$forum['id'].'" class="btn btn-sm btn-danger" title="'. __('admin/forums.table_delete') .'" onclick="return confirm(\'Sur?\');"><i class="fa-regular fa-trash-can"></i></button>'.
 				'</td>';
 
 		echo '</tr>';

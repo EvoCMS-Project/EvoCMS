@@ -1,10 +1,10 @@
 <div id="viewcontrols" class="btn-group float-end" role="group">
 	<a style="margin-top: 4px;" href="<?=App::getURL('users', ['view' => $display, 'team' => !$team]) ?>"><?= $team ? __('users.title') : __('users.team') ?></a>
 	<a class="btn btn-outline-secondary" aria-label="Left Align" title="<?= __('users.grid') ?>" href="<?=App::getURL('users', ['view' => 'grid', 'team' => $team]) ?>">
-	  <i class="fa fa-th fa-lg"></i>
+	  <i class="fa-solid fa-table-cells fa-lg"></i>
 	</a>
 	<a class="btn btn-outline-secondary" aria-label="Left Align" title="<?= __('users.list') ?>" href="<?=App::getURL('users', ['view' => 'list', 'team' => $team]) ?>">
-	  <i class="fa fa-list fa-lg"></i>
+	  <i class="fa-solid fa-list fa-lg"></i>
 	</a>
 </div>
 <legend><?= $team ? __('users.team') : __('users.title') ?></legend>
@@ -46,7 +46,7 @@
 			}
 
 			echo '<td class="text-end">
-				  	<a href="'.App::getURL('mail', ['id' => $user['username']]).'" title="' . __('users.send_message') . '" class="btn btn-primary btn-sm"><i class="fa fa-pencil-alt"></i></a>
+				  	<a href="'.App::getURL('mail', ['id' => $user['username']]).'" title="' . __('users.send_message') . '" class="btn btn-primary btn-sm"><i class="fa-solid fa-pencil"></i></a>
 				  </td></tr>';
 		}
 
@@ -65,7 +65,7 @@
 			}
 
 			echo '</p>';
-			echo $user['cmt'] . ' <i title="' . __('users.comments') . '" class="fa fa-comment"></i> ' . $user['fnd'] . ' <i title="' . __('users.friends') . '" class="fa fa-user"></i>';
+			echo $user['cmt'] . ' <i title="' . __('users.comments') . '" class="fa-solid fa-comment"></i> ' . $user['fnd'] . ' <i title="' . __('users.friends') . '" class="fa-solid fa-user"></i>';
 
 			echo '</div>';
 		}

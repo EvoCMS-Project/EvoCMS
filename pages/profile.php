@@ -295,7 +295,7 @@ if (IS_POST && !IS_AJAX) {
 
 		<?php foreach($socialproviders as $network => [$name, $icon]) { ?>
 		<div class="mb-3 row">
-			<label class="col-sm-4 col-form-label text-end" for="<?= $network ?>" title="<?= $name ?>"><i class="fab <?= $icon ?> fa-2x"></i></label>
+			<label class="col-sm-4 col-form-label text-end" for="<?= $network ?>" title="<?= $name ?>"><i class="fa-brands <?= $icon ?> fa-2x"></i></label>
 			<div class="col-sm-6">
 				<input class="form-control" id="<?= $network ?>" name="social[<?= $network ?>]" type="text" value="<?= html_encode($user_info->social[$network] ?? '')?>" placeholder="<?= __('profile.edit_social', ['%social%' => $name]) ?>">
 			</div>

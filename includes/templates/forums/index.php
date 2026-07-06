@@ -16,13 +16,13 @@ if (empty($forums)) {
 			else
 				echo '<tr>';
 
-			echo '<td class="forum-icon"><i class="fa-lg '.$forum['icon'].'"></i></td>';
+			echo '<td class="forum-icon"><i class="fa-solid fa-lg '.$forum['icon'].'"></i></td>';
 
 			if ($forum['redirect']) {
 				echo '<td class="forum-name"><em>'. __('forum.forums_table_link').' </em>';
 				echo '<a href="'.$forum['redirect'].'">' . html_encode($forum['name']) . '</a>';
 				if ($can_redirect) {
-					echo ' <a href="'.App::getURL('forums', ['id'=>$forum['id'], 'force'=>'1']).'" title="'. __('forum.forums_table_skip_redirect').'"><i class="fa fa-eye"></i></a>';
+					echo ' <a href="'.App::getURL('forums', ['id'=>$forum['id'], 'force'=>'1']).'" title="'. __('forum.forums_table_skip_redirect').'"><i class="fa-solid fa-eye"></i></a>';
 				}
 				echo '<br><span class="forum-description">' . bbcode2html($forum['description']) . '</span></td>';
 				echo '<td class="num-posts">-</td>';

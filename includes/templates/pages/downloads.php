@@ -14,7 +14,7 @@ if (empty($files)) {
 		echo '<td>';
 		echo ' <label class="caption"><strong>'.html_encode($file->caption).'</strong></label>';
 		echo ' <div class="description">'.(markdown2html($file->description) ?: __('downloads.no_description')).'</div>';
-		echo ' <div class="link"><strong><a href="'.$file->getLink().'" title="'. __('downloads.file_title') .'"><i class="fa fa-download"></i> '.html_encode($file->name).'</a></strong> <small class="dimmed">('.Format::size($file->size).', '.$file->hits.' hits)</small></div>';
+		echo ' <div class="link"><strong><a href="'.$file->getLink().'" title="'. __('downloads.file_title') .'"><i class="fa-solid fa-download"></i> '.html_encode($file->name).'</a></strong> <small class="dimmed">('.Format::size($file->size).', '.$file->hits.' hits)</small></div>';
 		echo '</td>';
 	echo '</tr>';
 } ?>

@@ -96,10 +96,10 @@ $servers_stats = admin_servers_build_stats($servers, $server_types);
 $delete_confirm = html_encode(__('admin/servers.delete_confirm'));
 
 $servers_nav = [
-	'list' => ['label' => __('admin/servers.tab_list'), 'icon' => 'fa-list'],
+	'list' => ['label' => __('admin/servers.tab_list'), 'icon' => 'fa-solid fa-list'],
 	'form' => [
 		'label' => $cur_serv['id'] ? __('admin/servers.tab_edit') : __('admin/servers.tab_form'),
-		'icon' => $cur_serv['id'] ? 'fa-pencil-alt' : 'fa-plus-circle',
+		'icon' => $cur_serv['id'] ? 'fa-solid fa-pencil' : 'fa-solid fa-circle-plus',
 	],
 ];
 ?>

@@ -52,7 +52,7 @@
                         });
                         editor.addCommand('Upload', {
                             exec: function (editor) {
-                                $.fancybox.open({ type: 'ajax', href: '?p=gallery&view=grid' });
+                                $.fancybox.open({ type: 'ajax', href: '?p=gallery&embed=1' });
                                 //ajaxupload();
                             },
                             canUndo: false

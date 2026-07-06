@@ -562,36 +562,36 @@ $backup_type_labels = [
 ];
 
 $backup_nav = [
-    'create' => ['label' => __('admin/system.backup_tab_create'), 'icon' => 'fa-plus-circle'],
-    'schedule' => ['label' => __('admin/system.backup_tab_schedule'), 'icon' => 'fa-clock'],
+    'create' => ['label' => __('admin/system.backup_tab_create'), 'icon' => 'fa-solid fa-circle-plus'],
+    'schedule' => ['label' => __('admin/system.backup_tab_schedule'), 'icon' => 'fa-solid fa-clock'],
     'list' => [
         'label' => __('admin/system.backup_tab_list'),
-        'icon' => 'fa-archive',
+        'icon' => 'fa-solid fa-box-archive',
         'badge' => '<span class="badge bg-secondary ms-1">' . count($backups) . '</span>',
     ],
 ];
 
 $backup_stats = [
     [
-        'icon' => 'fa fa-archive',
+        'icon' => 'fa-solid fa-archive',
         'value' => (string) count($backups),
         'label' => __('admin/system.backup_stats_count'),
         'variant' => 'primary',
     ],
     [
-        'icon' => 'fa fa-hdd',
+        'icon' => 'fa-solid fa-hard-drive',
         'value' => formatBytes($total_size),
         'label' => __('admin/system.backup_stats_used'),
         'variant' => 'warning',
     ],
     [
-        'icon' => 'fa fa-database',
+        'icon' => 'fa-solid fa-database',
         'value' => formatBytes($free_space),
         'label' => __('admin/system.backup_stats_free'),
         'variant' => 'success',
     ],
     [
-        'icon' => 'fa fa-clock',
+        'icon' => 'fa-solid fa-clock',
         'value' => $last_backup ? date('d/m/Y H:i', strtotime($last_backup)) : '&mdash;',
         'label' => __('admin/system.backup_stats_last'),
         'variant' => 'info',
@@ -610,7 +610,7 @@ $backup_stats = [
                 <?php if ($schedule_config): ?>
                     <?= admin_status_bar(
                         'success',
-                        '<i class="fa fa-check-circle me-1"></i> ' . __('admin/system.backup_auto_enabled'),
+                        '<i class="fa-solid fa-circle-check me-1"></i> ' . __('admin/system.backup_auto_enabled'),
                         __('admin/system.backup_auto_type') . ': ' . ($backup_type_labels[$schedule_config['type']] ?? ucfirst($schedule_config['type']))
                             . ' &middot; ' . __('admin/system.backup_auto_frequency') . ': ' . ucfirst($schedule_config['frequency'])
                             . ' &middot; ' . __('admin/system.backup_auto_time') . ': ' . $schedule_config['time']
@@ -621,19 +621,19 @@ $backup_stats = [
                         [
                             'action' => 'toggle_auto_backup',
                             'label' => __('admin/system.backup_auto_btn_disable'),
-                            'icon' => 'fa fa-pause',
+                            'icon' => 'fa-solid fa-pause',
                             'variant' => 'danger',
                         ]
                     ) ?>
                 <?php else: ?>
                     <?= admin_status_bar(
                         'info',
-                        '<i class="fa fa-info-circle me-1"></i> ' . __('admin/system.backup_auto_disabled'),
+                        '<i class="fa-solid fa-circle-info me-1"></i> ' . __('admin/system.backup_auto_disabled'),
                         '',
                         [
                             'action' => 'toggle_auto_backup',
                             'label' => __('admin/system.backup_auto_btn_enable'),
-                            'icon' => 'fa fa-play',
+                            'icon' => 'fa-solid fa-play',
                             'variant' => 'primary',
                         ]
                     ) ?>
@@ -680,22 +680,22 @@ $backup_stats = [
 
                                 <div class="mt-4">
                                     <button type="submit" class="btn btn-primary btn-sm">
-                                        <i class="fa fa-save me-1"></i><?= __('admin/system.backup_btn_create') ?>
+                                        <i class="fa-solid fa-floppy-disk me-1"></i><?= __('admin/system.backup_btn_create') ?>
                                     </button>
                                 </div>
                             </form>
                             <?php
-                            echo admin_settings_section(__('admin/system.backup_create_title'), ob_get_clean(), ['icon' => 'fa-plus-circle']);
+                            echo admin_settings_section(__('admin/system.backup_create_title'), ob_get_clean(), ['icon' => 'fa-solid fa-circle-plus']);
                             ?>
                         </div>
                         <div class="col-lg-4">
                             <?php ob_start(); ?>
                             <div class="d-grid gap-2">
                                 <a href="?page=backup&type=web" class="btn btn-outline-secondary btn-sm">
-                                    <i class="fa fa-folder me-1"></i><?= __('admin/system.backup_btn_files_only') ?>
+                                    <i class="fa-solid fa-folder me-1"></i><?= __('admin/system.backup_btn_files_only') ?>
                                 </a>
                                 <a href="?page=backup&type=sql" class="btn btn-outline-secondary btn-sm">
-                                    <i class="fa fa-database me-1"></i><?= __('admin/system.backup_btn_db_only') ?>
+                                    <i class="fa-solid fa-database me-1"></i><?= __('admin/system.backup_btn_db_only') ?>
                                 </a>
                             </div>
                             <?php
@@ -703,7 +703,7 @@ $backup_stats = [
                                 __('admin/system.backup_quick_download'),
                                 ob_get_clean(),
                                 [
-                                    'icon' => 'fa-bolt',
+                                    'icon' => 'fa-solid fa-bolt',
                                     'description' => __('admin/system.backup_quick_download_help'),
                                 ]
                             );
@@ -749,12 +749,12 @@ $backup_stats = [
 
                                 <div class="mt-4">
                                     <button type="submit" class="btn btn-secondary btn-sm">
-                                        <i class="fa fa-calendar me-1"></i><?= __('admin/system.backup_auto_btn_schedule') ?>
+                                        <i class="fa-solid fa-calendar-days me-1"></i><?= __('admin/system.backup_auto_btn_schedule') ?>
                                     </button>
                                 </div>
                             </form>
                             <?php
-                            echo admin_settings_section(__('admin/system.backup_auto_title'), ob_get_clean(), ['icon' => 'fa-clock']);
+                            echo admin_settings_section(__('admin/system.backup_auto_title'), ob_get_clean(), ['icon' => 'fa-solid fa-clock']);
                             ?>
                         </div>
                     </div>
@@ -764,7 +764,7 @@ $backup_stats = [
                     <div class="admin-modules-table__toolbar">
                         <div class="admin-modules-table__caption">
                             <span class="admin-modules-table__caption-icon admin-modules-table__caption-icon--primary">
-                                <i class="fa fa-archive" aria-hidden="true"></i>
+                                <i class="fa-solid fa-box-archive" aria-hidden="true"></i>
                             </span>
                             <span class="admin-modules-table__caption-text"><?= __('admin/system.backup_list_title') ?></span>
                         </div>
@@ -772,17 +772,17 @@ $backup_stats = [
                             <span class="admin-modules-table__count"><?= count($backups) ?></span>
                             <div class="btn-group">
                                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#cleanupModal">
-                                    <i class="fa fa-broom me-1"></i><?= __('admin/system.backup_btn_cleanup') ?>
+                                    <i class="fa-solid fa-broom me-1"></i><?= __('admin/system.backup_btn_cleanup') ?>
                                 </button>
                                 <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteSelected()" id="deleteSelectedBtn" disabled>
-                                    <i class="fa fa-trash me-1"></i><?= __('admin/system.backup_btn_delete_selected') ?>
+                                    <i class="fa-solid fa-trash-can me-1"></i><?= __('admin/system.backup_btn_delete_selected') ?>
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     <?php if (empty($backups)): ?>
-                        <?= admin_settings_empty(__('admin/system.backup_empty_text'), 'fa-archive') ?>
+                        <?= admin_settings_empty(__('admin/system.backup_empty_text'), 'fa-solid fa-box-archive') ?>
                     <?php else: ?>
                         <div class="table-responsive admin-modules-table-scroll">
                             <table id="backups-table" class="table admin-modules-table admin-backup-table mb-0">
@@ -817,13 +817,13 @@ $backup_stats = [
                                             <td>
                                                 <div class="btn-group btn-group-sm">
                                                     <a href="?page=backup&action=download&file=<?= urlencode($backup['filename']) ?>" class="btn btn-outline-secondary" title="<?= __('admin/system.backup_btn_download') ?>">
-                                                        <i class="fa fa-download"></i>
+                                                        <i class="fa-solid fa-download"></i>
                                                     </a>
                                                     <button type="button" class="btn btn-outline-secondary" onclick="showRestoreModal(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/system.backup_btn_restore') ?>">
-                                                        <i class="fa fa-upload"></i>
+                                                        <i class="fa-solid fa-upload"></i>
                                                     </button>
                                                     <button type="button" class="btn btn-outline-danger" onclick="deleteBackup(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/general.btn_delete') ?>">
-                                                        <i class="fa fa-trash"></i>
+                                                        <i class="fa-solid fa-trash-can"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -865,7 +865,7 @@ $backup_stats = [
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><?= __('messages/form.cancel') ?></button>
                     <button type="submit" class="btn btn-warning btn-sm">
-                        <i class="fa fa-upload me-1"></i><?= __('admin/system.backup_btn_restore') ?>
+                        <i class="fa-solid fa-upload me-1"></i><?= __('admin/system.backup_btn_restore') ?>
                     </button>
                 </div>
             </form>
@@ -894,7 +894,7 @@ $backup_stats = [
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal"><?= __('messages/form.cancel') ?></button>
                     <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="fa fa-broom me-1"></i><?= __('admin/system.backup_btn_cleanup_confirm') ?>
+                        <i class="fa-solid fa-broom me-1"></i><?= __('admin/system.backup_btn_cleanup_confirm') ?>
                     </button>
                 </div>
             </form>

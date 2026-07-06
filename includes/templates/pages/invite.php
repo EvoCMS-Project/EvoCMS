@@ -9,7 +9,7 @@
 				style="font-size: initial"
 				name="renew"
 				onclick="return confirm('<?=addslashes(__('raf.renew_confirm')) ?>');"
-				value="1"><i class="fa fa-sync"></i> <?= __('raf.renew') ?></button>
+				value="1"><i class="fa-solid fa-arrows-rotate"></i> <?= __('raf.renew') ?></button>
 		</div>
 	</div>
 </form>

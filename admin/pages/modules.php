@@ -135,10 +135,10 @@ $modules_nav = [
 ];
 
 $modules_stats = [
-    ['icon' => 'fa fa-box', 'value' => (string) count($modules), 'label' => __('admin/modules.stats_installed'), 'variant' => 'primary'],
-    ['icon' => 'fa fa-check-circle', 'value' => (string) count(App::getModules()), 'label' => __('admin/modules.stats_active'), 'variant' => 'success'],
-    ['icon' => 'fa fa-palette', 'value' => (string) count($installed_themes), 'label' => __('admin/modules.stats_themes'), 'variant' => 'info'],
-    ['icon' => 'fa fa-puzzle-piece', 'value' => (string) count($installed_plugins), 'label' => __('admin/modules.stats_modules'), 'variant' => 'warning'],
+    ['icon' => 'fa-solid fa-box', 'value' => (string) count($modules), 'label' => __('admin/modules.stats_installed'), 'variant' => 'primary'],
+    ['icon' => 'fa-solid fa-circle-check', 'value' => (string) count(App::getModules()), 'label' => __('admin/modules.stats_active'), 'variant' => 'success'],
+    ['icon' => 'fa-solid fa-palette', 'value' => (string) count($installed_themes), 'label' => __('admin/modules.stats_themes'), 'variant' => 'info'],
+    ['icon' => 'fa-solid fa-puzzle-piece', 'value' => (string) count($installed_plugins), 'label' => __('admin/modules.stats_modules'), 'variant' => 'warning'],
 ];
 ?>
 
@@ -167,7 +167,7 @@ $modules_stats = [
                 <?= admin_modules_catalog_notice($catalog_unavailable) ?>
                 <?= admin_modules_catalog_board($gui, [
                     'title' => __('admin/modules.tab_themes'),
-                    'icon' => 'fa fa-palette',
+                    'icon' => 'fa-solid fa-palette',
                     'accent' => 'info',
                     'empty' => __('admin/modules.empty_catalog'),
                 ]) ?>
@@ -177,7 +177,7 @@ $modules_stats = [
                 <?= admin_modules_catalog_notice($catalog_unavailable) ?>
                 <?= admin_modules_catalog_board($mod, [
                     'title' => __('admin/modules.tab_modules'),
-                    'icon' => 'fa fa-puzzle-piece',
+                    'icon' => 'fa-solid fa-puzzle-piece',
                     'accent' => 'primary',
                     'empty' => __('admin/modules.empty_catalog'),
                 ]) ?>

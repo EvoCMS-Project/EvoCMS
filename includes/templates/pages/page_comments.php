@@ -12,16 +12,16 @@
 						<div class="float-right date text-right">
 							<small><a href="#msg<?=$comment['id']?>" style="color:inherit"><?=Format::today($comment['posted'], 'H:i')?></a><br></small>
 							<div class="flag btn-group">
-								<button class="btn btn-sm btn-danger" onclick="return report(<?=$comment['id']?>);" title="<?= __('blog.comment_report') ?>"><i class="fa fa-flag"></i></button>
+								<button class="btn btn-sm btn-danger" onclick="return report(<?=$comment['id']?>);" title="<?= __('blog.comment_report') ?>"><i class="fa-solid fa-flag"></i></button>
 							<?php if (has_permission('mod.comment_censure')) { ?>
 								<?php if ($comment['state'] == 2) {?>
-									<button class="btn btn-sm btn-success" name="com_accept" onclick="return confirm('Sur?');" value="<?=$comment['id']?>" title="<?= __('blog.comment_accept') ?>"><i class="fa fa-check"></i></button>
+									<button class="btn btn-sm btn-success" name="com_accept" onclick="return confirm('Sur?');" value="<?=$comment['id']?>" title="<?= __('blog.comment_accept') ?>"><i class="fa-solid fa-check"></i></button>
 								<?php } else { ?>
-									<button class="btn btn-sm btn-warning" name="com_censure" onclick="return confirm('Sur?');" value="<?=$comment['id']?>" title="<?= __('blog.comment_censor') ?>"><i class="fa fa-ban"></i></button>
+									<button class="btn btn-sm btn-warning" name="com_censure" onclick="return confirm('Sur?');" value="<?=$comment['id']?>" title="<?= __('blog.comment_censor') ?>"><i class="fa-solid fa-ban"></i></button>
 								<?php } ?>
 							<?php } ?>
 							<?php if (has_permission('mod.comment_delete')) { ?>
-								<button class="btn btn-sm btn-danger" name="com_delete" onclick="return confirm('Sur?');" value="<?=$comment['id']?>" title="<?= __('blog.comment_delete') ?>"><i class="fa fa-times"></i></button>
+								<button class="btn btn-sm btn-danger" name="com_delete" onclick="return confirm('Sur?');" value="<?=$comment['id']?>" title="<?= __('blog.comment_delete') ?>"><i class="fa-solid fa-xmark"></i></button>
 							<?php } ?>
 							</div>
 						</div>
@@ -58,9 +58,9 @@
 		<?php } else { ?>
 			<legend><a href="<?=App::getURL('login', ['redir' => $page['page_id']])?>"><?= __('blog.comment_login') ?> : </legend>
 			<div class="input-group">
-				<div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-user"></i></span><span class="visually-hidden"><?= __('blog.comment_name') ?></span></div>
+				<div class="input-group-prepend"><span class="input-group-text"><i class="fa-solid fa-user"></i></span><span class="visually-hidden"><?= __('blog.comment_name') ?></span></div>
 				<input type="text" name="name" class="form-control" placeholder="Votre nom (optionnel)">
-				<div class="input-group-prepend"><span class="input-group-text"><i class="fa fa-envelope"></i></span><span class="visually-hidden"><?= __('blog.comment_email') ?></span></div>
+				<div class="input-group-prepend"><span class="input-group-text"><i class="fa-solid fa-envelope"></i></span><span class="visually-hidden"><?= __('blog.comment_email') ?></span></div>
 				<input type="text" name="email" class="form-control" placeholder="Votre email (optionnel)">
 			</div>
 			<br>

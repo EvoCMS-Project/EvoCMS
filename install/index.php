@@ -569,11 +569,11 @@ switch($cur_step) {
 
 				Db::Insert('menu', [
 					['parent' => 0, 'priority' => 0, 'name' => 'Navigation', 'icon' => '', 'link' => ''],
-					['parent' => 1, 'priority' => 0, 'name' => 'Accueil', 'icon' => 'fas fa-home', 'link' => 'index'],
-					['parent' => 1, 'priority' => 0, 'name' => 'Forums', 'icon' => 'fas fa-list-ul', 'link' => 'forums'],
-					['parent' => 1, 'priority' => 0, 'name' => 'Membres', 'icon' => 'fas fa-users', 'link' => 'users'],
-					['parent' => 1, 'priority' => 0, 'name' => 'Téléchargements', 'icon' => 'fas fa-download', 'link' => 'downloads'],
-					['parent' => 1, 'priority' => 0, 'name' => 'Contact', 'icon' => 'fas fa-envelope', 'link' => 'contact'],
+					['parent' => 1, 'priority' => 0, 'name' => 'Accueil', 'icon' => 'fa-solid fa-house', 'link' => 'index'],
+					['parent' => 1, 'priority' => 0, 'name' => 'Forums', 'icon' => 'fa-solid fa-list-ul', 'link' => 'forums'],
+					['parent' => 1, 'priority' => 0, 'name' => 'Membres', 'icon' => 'fa-solid fa-users', 'link' => 'users'],
+					['parent' => 1, 'priority' => 0, 'name' => 'Téléchargements', 'icon' => 'fa-solid fa-download', 'link' => 'downloads'],
+					['parent' => 1, 'priority' => 0, 'name' => 'Contact', 'icon' => 'fa-solid fa-envelope', 'link' => 'contact'],
 				]);
 
 				Db::Insert('groups', [

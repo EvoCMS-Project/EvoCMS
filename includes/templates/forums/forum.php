@@ -31,30 +31,30 @@ if ($topics) {
 			$icons = 0;
 			if ($topic['redirect']) {
 				$icons++;
-				echo'<i class="fas fa-location-arrow secondary" title="'. __('forum.table_btn_redirect') .'"></i> ';
+				echo'<i class="fa-solid fa-location-arrow secondary" title="'. __('forum.table_btn_redirect') .'"></i> ';
 			}
 			if ($topic['closed']) {
 				$icons++;
-				echo '<i class="fas fa-lock secondary" title="'. __('forum.table_btn_closed') .'"></i> ';
+				echo '<i class="fa-solid fa-lock secondary" title="'. __('forum.table_btn_closed') .'"></i> ';
 			}
 			if ($topic['sticky']) {
 				$icons++;
-				echo'<i class="fas fa-thumbtack secondary" title="'. __('forum.table_btn_sticky') .'"></i> ';
+				echo'<i class="fa-solid fa-thumbtack secondary" title="'. __('forum.table_btn_sticky') .'"></i> ';
 			}
 
-			if (!$icons) echo '<i class="fa fa-angle-right primary"></i> ';
+			if (!$icons) echo '<i class="fa-solid fa-angle-right primary"></i> ';
 		echo '</td>';
 
 		echo '<td>';
 
 		if ($topic['redirect'] && $can_redirect) {
-			echo '<a href="'.App::getURL('forums', ['pid'=>$topic['first_post_id'],'force'=>1]).'" title="'. __('forum.table_ign_redirect') .'"><i class="fa fa-eye" style="color:red;font-size:100%;"></i></a> ';
+			echo '<a href="'.App::getURL('forums', ['pid'=>$topic['first_post_id'],'force'=>1]).'" title="'. __('forum.table_ign_redirect') .'"><i class="fa-solid fa-eye" style="color:red;font-size:100%;"></i></a> ';
 		}
 
 		if ($topic['sticky'] && ($forum_moderator || has_permission('mod.forum_topic_stick'))) {
 			echo '<div style="display:inline-block"><form method="post"><div class="btn-group" style="display:inline-block" title="'. __('forum.edit_order_title') .'">'.
-					'<button class="btn btn-sm" name="sticky" value="+1"><i class="fa fa-arrow-up"></i></button>'.
-					'<button class="btn btn-sm" name="sticky" value="-1"><i class="fa fa-arrow-down"></i></button>'.
+					'<button class="btn btn-sm" name="sticky" value="+1"><i class="fa-solid fa-arrow-up"></i></button>'.
+					'<button class="btn btn-sm" name="sticky" value="-1"><i class="fa-solid fa-arrow-down"></i></button>'.
 					'<input type="hidden" name="topic" value="' . $topic['id'] . '">'.
 					'</div></form></div>';
 		}

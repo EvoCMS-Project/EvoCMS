@@ -28,8 +28,8 @@
 							'<td class="text-start"><a href="' . App::getURL('user', $friend['id']) . '">' . $friend['username'] . '</a></td>'.
 							'<td style=";color:' . $friend['gcolor'] . '">' . $friend['gname'] . '</td>'.
 							'<td class="text-end">'.
-								"<button name='accept_request' value='{$id}' title='". __('friend.btn_accept') ."' class='btn btn-success btn-sm'><i class='fa fa-check'></i></button> ".
-								"<button name='del_request' value='{$friend['id']}' title='". __('friend.btn_denied') ."' class='btn btn-danger btn-sm'><i class='fa fa-times'></i></button ".
+								"<button name='accept_request' value='{$id}' title='". __('friend.btn_accept') ."' class='btn btn-success btn-sm'><i class='fa-solid fa-check'></i></button> ".
+								"<button name='del_request' value='{$friend['id']}' title='". __('friend.btn_denied') ."' class='btn btn-danger btn-sm'><i class='fa-solid fa-xmark'></i></button ".
 							'</td>'.
 						'</tr>';
 				}
@@ -50,8 +50,8 @@
 							'<td class="text-start"><a href="' . App::getURL('user', $friend['id']) . '">' . $friend['username'] . '</a></td>'.
 							'<td style="color:' . $friend['gcolor'] . '">' . $friend['gname'] . '</td>'.
 							'<td class="text-end">'.
-								'<a href="' . App::getURL('mail', $friend['username']) . '" title="'. __('friend.list_btn_msg') .'" class="btn btn-primary btn-sm"><i class="fa fa-pencil-alt"></i></a> '.
-								'<button name="del_request" value="' . $friend["id"] .'" title="'. __('friend.list_btn_remove') .'" class="btn btn-danger btn-sm"><i class="far fa-trash-alt"></i></button>'.
+								'<a href="' . App::getURL('mail', $friend['username']) . '" title="'. __('friend.list_btn_msg') .'" class="btn btn-primary btn-sm"><i class="fa-solid fa-pencil"></i></a> '.
+								'<button name="del_request" value="' . $friend["id"] .'" title="'. __('friend.list_btn_remove') .'" class="btn btn-danger btn-sm"><i class="fa-regular fa-trash-can"></i></button>'.
 							'</td>'.
 						'</tr>';
 				}
@@ -73,7 +73,7 @@
 							'<td style="min-width: 25%;"><a href="' . App::getURL('user', $friend['id']) . '">' . $friend['username'] . '</a></td>'.
 							'<td style="min-width:25%;color:' . $friend['gcolor'] . '">' . $friend['gname'] . '</td>'.
 							'<td class="text-end">'.
-								'<button name="del_request" value="' . $friend['id'] . '" title="'. __('friend.reqout_btn_denied') .'" class="btn btn-danger btn-sm"><i class="fa fa-times"></i></button>'.
+								'<button name="del_request" value="' . $friend['id'] . '" title="'. __('friend.reqout_btn_denied') .'" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i></button>'.
 							'</td>'.
 						'</tr>';
 				}

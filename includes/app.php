@@ -159,7 +159,9 @@ class App
 			self::trigger('app_init_done', []);
 		}
 		catch (Throwable $e) {
-			die("<strong>Erreur fatale: </strong>{$e->getMessage()}");
+			http_response_code(500);
+			include ROOT_DIR . '/includes/templates/error.php';
+			die;
 		}
 	}
 
@@ -592,7 +594,7 @@ class App
 	 */
 	public static function renderTemplate(string $template, array $variables = [], bool $buffer_output = false)
 	{
-		$search_paths = [self::getTheme()->location . "/templates/$template", "includes/templates/$template"];
+		$search_paths = [self::getThemeLocation() . "templates/$template", "includes/templates/$template"];
 		$variables += self::$variables;
 
 		extract($variables);
@@ -620,7 +622,7 @@ class App
 	public static function getAsset(string $filename, bool $local_path = false)
 	{
 		$paths = preg_replace('#[/\\\\]+#', '/', [
-			self::getTheme()->location . "/$filename", "assets/$filename", $filename
+			self::getThemeLocation() . $filename, "assets/$filename", $filename
 		]);
 		foreach($paths as $path) {
 		 	$full_path = ROOT_DIR . '/' . $path;
@@ -759,7 +761,7 @@ class App
 		if ($theme && ($plugin = self::getModule($theme)) && in_array('theme', $plugin->exports)) {
 			self::$theme = $plugin;
 		} else {
-			self::$theme = \Evo\EvoInfo::fromFile(ROOT_DIR . '/assets/theme.json');
+			self::$theme = \Evo\EvoInfo::fromFile(ROOT_DIR . '/assets/theme.json') ?: new \Evo\EvoInfo(['name' => 'Default Theme']);
 			self::$theme->location = 'assets/';
 		}
 	}
@@ -771,6 +773,17 @@ class App
 	public static function getTheme()
 	{
 		return self::$theme;
+	}
+
+
+	/**
+	 * Theme asset path prefix, with a safe fallback when init did not run yet.
+	 */
+	public static function getThemeLocation(): string
+	{
+		$theme = self::getTheme();
+
+		return ($theme && !empty($theme->location)) ? $theme->location : 'assets/';
 	}
 
 
@@ -859,6 +872,32 @@ class App
 	{
 		$message = '<div>'.$message.'</div>';
 		self::$notice = $append ? self::$notice . $message : $message;
+	}
+
+
+	/**
+	 * Render flash alerts for AJAX responses or partial updates.
+	 */
+	public static function renderAlertsHtml(): string
+	{
+		$html = '';
+
+		if (self::$success !== '') {
+			$html .= '<div class="alert alert-success alert-dismissable alert-dismissible auto-dismiss" role="alert">'
+				. alert_close_button() . self::$success . '</div>';
+		}
+
+		if (self::$warning !== '') {
+			$html .= '<div class="alert alert-danger alert-dismissable alert-dismissible" role="alert">'
+				. alert_close_button() . self::$warning . '</div>';
+		}
+
+		if (self::$notice !== '') {
+			$html .= '<div class="alert alert-warning alert-dismissable alert-dismissible" role="alert">'
+				. alert_close_button() . self::$notice . '</div>';
+		}
+
+		return $html;
 	}
 
 

@@ -17,10 +17,10 @@
 		<div class="links">
 			<?php foreach(Evo\Social::getProviders(false) as $social => [$name, $icon, $regex]): ?>
 				<?php if ($link = App::getConfig("social.$social")): ?>
-				<a href="<?= html_encode($link) ?>"><i class="social-link social-<?= $social ?> fab <?= $icon ?>" title="<?= $name ?>"></i></a>
+				<a href="<?= html_encode($link) ?>"><i class="fa-brands social-link social-<?= $social ?> <?= $icon ?>" title="<?= $name ?>"></i></a>
 				<?php endif; ?>
 			<?php endforeach; ?>
-			<a href="<?= App::getURL('feed')?>"><i class="social-link social-rss fas fa-rss" title="<?= __("main.rss") ?>"></i></a>
+			<a href="<?= App::getURL('feed')?>"><i class="fa-solid social-link social-rss fa-rss" title="<?= __("main.rss") ?>"></i></a>
 		</div>
 	</div>
 	<div class="clearfix"></div>
@@ -35,8 +35,8 @@
 			<?php } else { ?>
 				<div class="text-center">
 					<div class="btn-group">
-						<a href="<?= App::getURL('login') ?>" class="btn btn-primary"><i class="fa fa-user"></i> <?= __('main.login') ?></a>
-						<a href="<?= App::getURL('register') ?>" class="btn btn-success"><i class="fa fa-pencil-alt"></i> <?= __('main.join') ?></a>
+						<a href="<?= App::getURL('login') ?>" class="btn btn-primary"><i class="fa-solid fa-user"></i> <?= __('main.login') ?></a>
+						<a href="<?= App::getURL('register') ?>" class="btn btn-success"><i class="fa-solid fa-pencil"></i> <?= __('main.join') ?></a>
 					</div>
 				</div>
 			<?php } ?>

@@ -153,10 +153,10 @@ const GROUP_ROLES = [
 
 
 const MESSAGE_TYPES = [
-	MSG_NORMAL       => ['label' => 'message', 'icon.new' => 'fa-envelope', 'icon.viewed' => 'fa-folder-open', 'class' => ''],
-	MSG_NOTIFICATION => ['label' => 'notification', 'icon.new' => 'fa-bell', 'icon.viewed' => 'fa-bell', 'class' => 'info'],
-	MSG_IMPORTANT    => ['label' => 'message important', 'icon.new' => 'fa-exclamation', 'icon.viewed' => 'fa-folder-open-o', 'class' => 'warning'],
-	MSG_WARNING      => ['label' => 'avertissement','icon.new' => 'fa-flag', 'icon.viewed' => 'fa-flag', 'class' => 'danger'],
+	MSG_NORMAL       => ['label' => 'message', 'icon.new' => 'fa-solid fa-envelope', 'icon.viewed' => 'fa-solid fa-folder-open', 'class' => ''],
+	MSG_NOTIFICATION => ['label' => 'notification', 'icon.new' => 'fa-solid fa-bell', 'icon.viewed' => 'fa-solid fa-bell', 'class' => 'info'],
+	MSG_IMPORTANT    => ['label' => 'message important', 'icon.new' => 'fa-solid fa-exclamation', 'icon.viewed' => 'fa-regular fa-folder-open', 'class' => 'warning'],
+	MSG_WARNING      => ['label' => 'avertissement','icon.new' => 'fa-solid fa-flag', 'icon.viewed' => 'fa-solid fa-flag', 'class' => 'danger'],
 ];
 
 

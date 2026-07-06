@@ -59,26 +59,26 @@ $ptotal = ceil(Db::Get('select count(*) from {users} as a left join {groups} as 
 					echo '<td>';
 
 					if (has_permission('admin.edit_uprofile'))
-						echo '<a href="?page=user_view&id='.$member['id'].'" class="btn btn-primary btn-sm" title="'. __('admin/users.result_edit') .'"><i class="fa fa-pencil-alt"></i></a> ';
+						echo '<a href="?page=user_view&id='.$member['id'].'" class="btn btn-primary btn-sm" title="'. __('admin/users.result_edit') .'"><i class="fa-solid fa-pencil"></i></a> ';
 
 					if (has_permission('admin.del_member'))
-						echo '<a href="?page=user_delete&id='.$member['id'].'" class="btn btn-danger btn-sm" title="'. __('admin/users.result_delete') .'"><i class="far fa-trash-alt"></i></a> ';
+						echo '<a href="?page=user_delete&id='.$member['id'].'" class="btn btn-danger btn-sm" title="'. __('admin/users.result_delete') .'"><i class="fa-regular fa-trash-can"></i></a> ';
 
 					if (has_permission('mod.ban_member')) {
 						if ($member['ban_reason'] !== null)
-							echo '<a href="?page=banlist&filter='.$member['username'].','.$member['last_ip'].','.$member['email'].'" class="btn btn-info btn-sm" title="'. __('admin/users.result_unban') .'" fancybox-title="'. __('admin/users.result_unban') .'"><i class="fa fa-unlock"></i></a> ';
+							echo '<a href="?page=security&filter='.$member['username'].','.$member['last_ip'].','.$member['email'].'" class="btn btn-info btn-sm" title="'. __('admin/users.result_unban') .'" fancybox-title="'. __('admin/users.result_unban') .'"><i class="fa-solid fa-unlock"></i></a> ';
 						else
-							echo '<a href="?page=banlist&hide&username='.$member['username'].'&ip='.$member['last_ip'].'&email='.$member['email'].'" class="btn btn-info btn-sm" title="'. __('admin/users.result_ban') .'" fancybox-title="'. __('admin/users.result_ban') .'"><i class="fa fa-lock"></i></a> ';
+							echo '<a href="?page=security&tab=add&username='.$member['username'].'&ip='.$member['last_ip'].'&email='.$member['email'].'" class="btn btn-info btn-sm" title="'. __('admin/users.result_ban') .'" fancybox-title="'. __('admin/users.result_ban') .'"><i class="fa-solid fa-lock"></i></a> ';
 					}
 
 					if (App::groupHasPermission($member['group_id'], 'admin.backup'))
-						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_sadm') .'"><i class="fa fa-star"> </i></button> ';
+						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_sadm') .'"><i class="fa-solid fa-star"> </i></button> ';
 
 					elseif (App::groupHasPermission($member['group_id'], 'administrator'))
-						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_adm') .'"><i class="fa fa-star-half-o"> </i></button> ';
+						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_adm') .'"><i class="fa-solid fa-star-half-stroke"> </i></button> ';
 
 					elseif (App::groupHasPermission($member['group_id'], 'moderator'))
-						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_mod') .'"><i class="fa fa-star-o"></i></button> ';
+						echo '<button class="btn btn-warning btn-sm" title="'. __('admin/users.result_btn_title_mod') .'"><i class="fa-regular fa-star"></i></button> ';
 
 					echo '</td>';
 				echo '</tr>';

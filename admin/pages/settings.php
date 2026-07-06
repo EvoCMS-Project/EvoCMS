@@ -104,8 +104,8 @@ foreach(Evo\Avatars::getProviders(false) as $key => $provider) {
 }
 
 foreach(Evo\Social::getProviders(false) as $key => [$name, $icon, $regex]) {
-	$providers_settings["providers.social.$key"] = ['type' => 'bool', 'label' => "$name <i class='fab $icon'></i>", 'default' => true];
-	$social_settings["social.$key"] = ['type' => 'text', 'label' => "$name <i class='fab $icon'></i>", 'attributes' => ['placeholder' => 'URL']];
+	$providers_settings["providers.social.$key"] = ['type' => 'bool', 'label' => "$name <i class='fa-brands $icon'></i>", 'default' => true];
+	$social_settings["social.$key"] = ['type' => 'text', 'label' => "$name <i class='fa-brands $icon'></i>", 'attributes' => ['placeholder' => 'URL']];
 }
 
 $theme_settings = array(
@@ -179,10 +179,10 @@ if (IS_POST) {
 }
 
 $settings_tabs = [
-	'config' => ['label' => __('admin/general.tab_site'), 'icon' => 'fa-globe'],
-	'advanced' => ['label' => __('admin/general.tab_advanced'), 'icon' => 'fa-sliders-h'],
-	'social' => ['label' => __('admin/general.tab_social'), 'icon' => 'fa-share-alt'],
-	'theme' => ['label' => __('admin/general.tab_theme'), 'icon' => 'fa-palette'],
+	'config' => ['label' => __('admin/general.tab_site'), 'icon' => 'fa-solid fa-earth-americas'],
+	'advanced' => ['label' => __('admin/general.tab_advanced'), 'icon' => 'fa-solid fa-sliders'],
+	'social' => ['label' => __('admin/general.tab_social'), 'icon' => 'fa-solid fa-share-nodes'],
+	'theme' => ['label' => __('admin/general.tab_theme'), 'icon' => 'fa-solid fa-palette'],
 ];
 ?>
 
@@ -194,27 +194,27 @@ $settings_tabs = [
 		<?= admin_settings_grouped_form('config', [
 			[
 				'title' => __('admin/settings.section_identity'),
-				'icon' => 'fa-id-card',
+				'icon' => 'fa-solid fa-id-card',
 				'settings' => admin_settings_pick($site_settings, ['name', 'subtitle', 'description']),
 			],
 			[
 				'title' => __('admin/settings.section_access'),
-				'icon' => 'fa-link',
+				'icon' => 'fa-solid fa-link',
 				'settings' => admin_settings_pick($site_settings, ['url', 'url_https', 'url_rewriting', 'frontpage']),
 			],
 			[
 				'title' => __('admin/settings.section_locale'),
-				'icon' => 'fa-language',
+				'icon' => 'fa-solid fa-language',
 				'settings' => admin_settings_pick($site_settings, ['language', 'timezone']),
 			],
 			[
 				'title' => __('admin/settings.section_members'),
-				'icon' => 'fa-users',
+				'icon' => 'fa-solid fa-users',
 				'settings' => admin_settings_pick($site_settings, ['open_registration', 'default_user_group', 'articles_per_page', 'editor']),
 			],
 			[
 				'title' => __('admin/settings.section_contact'),
-				'icon' => 'fa-envelope',
+				'icon' => 'fa-solid fa-envelope',
 				'settings' => admin_settings_pick($site_settings, ['email']),
 			],
 		]) ?>
@@ -224,18 +224,18 @@ $settings_tabs = [
 		<?= admin_settings_grouped_form('advanced', [
 			[
 				'title' => __('admin/general.adv_cfg_upl'),
-				'icon' => 'fa-upload',
+				'icon' => 'fa-solid fa-upload',
 				'settings' => $upload_settings,
 			],
 			[
 				'title' => __('admin/general.adv_cfg_email'),
-				'icon' => 'fa-at',
+				'icon' => 'fa-solid fa-at',
 				'settings' => $mail_settings,
 				'extra' => admin_settings_test_mail(),
 			],
 			[
 				'title' => __('admin/general.adv_cfg_profil'),
-				'icon' => 'fa-user-circle',
+				'icon' => 'fa-solid fa-circle-user',
 				'settings' => $providers_settings,
 				'empty' => __('admin/settings.providers_empty'),
 			],
@@ -247,12 +247,12 @@ $settings_tabs = [
 			<?= admin_settings_grouped_form('social', [
 				[
 					'title' => __('admin/general.tab_social'),
-					'icon' => 'fa-share-alt',
+					'icon' => 'fa-solid fa-share-nodes',
 					'settings' => $social_settings,
 				],
 			]) ?>
 		<?php else: ?>
-			<?= admin_settings_empty(__('admin/settings.social_empty'), 'fa-share-alt') ?>
+			<?= admin_settings_empty(__('admin/settings.social_empty'), 'fa-solid fa-share-nodes') ?>
 		<?php endif; ?>
 	<?= admin_settings_tab_close() ?>
 

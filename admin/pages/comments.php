@@ -12,57 +12,54 @@ if (App::POST('com_delete') && change_comment_state(App::POST('com_delete'), -1)
 	App::setSuccess(__('admin/comments.alert_deleted'));
 }
 
-$where_coms = App::GET('page_id') ? 'where page_id = '.(int)App::GET('page_id') : '';
-$start = abs(App::REQ('pn', 1) - 1) * 25;
-$total = Db::Get('select count(*) from {comments} ' . $where_coms);
+$page_id = (int) App::GET('page_id', 0);
+$embedded = $page_id > 0 || IS_AJAX;
+$page_num = max(1, (int) App::GET('pn', 1));
+$start = ($page_num - 1) * 25;
+$where_coms = $page_id ? 'where page_id = ' . $page_id : '';
+$total = (int) Db::Get('select count(*) from {comments} ' . $where_coms);
 
-$comment_status = [0 => 'Ok',  1=> 'Ok', 2 => __('admin/comments.state_censored')];
-$comments = Db::QueryAll('SELECT coms.*, acc.username FROM {comments} AS coms LEFT JOIN {users} AS acc ON coms.user_id = acc.id '.$where_coms.' ORDER BY state ASC, id DESC LIMIT '.$start.', 25');
+$status_labels = [
+	0 => __('admin/comments.state_pending'),
+	1 => __('admin/comments.state_ok'),
+	2 => __('admin/comments.state_censored'),
+];
 
-if (!$comments) {
-	return print '<div id="content"><div style="text-align: center;" class="alert alert-warning">'. __('admin/comments.no_comment') .'</div></div>';
+$comments = Db::QueryAll(
+	'SELECT coms.*, acc.username FROM {comments} AS coms LEFT JOIN {users} AS acc ON coms.user_id = acc.id '
+	. $where_coms . ' ORDER BY state ASC, id DESC LIMIT ' . $start . ', 25'
+) ?: [];
+
+$seen = [];
+
+foreach ($comments as $comment) {
+	if ((int) ($comment['state'] ?? 1) !== 1) {
+		$seen[] = (int) $comment['id'];
+	}
 }
-?>
-<legend><?= __('admin/comments.title') ?></legend>
-<div id="content">
-	<form method="post" action="?page=comments">
-		<table class="table">
-			<thead>
-				<tr>
-					<th><?= __('admin/comments.table_msg') ?></th>
-					<th><?= __('admin/comments.table_user') ?></th>
-					<th><?= __('admin/comments.table_state') ?></th>
-					<th style="width:110px;"> </th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php
-					foreach($comments as $comment) {
-						if ($comment['state'] != 1) {
-							$seen[] = $comment['id'];
-						}
-						echo '<tr>';
-							echo '<td>' . html_encode($comment['message']) . '</td>';
-							echo '<td style="white-space:nowrap">'.($comment['username'] ?: $comment['poster_name']) . '</td>';
-							echo '<td>' . $comment_status[$comment['state']] . '</td>';
-							echo '<td>';
-								if ($comment['state'] == 2)
-									echo '<button class="btn btn-sm btn-success" name="com_accept" value="'.$comment['id'].'" title="'.__('admin/comments.btn_accept').'"><i class="fa fa-check"></i></button> ';
-								if (has_permission('mod.comment_censure') && $comment['state'] != 2)
-									echo '<button name="com_censure" value="'.$comment['id'].'" title="'.__('admin/comments.btn_censor').'" class="btn btn-sm btn-danger"><i class="fa fa-ban"></i></button> ';
-								if (has_permission('mod.comment_delete'))
-									echo '<button name="com_delete" value="'.$comment['id'].'" title="'.__('admin/comments.btn_delete').'" class="btn btn-sm btn-danger"><i class="far fa-trash-alt"></i></button> ';
-								echo '<a href="'.App::getURL($comment['page_id'], [], '#msg'.$comment['id']).'" title="'.__('admin/comments.btn_view').'" class="btn btn-sm btn-primary"><i class="fa fa-eye"></i></a>';
-							echo '</td>';
-						echo '</tr>';
-					}
 
-					if (isset($seen)) {
-						Db::Exec('UPDATE {comments} SET state = 1 WHERE STATE = 0 AND id IN('.implode(',', $seen).')');
-					}
-				?>
-			</tbody>
-		</table>
-	</form>
-<?= Widgets::pager(ceil($total / 25), App::GET('pn') ?: 1, 10, null, App::GET('prevpn')); ?>
+if ($seen) {
+	Db::Exec('UPDATE {comments} SET state = 1 WHERE state = 0 AND id IN(' . implode(',', $seen) . ')');
+}
+
+$board = admin_comments_board($comments, $total, $page_num, $page_id, $status_labels);
+
+if ($embedded) {
+	echo '<div id="content">' . $board . '</div>';
+	return;
+}
+
+$pending = (int) Db::Get('select count(*) from {comments} where state = 0');
+$censored = (int) Db::Get('select count(*) from {comments} where state = 2');
+$comments_stats = admin_comments_build_stats($total, $pending, $censored);
+?>
+
+<div class="admin-dashboard admin-comments">
+	<?= admin_stat_grid($comments_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
+
+	<section class="admin-tabs-board admin-comments-board">
+		<div class="admin-tabs-board__body admin-comments-board__body admin-tabs-panel">
+			<?= $board ?>
+		</div>
+	</section>
 </div>

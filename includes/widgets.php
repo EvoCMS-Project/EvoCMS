@@ -46,7 +46,7 @@ class Widgets
 				$r .= '<a href="' . html_encode(strpos($menu['link'], '/') !== false ? $menu['link'] : App::getURL($menu['link'])) . '">';
 
 			if ($menu['icon'])
-				$r .= '<i class="fa-fw ' . $menu['icon'] . '"></i> ';
+				$r .= '<i class="fa-solid fa-fw ' . $menu['icon'] . '"></i> ';
 
 			$r .= html_encode($menu['name']);
 
@@ -539,7 +539,7 @@ class Widgets
 		$buffer .= '<label class="' . $label_class . '" for="' . $form . '-' . md5((string) key($subfields)) . '">' . $props['label'] . ' ';
 
 		if (!empty($props['help'])) {
-			$buffer .= ' <i class="fa fa-question-circle" title="' . html_encode($props['help']) . '"></i>';
+			$buffer .= ' <i class="fa-solid fa-circle-question" title="' . html_encode($props['help']) . '"></i>';
 		}
 
 		$buffer .= '</label>';
@@ -658,7 +658,7 @@ class Widgets
 		$buffer .= '<div class="admin-form-image__preview' . ($hasImage ? '' : ' admin-form-image__preview--empty') . '">';
 		$buffer .= '<img id="' . html_encode($previewId) . '" class="admin-form-image__img" src="' . html_encode($previewSrc) . '" alt="' . html_encode($previewPlaceholder) . '">';
 		$buffer .= '<div class="admin-form-image__placeholder" aria-hidden="true">';
-		$buffer .= '<i class="fas fa-image admin-form-image__placeholder-icon"></i>';
+		$buffer .= '<i class="fa-solid fa-image admin-form-image__placeholder-icon"></i>';
 		$buffer .= '<span class="admin-form-image__placeholder-text">' . html_encode($previewPlaceholder) . '</span>';
 		$buffer .= '</div></div>';
 
@@ -666,7 +666,7 @@ class Widgets
 		$buffer .= self::select(null, $files, $value, true, $selectAttributes);
 		$buffer .= '<span class="admin-form-image__separator">' . html_encode($separator) . '</span>';
 		$buffer .= '<label class="btn btn-sm btn-outline-secondary admin-form-image__upload" for="' . html_encode($uploadId) . '">';
-		$buffer .= '<i class="fas fa-upload me-1" aria-hidden="true"></i>' . html_encode($uploadLabel);
+		$buffer .= '<i class="fa-solid fa-upload me-1" aria-hidden="true"></i>' . html_encode($uploadLabel);
 		$buffer .= '<input id="' . html_encode($uploadId) . '" class="admin-form-image__file" name="' . html_encode($name) . '" type="file" accept="image/*">';
 		$buffer .= '</label></div></div>';
 
@@ -737,21 +737,28 @@ class Widgets
 
 	public static function iconSelect(string $name, $default = null)
 	{
-		// To update: https://fontawesome.com/cheatsheet/free/solid
-		// for (let icon of $$('.icon')) {list.push('fab ' + icon.querySelector('.icon-name').textContent);}
+		// To update: node tools/generate-fa-icons.js (Font Awesome 7.x metadata)
 		$fa_icons = json_decode(file_get_contents(__DIR__ . '/lib-data/font-awesome.json'));
 		$choices[''] = 'Aucune';
 		foreach($fa_icons as $group => $icons) {
 			$choices[$group] = new HtmlSelectGroup();
 			foreach($icons as $icon) {
-				$choices[$group][$icon] = substr($icon, 7);
+				$choices[$group][$icon] = fa_icon_label($icon);
 			}
 		}
 
-		return '<div>
-					<div style="width:85%;display:inline-block;"> '.self::select('icon', $choices, $default).'</div>
-					<small><a href="https://fontawesome.com/cheatsheet/free/solid" target="_blank">Cheatsheet</a></small>
-				</div>';
+		$select_attrs = [
+			'class' => 'form-control admin-icon-select__native',
+			'data-admin-icon-select' => '',
+			'data-search-placeholder' => __('admin/pages.btn_search'),
+		];
+
+		return '<div class="admin-icon-select">'
+			. '<div class="admin-icon-select__main">'
+			. self::select($name, $choices, $default, true, $select_attrs)
+			. '</div>'
+			. '<small class="admin-icon-select__hint"><a href="https://fontawesome.com/search?o=r&amp;m=free" target="_blank">Cheatsheet</a></small>'
+			. '</div>';
 	}
 
 

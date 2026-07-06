@@ -108,11 +108,11 @@ function is_editable($file) {
 			if (is_dir($path)) {
 				$dir_id = preg_replace('/[^a-z0-9-]/', '_', substr($path, strlen(ROOT_DIR)));
 				$data .= '<li class="collapsible-header dir">
-							<a data-bs-toggle="collapse" href="#' . $dir_id . '"><i class="fas fa-folder fa-sm folder-icon"></i>' . $file . '</a>
+							<a data-bs-toggle="collapse" href="#' . $dir_id . '"><i class="fa-solid fa-folder fa-sm folder-icon"></i>' . $file . '</a>
 							<div class="collapsible-body ' . ($selected ? 'expand' : 'collapse') . '" id="' . $dir_id . '">' . files_tree($path, $current, $dot_files) . '</div>
 						  </li>';
 			} else {
-				$data .= '<li class="file ' . ($selected ? 'selected' : '') . '"><i class="far fa-sm fa-file"></i>';
+				$data .= '<li class="file ' . ($selected ? 'selected' : '') . '"><i class="fa-regular fa-sm fa-file"></i>';
 				if (is_editable($file)) {
 					$rel_path = file_editor_rel_path($path);
 					$file_url = App::getAdminURL('file_editor', ['file' => $rel_path]);
@@ -281,7 +281,7 @@ function is_editable($file) {
 				<ol class="breadcrumb file-editor-toolbar__breadcrumb" aria-label="<?= __('admin/system.editor_toolbar_path') ?>">
 					<li class="breadcrumb-item">
 						<button type="button" class="file-editor-toolbar__breadcrumb-link file-editor-breadcrumb-root" title="<?= html_encode(__('admin/system.editor_toolbar_root')) ?>">
-							<i class="fas fa-home" aria-hidden="true"></i>
+							<i class="fa-solid fa-house" aria-hidden="true"></i>
 							<span><?= __('admin/system.editor_toolbar_root') ?></span>
 						</button>
 					</li>
@@ -290,14 +290,14 @@ function is_editable($file) {
 							if ($segment['is_file']) { ?>
 								<li class="breadcrumb-item active" aria-current="page">
 									<span class="file-editor-toolbar__breadcrumb-separator" aria-hidden="true">›</span>
-									<i class="far fa-file" aria-hidden="true"></i>
+									<i class="fa-regular fa-file" aria-hidden="true"></i>
 									<span class="file-editor-toolbar__breadcrumb-current"><?= html_encode($segment['name']) ?></span>
 								</li>
 							<?php } else { ?>
 								<li class="breadcrumb-item">
 									<span class="file-editor-toolbar__breadcrumb-separator" aria-hidden="true">›</span>
 									<button type="button" class="file-editor-toolbar__breadcrumb-link" data-tree-dir="<?= html_encode($segment['tree_dir']) ?>" title="<?= html_encode($segment['path']) ?>">
-										<i class="fas fa-folder folder-icon" aria-hidden="true"></i>
+										<i class="fa-solid fa-folder folder-icon" aria-hidden="true"></i>
 										<span><?= html_encode($segment['name']) ?></span>
 									</button>
 								</li>
@@ -306,7 +306,7 @@ function is_editable($file) {
 					} ?>
 				</ol>
 				<span class="file-editor-toolbar__badge file-editor-toolbar__badge--readonly"<?= ($resolved && !is_writable($file)) ? '' : ' hidden' ?>>
-					<i class="fas fa-lock" aria-hidden="true"></i>
+					<i class="fa-solid fa-lock" aria-hidden="true"></i>
 					<?= __('admin/system.editor_alert_readonly') ?>
 				</span>
 			</div>
@@ -314,7 +314,7 @@ function is_editable($file) {
 			<div class="file-editor-toolbar__actions">
 				<div class="file-editor-toolbar__group file-editor-toolbar__when-file" title="<?= __('admin/system.editor_toolbar_theme') ?>">
 					<label class="file-editor-toolbar__group-label" for="theme">
-						<i class="fas fa-palette" aria-hidden="true"></i>
+						<i class="fa-solid fa-palette" aria-hidden="true"></i>
 						<span class="visually-hidden"><?= __('admin/system.editor_toolbar_theme') ?></span>
 					</label>
 					<div class="file-editor-toolbar__select-wrap">
@@ -324,23 +324,23 @@ function is_editable($file) {
 
 				<div class="file-editor-toolbar__group file-editor-toolbar__group--zoom file-editor-toolbar__when-file" role="group" aria-label="Zoom">
 					<button type="button" name="fe-zoom-out" class="file-editor-toolbar__btn file-editor-toolbar__btn--icon" title="<?= __('admin/system.editor_btn_zoomout') ?>">
-						<i class="fas fa-minus" aria-hidden="true"></i>
+						<i class="fa-solid fa-minus" aria-hidden="true"></i>
 					</button>
 					<span name="font-size" class="file-editor-toolbar__zoom-value" aria-live="polite"><?= (int) App::getConfig('file_editor.fontSize') ?: 12 ?></span>
 					<button type="button" name="fe-zoom-in" class="file-editor-toolbar__btn file-editor-toolbar__btn--icon" title="<?= __('admin/system.editor_btn_zoomin') ?>">
-						<i class="fas fa-plus" aria-hidden="true"></i>
+						<i class="fa-solid fa-plus" aria-hidden="true"></i>
 					</button>
 				</div>
 
 				<div class="file-editor-toolbar__group file-editor-toolbar__group--actions">
 					<button type="button" name="fe-fullscreen" class="file-editor-toolbar__btn file-editor-toolbar__btn--icon" title="<?= __('admin/system.editor_btn_fullscreen') ?>" aria-pressed="false" data-title-enter="<?= html_encode(__('admin/system.editor_btn_fullscreen')) ?>" data-title-exit="<?= html_encode(__('admin/system.editor_btn_fullscreen_exit')) ?>">
-						<i class="fas fa-expand" aria-hidden="true"></i>
+						<i class="fa-solid fa-up-right-and-down-left-from-center" aria-hidden="true"></i>
 					</button>
 					<button type="button" name="fe-upload-file" class="file-editor-toolbar__btn file-editor-toolbar__btn--icon file-editor-toolbar__when-file" data-bs-toggle="modal" data-bs-target="#upload" title="<?= __('admin/system.editor_btn_upload_title') ?>">
-						<i class="fas fa-file-import" aria-hidden="true"></i>
+						<i class="fa-solid fa-file-import" aria-hidden="true"></i>
 					</button>
 					<button type="button" name="save" class="file-editor-toolbar__btn file-editor-toolbar__btn--save file-editor-toolbar__when-file" title="<?= __('admin/system.editor_btn_save_title') ?>"<?= ($resolved && is_writable($file)) ? '' : ' disabled' ?>>
-						<i class="fas fa-save" aria-hidden="true"></i>
+						<i class="fa-solid fa-floppy-disk" aria-hidden="true"></i>
 						<span><?= __('admin/system.editor_btn_save') ?></span>
 					</button>
 				</div>
@@ -363,17 +363,17 @@ function is_editable($file) {
 			<div id="files_edit">
 				<div class="file-editor-empty" role="status"<?= $resolved ? ' hidden' : '' ?>>
 					<div class="file-editor-empty__visual" aria-hidden="true">
-						<i class="fas fa-file-code"></i>
+						<i class="fa-solid fa-file-code"></i>
 					</div>
 					<h2 class="file-editor-empty__title"><?= __('admin/system.editor_empty_title') ?></h2>
 					<p class="file-editor-empty__text"><?= __('admin/system.editor_empty_text') ?></p>
 					<ul class="file-editor-empty__hints">
 						<li>
-							<i class="fas fa-folder-open" aria-hidden="true"></i>
+							<i class="fa-solid fa-folder-open" aria-hidden="true"></i>
 							<span><?= __('admin/system.editor_empty_hint_tree') ?></span>
 						</li>
 						<li>
-							<i class="fas fa-mouse-pointer" aria-hidden="true"></i>
+							<i class="fa-solid fa-arrow-pointer" aria-hidden="true"></i>
 							<span><?= __('admin/system.editor_empty_hint_click') ?></span>
 						</li>
 					</ul>
@@ -558,7 +558,7 @@ function is_editable($file) {
 	function renderBreadcrumb(segments) {
 		var html = '<li class="breadcrumb-item">' +
 			'<button type="button" class="file-editor-toolbar__breadcrumb-link file-editor-breadcrumb-root" title="' + escapeHtml(labels.root) + '">' +
-			'<i class="fas fa-home" aria-hidden="true"></i>' +
+			'<i class="fa-solid fa-house" aria-hidden="true"></i>' +
 			'<span>' + escapeHtml(labels.root) + '</span>' +
 			'</button></li>';
 
@@ -566,14 +566,14 @@ function is_editable($file) {
 			if (segment.is_file) {
 				html += '<li class="breadcrumb-item active" aria-current="page">' +
 					'<span class="file-editor-toolbar__breadcrumb-separator" aria-hidden="true">›</span>' +
-					'<i class="far fa-file" aria-hidden="true"></i>' +
+					'<i class="fa-regular fa-file" aria-hidden="true"></i>' +
 					'<span class="file-editor-toolbar__breadcrumb-current">' + escapeHtml(segment.name) + '</span>' +
 					'</li>';
 			} else {
 				html += '<li class="breadcrumb-item">' +
 					'<span class="file-editor-toolbar__breadcrumb-separator" aria-hidden="true">›</span>' +
 					'<button type="button" class="file-editor-toolbar__breadcrumb-link" data-tree-dir="' + escapeHtml(segment.tree_dir) + '" title="' + escapeHtml(segment.path) + '">' +
-					'<i class="fas fa-folder folder-icon" aria-hidden="true"></i>' +
+					'<i class="fa-solid fa-folder folder-icon" aria-hidden="true"></i>' +
 					'<span>' + escapeHtml(segment.name) + '</span>' +
 					'</button></li>';
 			}

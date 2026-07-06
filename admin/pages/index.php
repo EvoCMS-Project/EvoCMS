@@ -5,20 +5,20 @@ $load_avg = function_exists('sys_getloadavg') && ($load = sys_getloadavg())
 	: '&mdash;';
 
 $dashboard_stats = [
-	['icon' => 'fa fa-file-alt', 'value' => (string) Db::Get('select count(*) from {pages} where type = "article"'), 'label' => __('admin/dashboard.circle_Articles'), 'variant' => 'primary', 'url' => '?page=pages'],
-	['icon' => 'fa fa-copy', 'value' => (string) Db::Get('select count(*) from {pages} where type <> "article"'), 'label' => __('admin/dashboard.circle_Pages'), 'variant' => 'info', 'url' => '?page=pages'],
-	['icon' => 'fa fa-comments', 'value' => (string) Db::Get('select count(*) from {comments}'), 'label' => __('admin/dashboard.circle_Comments'), 'variant' => 'success', 'url' => '?page=comments'],
-	['icon' => 'fa fa-images', 'value' => (string) Db::Get('select count(*) from {files}'), 'label' => __('admin/dashboard.circle_Files'), 'variant' => 'warning', 'url' => '?page=gallery'],
-	['icon' => 'fa fa-comment-dots', 'value' => (string) Db::Get('select count(*) from {forums_topics}'), 'label' => __('admin/dashboard.circle_Discuss'), 'variant' => 'secondary', 'url' => '?page=forums'],
-	['icon' => 'fa fa-reply-all', 'value' => (string) Db::Get('select count(*) from {forums_posts}'), 'label' => __('admin/dashboard.circle_msg_forum'), 'variant' => 'secondary', 'url' => '?page=forums'],
-	['icon' => 'fa fa-users', 'value' => (string) Db::Get('select count(*) from {users} where id <> 0'), 'label' => __('admin/dashboard.circle_Members'), 'variant' => 'danger', 'url' => '?page=users'],
-	['icon' => 'fa fa-cogs', 'value' => (string) count(App::getModules()), 'label' => __('admin/dashboard.circle_Modules'), 'variant' => 'primary', 'url' => '?page=modules'],
+	['icon' => 'fa-solid fa-file-lines', 'value' => (string) Db::Get('select count(*) from {pages} where type = "article"'), 'label' => __('admin/dashboard.circle_Articles'), 'variant' => 'primary', 'url' => '?page=pages'],
+	['icon' => 'fa-solid fa-copy', 'value' => (string) Db::Get('select count(*) from {pages} where type <> "article"'), 'label' => __('admin/dashboard.circle_Pages'), 'variant' => 'info', 'url' => '?page=pages'],
+	['icon' => 'fa-solid fa-comments', 'value' => (string) Db::Get('select count(*) from {comments}'), 'label' => __('admin/dashboard.circle_Comments'), 'variant' => 'success', 'url' => '?page=comments'],
+	['icon' => 'fa-solid fa-images', 'value' => (string) Db::Get('select count(*) from {files}'), 'label' => __('admin/dashboard.circle_Files'), 'variant' => 'warning', 'url' => '?page=gallery'],
+	['icon' => 'fa-solid fa-comment-dots', 'value' => (string) Db::Get('select count(*) from {forums_topics}'), 'label' => __('admin/dashboard.circle_Discuss'), 'variant' => 'secondary', 'url' => '?page=forums'],
+	['icon' => 'fa-solid fa-reply-all', 'value' => (string) Db::Get('select count(*) from {forums_posts}'), 'label' => __('admin/dashboard.circle_msg_forum'), 'variant' => 'secondary', 'url' => '?page=forums'],
+	['icon' => 'fa-solid fa-users', 'value' => (string) Db::Get('select count(*) from {users} where id <> 0'), 'label' => __('admin/dashboard.circle_Members'), 'variant' => 'danger', 'url' => '?page=users'],
+	['icon' => 'fa-solid fa-gears', 'value' => (string) count(App::getModules()), 'label' => __('admin/dashboard.circle_Modules'), 'variant' => 'primary', 'url' => '?page=modules'],
 ];
 
 $dashboard_panels = [
 	[
 		'title' => __('admin/dashboard.section_cms'),
-		'icon' => 'fa fa-cube',
+		'icon' => 'fa-solid fa-cube',
 		'accent' => 'primary',
 		'items' => [
 			['label' => __('admin/dashboard.info_software'), 'value' => html_encode(EVO_VERSION) . ' <span class="text-muted">(' . date('Y-m-d', strtotime(EVO_RELEASEDATE)) . ')</span>'],
@@ -28,7 +28,7 @@ $dashboard_panels = [
 	],
 	[
 		'title' => __('admin/dashboard.section_environment'),
-		'icon' => 'fa fa-server',
+		'icon' => 'fa-solid fa-server',
 		'accent' => 'info',
 		'items' => [
 			['label' => __('admin/dashboard.info_php'), 'value' => '<a href="?page=phpinfo">' . html_encode(preg_replace('/\+.+$/', '', phpversion())) . '</a>'],
@@ -38,7 +38,7 @@ $dashboard_panels = [
 	],
 	[
 		'title' => __('admin/dashboard.info_dev'),
-		'icon' => 'fa fa-code',
+		'icon' => 'fa-solid fa-code',
 		'accent' => 'amber',
 		'items' => [
 			['label' => 'Yan Bourgeois', 'value' => 'Designer <span class="text-muted">(Coolternet)</span>'],

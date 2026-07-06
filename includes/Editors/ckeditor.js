@@ -55,7 +55,7 @@
                         });
                         editor.addCommand('Upload', {
                             exec: function (editor) {
-                                $.fancybox.open({ type: 'ajax', href: '?p=gallery&view=grid&embed=1' });
+                                $.fancybox.open({ type: 'ajax', href: '?p=gallery&embed=1' });
                                 //ajaxupload();
                             },
                             canUndo: false

@@ -49,7 +49,7 @@
                         mySettings.markupSet.splice(-2, 0, {
                             name: 'Insert File', className: "file", openWith: function (editor) {
                                 window._editor = that;
-                                $.fancybox.open({ type: 'ajax', href: '?p=gallery&view=grid&embed=1' });
+                                $.fancybox.open({ type: 'ajax', href: '?p=gallery&embed=1' });
                             }
                         });
                     }

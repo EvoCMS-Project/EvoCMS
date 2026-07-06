@@ -38,6 +38,123 @@ function html_encode($string)
 }
 
 
+function fa_icon_aliases(): array
+{
+	static $aliases = null;
+
+	if ($aliases === null) {
+		$file = __DIR__ . '/lib-data/font-awesome-aliases.json';
+		$aliases = is_file($file)
+			? (json_decode(file_get_contents($file), true) ?: [])
+			: [];
+	}
+
+	return $aliases;
+}
+
+
+/**
+ * Normalise une référence d'icône Font Awesome vers la syntaxe v7.
+ *
+ * @param string $icon Nom (`fa-home`), classes (`fas fa-home`) ou classes complètes.
+ * @param string $style Style par défaut: solid, regular ou brands.
+ * @param array<int, string> $extra Classes utilitaires optionnelles (fa-fw, fa-lg, etc.).
+ */
+function fa_icon_classes(string $icon, string $style = 'solid', array $extra = []): string
+{
+	static $styles = [
+		'solid' => 'fa-solid',
+		'regular' => 'fa-regular',
+		'brands' => 'fa-brands',
+		'fas' => 'fa-solid',
+		'far' => 'fa-regular',
+		'fab' => 'fa-brands',
+		'fa' => 'fa-solid',
+		'fa-solid' => 'fa-solid',
+		'fa-regular' => 'fa-regular',
+		'fa-brands' => 'fa-brands',
+	];
+
+	static $utilities = [
+		'fa-fw' => true, 'fa-lg' => true, 'fa-sm' => true, 'fa-xs' => true,
+		'fa-2x' => true, 'fa-3x' => true, 'fa-4x' => true, 'fa-5x' => true,
+		'fa-6x' => true, 'fa-7x' => true, 'fa-8x' => true, 'fa-9x' => true,
+		'fa-10x' => true, 'fa-spin' => true, 'fa-pulse' => true, 'fa-inverse' => true,
+		'fa-stack' => true, 'fa-stack-1x' => true, 'fa-stack-2x' => true,
+		'fa-pull-left' => true, 'fa-pull-right' => true, 'fa-border' => true,
+		'fa-li' => true, 'fa-classic' => true,
+	];
+
+	$aliases = fa_icon_aliases();
+	$tokens = preg_split('/\s+/', trim($icon)) ?: [];
+	$resolvedStyle = $styles[$style] ?? 'fa-solid';
+	$iconName = null;
+	$utilitiesFound = [];
+
+	foreach ($tokens as $token) {
+		if ($token === '') {
+			continue;
+		}
+
+		if (isset($styles[$token])) {
+			$resolvedStyle = $styles[$token];
+			continue;
+		}
+
+		if (isset($utilities[$token])) {
+			$utilitiesFound[] = $token;
+			continue;
+		}
+
+		if (preg_match('/^fa-(.+)$/', $token, $matches)) {
+			$name = $aliases[$matches[1]] ?? $matches[1];
+			$iconName = 'fa-' . $name;
+		} elseif (preg_match('/^[a-z0-9-]+$/', $token)) {
+			$name = $aliases[$token] ?? $token;
+			$iconName = 'fa-' . $name;
+		}
+	}
+
+	if ($iconName === null) {
+		return trim($icon . ' ' . implode(' ', $extra));
+	}
+
+	return trim(implode(' ', array_unique(array_merge([$resolvedStyle, $iconName], $extra, $utilitiesFound))));
+}
+
+
+/**
+ * Rend une balise <i> Font Awesome normalisée (syntaxe v7).
+ *
+ * @param array<string, string> $attrs Attributs HTML additionnels (aria-hidden, title, etc.).
+ */
+function fa_icon_html(string $icon, string $style = 'solid', array $extra = [], array $attrs = [], string $class = ''): string
+{
+	$classAttr = trim(fa_icon_classes($icon, $style, $extra) . ' ' . $class);
+	$parts = ['class="' . html_encode($classAttr) . '"'];
+
+	foreach ($attrs as $name => $value) {
+		$parts[] = html_encode($name) . '="' . html_encode((string) $value) . '"';
+	}
+
+	return '<i ' . implode(' ', $parts) . '></i>';
+}
+
+
+/**
+ * Extrait le nom d'icône sans préfixe de style (pour affichage dans les sélecteurs).
+ */
+function fa_icon_label(string $icon): string
+{
+	$classes = fa_icon_classes($icon);
+	if (!preg_match('/fa-([a-z0-9-]+)/', $classes, $matches)) {
+		return $icon;
+	}
+
+	return $matches[1];
+}
+
+
 /**
  * Fetch remote URL content (HTTPS/HTTP) with curl or stream wrappers.
  */
@@ -171,7 +288,7 @@ function admin_stat_grid(array $items, array $options = []): string
 		$html = '<div class="row g-2 admin-stat-grid admin-stat-grid--kpi ' . html_encode($class) . '">';
 
 		foreach ($items as $item) {
-			$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+			$icon = html_encode($item['icon'] ?? 'fa-solid fa-chart-bar');
 			$value = $item['value'] ?? '&mdash;';
 			$label = html_encode($item['label'] ?? '');
 			$url = $item['url'] ?? '';
@@ -201,7 +318,7 @@ function admin_stat_grid(array $items, array $options = []): string
 	$html = '<div class="row g-3 admin-stat-grid ' . html_encode($class) . '">';
 
 	foreach ($items as $item) {
-		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$icon = html_encode($item['icon'] ?? 'fa-solid fa-chart-bar');
 		$value = $item['value'] ?? '&mdash;';
 		$label = html_encode($item['label'] ?? '');
 		$icon_class = 'admin-stat-card__icon';
@@ -348,7 +465,7 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 			$html .= '<header class="admin-settings-subsection__header">';
 
 			if (!empty($group['icon'])) {
-				$html .= '<span class="admin-settings-subsection__icon"><i class="fas ' . html_encode($group['icon']) . '" aria-hidden="true"></i></span>';
+				$html .= '<span class="admin-settings-subsection__icon"><i class="fa-solid ' . html_encode($group['icon']) . '" aria-hidden="true"></i></span>';
 			}
 
 			$html .= '<div class="admin-settings-subsection__heading">';
@@ -415,10 +532,221 @@ function admin_form_field_row(string $label, string $input, array $options = [])
 	$html .= '>' . html_encode($label);
 
 	if ($hint !== '') {
-		$html .= ' <i class="fa fa-question-circle" title="' . html_encode($hint) . '" aria-hidden="true"></i>';
+		$html .= ' <i class="fa-solid fa-circle-question" title="' . html_encode($hint) . '" aria-hidden="true"></i>';
 	}
 
 	return $html . '</label><div class="col-sm-8">' . $input . '</div></div>';
+}
+
+/**
+ * Affiche un champ empilé (libellé au-dessus) réutilisable dans l'admin.
+ */
+function admin_form_field_stack(string $label, string $input, array $options = []): string
+{
+	$for = $options['for'] ?? '';
+	$hint = $options['hint'] ?? '';
+	$html = '<div class="admin-form-field-stack">';
+	$html .= '<label class="admin-form-field-stack__label"';
+
+	if ($for !== '') {
+		$html .= ' for="' . html_encode($for) . '"';
+	}
+
+	$html .= '>' . html_encode($label);
+
+	if ($hint !== '') {
+		$html .= ' <i class="fa-solid fa-circle-question" title="' . html_encode($hint) . '" aria-hidden="true"></i>';
+	}
+
+	return $html . '</label><div class="admin-form-field-stack__control">' . $input . '</div></div>';
+}
+
+/**
+ * Champ CSRF réutilisable pour les formulaires admin.
+ */
+function admin_csrf_field(): string
+{
+	if (empty($_SESSION['csrf'])) {
+		return '';
+	}
+
+	return '<input type="hidden" name="csrf" value="' . html_encode((string) $_SESSION['csrf']) . '">';
+}
+
+/**
+ * Indique si la requête POST contient un jeton CSRF valide.
+ */
+function admin_csrf_valid(): bool
+{
+	if (!IS_POST) {
+		return true;
+	}
+
+	if (!(App::$protections & App::CSRF)) {
+		return true;
+	}
+
+	return (string) ($_POST['csrf'] ?? '') === (string) ($_SESSION['csrf'] ?? '');
+}
+
+/**
+ * Affiche une zone de dépôt de fichiers réutilisable (drag & drop).
+ *
+ * @param array{
+ *   name?: string,
+ *   multiple?: bool,
+ *   accept?: string,
+ *   id?: string,
+ *   title?: string,
+ *   hint?: string,
+ *   browse?: string,
+ *   summary?: string,
+ *   auto_submit?: bool,
+ *   preview?: bool,
+ *   compact?: bool,
+ *   detail?: bool,
+ *   detail_status?: string,
+ *   detail_size_label?: string,
+ *   detail_type_label?: string,
+ *   detail_mime_label?: string,
+ *   detail_remove_label?: string,
+ *   autofill?: array<string, mixed>,
+ *   icon?: string,
+ *   class?: string
+ * } $options
+ */
+function admin_file_dropzone(array $options = []): string
+{
+	$name = $options['name'] ?? 'upload[]';
+	$multiple = array_key_exists('multiple', $options) ? (bool) $options['multiple'] : true;
+	$accept = $options['accept'] ?? '';
+	$id = $options['id'] ?? 'dropzone-' . random_hash(8);
+	$title = $options['title'] ?? __('admin/general.file_drop_title');
+	$hint = $options['hint'] ?? __('admin/general.file_drop_hint');
+	$browse = $options['browse'] ?? __('admin/general.file_drop_browse');
+	$summary = $options['summary'] ?? __('admin/general.file_drop_summary');
+	$icon = $options['icon'] ?? 'fa-cloud-upload-alt';
+	$has_detail = !empty($options['detail']);
+	$detail_remove_in = $options['detail_remove_in'] ?? 'detail';
+	$class = trim('admin-file-dropzone'
+		. (!empty($options['compact']) ? ' admin-file-dropzone--compact' : '')
+		. (!empty($options['auto_submit']) ? ' admin-file-dropzone--auto-submit' : '')
+		. ($has_detail ? ' admin-file-dropzone--detail' : '')
+		. ($has_detail && $detail_remove_in === 'header' ? ' admin-file-dropzone--header-actions' : '')
+		. ' ' . ($options['class'] ?? ''));
+
+	$html = '<div class="' . html_encode($class) . '"';
+
+	if (!empty($options['auto_submit'])) {
+		$html .= ' data-auto-submit="1"';
+	}
+
+	if (!empty($options['preview'])) {
+		$html .= ' data-preview="1"';
+	}
+
+	$html .= ' data-file-type-map="' . html_encode(json_encode(admin_file_type_map()), ENT_QUOTES) . '"';
+	$html .= ' data-file-extension-map="' . html_encode(json_encode(admin_file_extension_icon_map()), ENT_QUOTES) . '"';
+
+	if (!empty($options['autofill'])) {
+		$html .= ' data-autofill="' . html_encode(json_encode($options['autofill']), ENT_QUOTES) . '"';
+	}
+
+	$html .= '>';
+	$html .= '<div class="admin-file-dropzone__zone" tabindex="0" role="button" aria-label="' . html_encode($title) . '">';
+	$html .= '<span class="admin-file-dropzone__icon"><i class="fas ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
+	$html .= '<span class="admin-file-dropzone__title">' . html_encode($title) . '</span>';
+	$html .= '<span class="admin-file-dropzone__hint">' . html_encode($hint) . '</span>';
+	$html .= '<button type="button" class="admin-file-dropzone__browse btn btn-outline-secondary btn-sm" data-dropzone-trigger>';
+	$html .= html_encode($browse);
+	$html .= '</button>';
+	$html .= '<input type="file" class="admin-file-dropzone__input" id="' . html_encode($id) . '" name="' . html_encode($name) . '"';
+
+	if ($multiple) {
+		$html .= ' multiple';
+	}
+
+	if ($accept !== '') {
+		$html .= ' accept="' . html_encode($accept) . '"';
+	}
+
+	$html .= ' hidden>';
+	$html .= '</div>';
+
+	if (!empty($options['preview'])) {
+		$html .= '<div class="admin-file-dropzone__preview" data-dropzone-preview hidden></div>';
+		$html .= '<p class="admin-file-dropzone__summary" data-dropzone-summary data-template="' . html_encode($summary) . '" hidden></p>';
+	}
+
+	if ($has_detail) {
+		$detail_status = $options['detail_status'] ?? $summary;
+		$detail_labels = [
+			'size' => $options['detail_size_label'] ?? __('admin/general.file_drop_detail_size'),
+			'type' => $options['detail_type_label'] ?? __('admin/general.file_drop_detail_type'),
+			'mime' => $options['detail_mime_label'] ?? __('admin/general.file_drop_detail_mime'),
+		];
+		$detail_remove = $options['detail_remove_label'] ?? __('admin/general.file_drop_detail_remove');
+
+		$html .= '<div class="admin-file-dropzone__detail" data-dropzone-detail hidden';
+		$html .= ' data-detail-status="' . html_encode($detail_status, ENT_QUOTES) . '"';
+
+		foreach ($detail_labels as $key => $label) {
+			$html .= ' data-label-' . html_encode($key) . '="' . html_encode($label, ENT_QUOTES) . '"';
+		}
+
+		$html .= '>';
+		$html .= '<span class="icon-background icon-background--rotate-45 admin-file-dropzone__detail-bg-icon fas fa-file" data-dropzone-detail-bg-icon aria-hidden="true"></span>';
+		$html .= '<div class="admin-file-dropzone__detail-media" data-dropzone-detail-media aria-hidden="true"></div>';
+		$html .= '<div class="admin-file-dropzone__detail-body">';
+		$html .= '<div class="admin-file-dropzone__detail-content">';
+		$html .= '<p class="admin-file-dropzone__detail-status"><i class="fas fa-check-circle" aria-hidden="true"></i> <span data-dropzone-detail-status-text></span></p>';
+		$html .= '<p class="admin-file-dropzone__detail-name" data-dropzone-detail-name></p>';
+		$html .= '<dl class="admin-file-dropzone__detail-meta" data-dropzone-detail-meta></dl>';
+		$html .= '</div>';
+
+		if ($detail_remove_in === 'detail') {
+			$html .= '<div class="admin-file-dropzone__detail-actions">';
+			$html .= '<button type="button" class="btn btn-outline-danger btn-sm" data-dropzone-detail-remove>';
+			$html .= '<i class="fas fa-times me-1" aria-hidden="true"></i>' . html_encode($detail_remove);
+			$html .= '</button></div>';
+		}
+
+		$html .= '</div></div>';
+	}
+
+	return $html . '</div>';
+}
+
+/**
+ * Affiche des filtres à puces réutilisables (signalements, pages, téléchargements, etc.).
+ *
+ * @param array<string, array{label: string, icon?: string}> $items
+ * @param array<int, string> $selected
+ */
+function admin_filter_chips(array $items, array $selected, string $name, string $label): string
+{
+	if (!$items) {
+		return '';
+	}
+
+	$html = '<div class="admin-filter-chips">';
+	$html .= '<span class="admin-filter-chips__label">' . html_encode($label) . '</span>';
+	$html .= '<div class="admin-filter-chips__list">';
+
+	foreach ($items as $value => $item) {
+		$checked = in_array($value, $selected, true);
+		$icon = $item['icon'] ?? 'fa-circle';
+		$item_label = $item['label'] ?? $value;
+
+		$html .= '<label class="admin-filter-chip' . ($checked ? ' admin-filter-chip--active' : '') . '">';
+		$html .= '<input type="checkbox" name="' . html_encode($name) . '[]" value="' . html_encode($value) . '"' . ($checked ? ' checked' : '') . ' class="admin-filter-chip__input">';
+		$html .= '<span class="admin-filter-chip__content">';
+		$html .= '<i class="fas ' . html_encode($icon) . '" aria-hidden="true"></i>';
+		$html .= html_encode($item_label);
+		$html .= '</span></label>';
+	}
+
+	return $html . '</div></div>';
 }
 
 /**
@@ -464,12 +792,16 @@ function admin_tabs(array $tabs, array $options = []): string
 			$link_class .= ' disabled';
 		}
 
-		$html .= '<li class="nav-item" role="presentation">';
+		$ms_auto = !empty($tab['ms_auto']) ? ' ms-auto' : '';
+		$html .= '<li class="nav-item' . $ms_auto . '" role="presentation">';
 		$html .= '<a class="' . $link_class . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '"';
 
 		if ($type === 'link') {
 			$href = $tab['href'] ?? ('?page=' . rawurlencode($page) . '&tab=' . rawurlencode((string) $tab_id));
 			$html .= ' href="' . html_encode($href) . '"';
+		} elseif (!empty($tab['external'])) {
+			$href = $tab['href'] ?? '#';
+			$html .= ' href="' . html_encode($href) . '" target="_blank" rel="noopener noreferrer"';
 		} else {
 			$href = $tab['href'] ?? ('#' . $tab_id);
 			$html .= ' id="' . html_encode($tab_id) . '-tab" data-bs-toggle="tab" href="' . html_encode($href) . '" aria-controls="' . html_encode($tab_id) . '"';
@@ -478,7 +810,7 @@ function admin_tabs(array $tabs, array $options = []): string
 		$html .= '>';
 
 		if (!empty($tab['icon'])) {
-			$html .= '<i class="fas ' . html_encode($tab['icon']) . ' me-2" aria-hidden="true"></i>';
+			$html .= '<i class="fa-solid ' . html_encode($tab['icon']) . ' me-2" aria-hidden="true"></i>';
 		}
 
 		$html .= html_encode($tab['label']);
@@ -527,7 +859,7 @@ function admin_settings_section(string $title, string $content, array $options =
 		$html .= '<header class="admin-settings-section__header">';
 
 		if ($icon !== '') {
-			$html .= '<span class="admin-settings-section__icon"><i class="fas ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
+			$html .= '<span class="admin-settings-section__icon"><i class="fa-solid ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
 		}
 
 		$html .= '<div class="admin-settings-section__heading">';
@@ -546,9 +878,65 @@ function admin_settings_section(string $title, string $content, array $options =
 function admin_settings_empty(string $message, string $icon = 'fa-inbox'): string
 {
 	return '<div class="admin-settings-empty">'
-		. '<i class="fas ' . html_encode($icon) . ' admin-settings-empty__icon" aria-hidden="true"></i>'
+		. '<i class="fa-solid ' . html_encode($icon) . ' admin-settings-empty__icon" aria-hidden="true"></i>'
 		. '<p class="admin-settings-empty__text">' . html_encode($message) . '</p>'
 		. '</div>';
+}
+
+/**
+ * État vide compact à l'intérieur d'un panneau admin (section, catégorie, etc.).
+ *
+ * @param array{class?: string, icon_style?: 'far'|'fas'} $options
+ */
+function admin_panel_empty(string $message, string $icon = 'fa-inbox', array $options = []): string
+{
+	$class = trim('admin-panel-empty ' . ($options['class'] ?? ''));
+	$icon_style = ($options['icon_style'] ?? 'far') === 'fas' ? 'fas' : 'far';
+
+	return '<div class="' . html_encode($class) . '">'
+		. '<span class="admin-panel-empty__icon"><i class="' . html_encode($icon_style) . ' ' . html_encode($icon) . '" aria-hidden="true"></i></span>'
+		. '<p class="admin-panel-empty__text">' . html_encode($message) . '</p>'
+		. '</div>';
+}
+
+/**
+ * Génère un identifiant DOM sûr pour une section repliable.
+ */
+function admin_collapsible_slug(string $prefix, string $key): string
+{
+	$slug = strtolower(preg_replace('/[^a-zA-Z0-9_-]+/', '-', $key));
+	$slug = trim($slug, '-');
+
+	return $prefix . ($slug !== '' ? $slug : random_hash(8));
+}
+
+/**
+ * Bouton d'ouverture/fermeture pour une section repliable (Bootstrap collapse).
+ *
+ * @param array{class?: string, label?: string} $options
+ */
+function admin_collapsible_toggle(string $target_id, string $content, bool $expanded = true, array $options = []): string
+{
+	$class = trim('admin-collapsible__toggle' . ($expanded ? '' : ' collapsed') . ' ' . ($options['class'] ?? ''));
+	$label = $options['label'] ?? __('admin/general.btn_toggle_section');
+
+	$html = '<button type="button" class="' . html_encode($class) . '" data-bs-toggle="collapse" data-bs-target="#' . html_encode($target_id) . '" aria-expanded="' . ($expanded ? 'true' : 'false') . '" aria-controls="' . html_encode($target_id) . '">';
+	$html .= '<span class="admin-collapsible__chevron" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>';
+	$html .= $content;
+	$html .= '<span class="visually-hidden">' . html_encode($label) . '</span>';
+	$html .= '</button>';
+
+	return $html;
+}
+
+function admin_collapsible_body_open(string $id, bool $expanded = true, string $class = ''): string
+{
+	return '<div class="collapse' . ($expanded ? ' show' : '') . ' admin-collapsible__body ' . html_encode(trim($class)) . '" id="' . html_encode($id) . '">';
+}
+
+function admin_collapsible_body_close(): string
+{
+	return '</div>';
 }
 
 /**
@@ -573,7 +961,7 @@ function admin_settings_theme_grid(array $themes, string $activeDir): string
 		$html .= '<p class="admin-settings-theme__desc">' . html_encode($theme->description) . '</p>';
 
 		if ($is_active) {
-			$html .= '<span class="badge admin-settings-theme__badge"><i class="fa fa-check me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.theme_enabled')) . '</span>';
+			$html .= '<span class="badge admin-settings-theme__badge"><i class="fa-solid fa-check me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.theme_enabled')) . '</span>';
 		} else {
 			$html .= '<button type="submit" class="btn btn-sm btn-primary" name="theme" value="' . html_encode($dir) . '">' . html_encode(__('admin/general.theme_active_btn')) . '</button>';
 		}
@@ -617,7 +1005,7 @@ function admin_settings_theme_tab(array $themes, string $activeDir, ?array $them
 	if ($themeSettings) {
 		$groups[] = [
 			'title' => __('admin/general.theme_title1'),
-			'icon' => 'fa-paint-brush',
+			'icon' => 'fa-paintbrush',
 			'settings' => admin_settings_group_fields_row($themeSettings),
 			'body_class' => 'container',
 		];
@@ -637,7 +1025,7 @@ function admin_settings_test_mail(?string $email = null): string
 		. '<div class="input-group">'
 		. '<input type="email" class="form-control" name="mail||send-test-mail" value="' . html_encode($email) . '" placeholder="email@example.com" required>'
 		. '<button type="submit" class="btn btn-outline-secondary">'
-		. '<i class="fa fa-paper-plane me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.email_test'))
+		. '<i class="fa-solid fa-paper-plane me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.email_test'))
 		. '</button></div></form>';
 }
 
@@ -661,7 +1049,7 @@ function admin_stat_table(array $items, array $options = []): string
 	$html .= '</tr></thead><tbody>';
 
 	foreach ($items as $item) {
-		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$icon = html_encode($item['icon'] ?? 'fa-solid fa-chart-bar');
 		$value = $item['value'] ?? '&mdash;';
 		$label = html_encode($item['label'] ?? '');
 		$url = $item['url'] ?? '';
@@ -806,7 +1194,7 @@ function admin_metric_tiles(array $items, array $options = []): string
 	$html = '<div class="admin-metric-tiles ' . html_encode($class) . '">';
 
 	foreach ($items as $item) {
-		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$icon = html_encode($item['icon'] ?? 'fa-solid fa-chart-bar');
 		$value = $item['value'] ?? '&mdash;';
 		$label = html_encode($item['label'] ?? '');
 		$url = $item['url'] ?? '';
@@ -897,7 +1285,7 @@ function admin_metrics_strip(array $items, array $options = []): string
 	$html = '<div class="admin-metrics-strip ' . html_encode($class) . '">';
 
 	foreach ($items as $item) {
-		$icon = html_encode($item['icon'] ?? 'fa fa-chart-bar');
+		$icon = html_encode($item['icon'] ?? 'fa-solid fa-chart-bar');
 		$value = $item['value'] ?? '&mdash;';
 		$label = html_encode($item['label'] ?? '');
 		$url = $item['url'] ?? '';
@@ -1039,7 +1427,7 @@ function admin_modules_catalog_notice(bool $unavailable): string
 	return '<div class="admin-modules-board__notice">'
 		. admin_status_bar(
 			'warning',
-			'<i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i> ' . __('admin/modules.alert_catalog_error')
+			'<i class="fa-solid fa-triangle-exclamation me-1" aria-hidden="true"></i> ' . __('admin/modules.alert_catalog_error')
 		)
 		. '</div>';
 }
@@ -1118,6 +1506,30 @@ function admin_modules_table(array $columns, array $rows, array $options = []): 
 		$html .= ' admin-servers-table';
 	}
 
+	if ($layout === 'security') {
+		$html .= ' admin-security-table';
+	}
+
+	if ($layout === 'downloads') {
+		$html .= ' admin-downloads-table';
+	}
+
+	if ($layout === 'pages') {
+		$html .= ' admin-pages-table';
+	}
+
+	if ($layout === 'gallery') {
+		$html .= ' admin-gallery-table';
+	}
+
+	if ($layout === 'page_edit') {
+		$html .= ' admin-page-edit-history-table';
+	}
+
+	if ($layout === 'comments') {
+		$html .= ' admin-comments-table';
+	}
+
 	if ($variant === 'info') {
 		$html .= ' admin-modules-table--info';
 	}
@@ -1137,8 +1549,27 @@ function admin_modules_table(array $columns, array $rows, array $options = []): 
 
 	$html .= '<tbody>';
 
-	foreach ($rows as $row) {
-		$html .= '<tr>';
+	foreach ($rows as $row_index => $row) {
+		$row_class = '';
+		$row_attrs = '';
+
+		if (isset($row['_search'])) {
+			$row_attrs .= ' data-search-text="' . html_encode(strtolower((string) $row['_search'])) . '"';
+			unset($row['_search']);
+		}
+
+		if (isset($row['_class'])) {
+			$row_class = ' class="' . html_encode((string) $row['_class']) . '"';
+			unset($row['_class']);
+		} elseif (!empty($options['row_class']) && is_callable($options['row_class'])) {
+			$class = (string) $options['row_class']($row, $row_index);
+
+			if ($class !== '') {
+				$row_class = ' class="' . html_encode($class) . '"';
+			}
+		}
+
+		$html .= '<tr' . $row_class . $row_attrs . '>';
 
 		if ($variant === 'info') {
 			$html .= '<th scope="row">' . ($row[0] ?? '') . '</th>';
@@ -1181,6 +1612,69 @@ function admin_modules_table_colgroup(string $layout): string
 			. '<col class="admin-servers-col-type">'
 			. '<col class="admin-servers-col-polling">'
 			. '<col class="admin-servers-col-actions">'
+			. '</colgroup>';
+	}
+
+	if ($layout === 'security') {
+		return '<colgroup>'
+			. '<col class="admin-security-col-rule">'
+			. '<col class="admin-security-col-reason">'
+			. '<col class="admin-security-col-expires">'
+			. '<col class="admin-security-col-actions">'
+			. '</colgroup>';
+	}
+
+	if ($layout === 'downloads') {
+		return '<colgroup>'
+			. '<col class="admin-downloads-col-file">'
+			. '<col class="admin-downloads-col-date">'
+			. '<col class="admin-downloads-col-size">'
+			. '<col class="admin-downloads-col-hits">'
+			. '<col class="admin-downloads-col-actions">'
+			. '</colgroup>';
+	}
+
+	if ($layout === 'pages') {
+		return '<colgroup>'
+			. '<col class="admin-pages-col-item">'
+			. '<col class="admin-pages-col-status">'
+			. '<col class="admin-pages-col-comments">'
+			. '<col class="admin-pages-col-views">'
+			. '<col class="admin-pages-col-actions">'
+			. '</colgroup>';
+	}
+
+	if ($layout === 'gallery') {
+		return '<colgroup>'
+			. '<col class="admin-gallery-col-preview">'
+			. '<col class="admin-gallery-col-details">'
+			. '<col class="admin-gallery-col-user">'
+			. '<col class="admin-gallery-col-date">'
+			. '<col class="admin-gallery-col-origin">'
+			. '<col class="admin-gallery-col-views">'
+			. '<col class="admin-gallery-col-actions">'
+			. '</colgroup>';
+	}
+
+	if ($layout === 'page_edit') {
+		return '<colgroup>'
+			. '<col class="admin-page-edit-col-compare">'
+			. '<col class="admin-page-edit-col-revision">'
+			. '<col class="admin-page-edit-col-date">'
+			. '<col class="admin-page-edit-col-status">'
+			. '<col class="admin-page-edit-col-author">'
+			. '<col class="admin-page-edit-col-size">'
+			. '<col class="admin-page-edit-col-attach">'
+			. '<col class="admin-page-edit-col-actions">'
+			. '</colgroup>';
+	}
+
+	if ($layout === 'comments') {
+		return '<colgroup>'
+			. '<col class="admin-comments-col-message">'
+			. '<col class="admin-comments-col-user">'
+			. '<col class="admin-comments-col-state">'
+			. '<col class="admin-comments-col-actions">'
 			. '</colgroup>';
 	}
 
@@ -1260,7 +1754,7 @@ function admin_modules_item_cell(string $name, array $options = []): string
 		$html .= '<span class="admin-modules-item__avatar admin-modules-item__avatar--custom">' . $avatar_html . '</span>';
 	} else {
 		$html .= '<span class="admin-modules-item__avatar admin-modules-item__avatar--' . html_encode($accent) . '">';
-		$html .= '<i class="fas ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
+		$html .= '<i class="fa-solid ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
 	}
 
 	$html .= '<span class="admin-modules-item__content">';
@@ -1371,7 +1865,7 @@ function admin_modules_installed_actions(array $item, string $delete_confirm): s
 		if (!empty($item['has_settings'])) {
 			$html .= admin_modules_action_link(
 				'?page=modules&plugin=' . rawurlencode($item['id']),
-				'fas fa-cog',
+				'fa-solid fa-gear',
 				__('admin/modules.btn_settings'),
 				'btn-outline-primary'
 			);
@@ -1380,7 +1874,7 @@ function admin_modules_installed_actions(array $item, string $delete_confirm): s
 		$html .= admin_modules_action_button(
 			'deactivate_plugin',
 			$item['id'],
-			'fas fa-power-off',
+			'fa-solid fa-power-off',
 			__('admin/modules.btn_disabling'),
 			'btn-outline-warning'
 		);
@@ -1388,14 +1882,14 @@ function admin_modules_installed_actions(array $item, string $delete_confirm): s
 		$html .= admin_modules_action_button(
 			'activate_plugin',
 			$item['id'],
-			'fas fa-check',
+			'fa-solid fa-check',
 			__('admin/modules.btn_enabling'),
 			'btn-success'
 		);
 		$html .= admin_modules_action_button(
 			'delete_plugin',
 			$item['id'],
-			'fas fa-trash-alt',
+			'fa-solid fa-trash-can',
 			__('admin/modules.btn_delete_'),
 			'btn-outline-danger',
 			'onclick="return confirm(\'' . $delete_confirm . '\');"'
@@ -1495,7 +1989,7 @@ function admin_modules_installed_board(array $themes, array $plugins, string $de
 
 		$html .= admin_modules_table($columns, $rows, [
 			'caption' => __('admin/modules.section_themes'),
-			'icon' => 'fa fa-palette',
+			'icon' => 'fa-solid fa-palette',
 			'accent' => 'info',
 			'layout' => 'installed',
 		]);
@@ -1510,7 +2004,7 @@ function admin_modules_installed_board(array $themes, array $plugins, string $de
 
 		$html .= admin_modules_table($columns, $rows, [
 			'caption' => __('admin/modules.section_modules'),
-			'icon' => 'fa fa-puzzle-piece',
+			'icon' => 'fa-solid fa-puzzle-piece',
 			'accent' => 'primary',
 			'layout' => 'installed',
 			'class' => $themes ? 'admin-modules-table-wrap--spaced' : '',
@@ -1530,17 +2024,17 @@ function admin_modules_catalog_actions(object $item, bool $extended = true): str
 	if (!empty($item->download)) {
 		$html .= admin_modules_action_link(
 			$item->download,
-			'fas fa-download',
+			'fa-solid fa-download',
 			__('admin/modules.btn_download'),
 			'btn-primary'
 		);
-		$html .= admin_modules_action_link('#', 'fas fa-microchip', __('admin/modules.btn_install'));
+		$html .= admin_modules_action_link('#', 'fa-solid fa-microchip', __('admin/modules.btn_install'));
 	}
 
 	if ($extended && !empty($item->preview)) {
 		$html .= admin_modules_action_link(
 			$item->preview,
-			'far fa-images',
+			'fa-regular fa-images',
 			__('admin/modules.btn_preview')
 		);
 	}
@@ -1548,7 +2042,7 @@ function admin_modules_catalog_actions(object $item, bool $extended = true): str
 	if ($extended && !empty($item->website)) {
 		$html .= admin_modules_action_link(
 			$item->website,
-			'fas fa-globe-americas',
+			'fa-solid fa-earth-americas',
 			__('admin/modules.btn_website')
 		);
 	}
@@ -1576,7 +2070,7 @@ function admin_modules_catalog_board(array $items, array $panel): string
 {
 	$rows = [];
 	$accent = $panel['accent'] ?? 'primary';
-	$icon = admin_modules_panel_icon($panel['icon'] ?? 'fa fa-puzzle-piece');
+	$icon = admin_modules_panel_icon($panel['icon'] ?? 'fa-solid fa-puzzle-piece');
 
 	foreach ($items as $item) {
 		$rows[] = admin_modules_catalog_table_row($item, $panel['extended'] ?? true, $accent, $icon);
@@ -1617,13 +2111,13 @@ function admin_modules_import_board(): string
 	if (!class_exists('ZipArchive')) {
 		return admin_status_bar(
 			'danger',
-			'<i class="fas fa-exclamation-circle me-1" aria-hidden="true"></i> ' . __('admin/modules.import_zip_missing')
+			'<i class="fa-solid fa-circle-exclamation me-1" aria-hidden="true"></i> ' . __('admin/modules.import_zip_missing')
 		);
 	}
 
 	$html = '<div class="admin-modules-upload">';
 	$html .= '<div class="admin-modules-upload__visual">';
-	$html .= '<span class="admin-modules-upload__icon"><i class="fas fa-cloud-upload-alt" aria-hidden="true"></i></span>';
+	$html .= '<span class="admin-modules-upload__icon"><i class="fa-solid fa-cloud-arrow-up" aria-hidden="true"></i></span>';
 	$html .= '<h3 class="admin-modules-upload__title">' . html_encode(__('admin/modules.header_form')) . '</h3>';
 	$html .= '<p class="admin-modules-upload__hint">' . __('admin/modules.import_desc') . '</p>';
 	$html .= '<p class="admin-modules-upload__meta">' . __('admin/modules.import_hint') . '</p>';
@@ -1634,7 +2128,7 @@ function admin_modules_import_board(): string
 	$html .= '<input type="file" name="plugin_file" class="form-control" accept=".zip,application/zip" required>';
 	$html .= '</label>';
 	$html .= '<button type="submit" class="btn btn-primary">';
-	$html .= '<i class="fas fa-upload me-1" aria-hidden="true"></i>' . html_encode(__('admin/modules.header_form_btn_upload'));
+	$html .= '<i class="fa-solid fa-upload me-1" aria-hidden="true"></i>' . html_encode(__('admin/modules.header_form_btn_upload'));
 	$html .= '</button></form></div>';
 
 	return $html;
@@ -1649,12 +2143,12 @@ function admin_modules_config_board(object $plugin): string
 
 	$html = '<div class="admin-modules-config__toolbar">';
 	$html .= '<a href="?page=modules" class="btn btn-outline-secondary btn-sm">';
-	$html .= '<i class="fas fa-arrow-left me-1" aria-hidden="true"></i>' . html_encode(__('admin/modules.back_to_list'));
+	$html .= '<i class="fa-solid fa-arrow-left me-1" aria-hidden="true"></i>' . html_encode(__('admin/modules.back_to_list'));
 	$html .= '</a></div>';
 
 	$html .= admin_modules_item_cell($info->name, [
 		'description' => $info->description ?? '',
-		'icon' => 'fa-cogs',
+		'icon' => 'fa-gears',
 		'accent' => 'primary',
 	]);
 
@@ -1675,7 +2169,7 @@ function admin_modules_config_board(object $plugin): string
 	$html .= admin_modules_table([], $meta_rows, [
 		'variant' => 'info',
 		'caption' => __('admin/modules.config_title') . ' ' . $info->name,
-		'icon' => 'fa fa-cogs',
+		'icon' => 'fa-solid fa-gears',
 		'accent' => 'primary',
 		'class' => 'admin-modules-table-wrap--info',
 		'layout' => 'info',
@@ -1758,10 +2252,10 @@ function admin_servers_build_stats(array $servers, array $server_types): array
 	}
 
 	return [
-		['icon' => 'fa fa-server', 'value' => (string) count($servers), 'label' => __('admin/servers.stats_total'), 'variant' => 'primary'],
-		['icon' => 'fa fa-sync', 'value' => (string) $polling_active, 'label' => __('admin/servers.stats_polling'), 'variant' => 'success'],
-		['icon' => 'fa fa-layer-group', 'value' => (string) count($types_used), 'label' => __('admin/servers.stats_types'), 'variant' => 'info'],
-		['icon' => 'fa fa-power-off', 'value' => (string) (count($servers) - $polling_active), 'label' => __('admin/servers.stats_offline'), 'variant' => 'warning'],
+		['icon' => 'fa-solid fa-server', 'value' => (string) count($servers), 'label' => __('admin/servers.stats_total'), 'variant' => 'primary'],
+		['icon' => 'fa-solid fa-arrows-rotate', 'value' => (string) $polling_active, 'label' => __('admin/servers.stats_polling'), 'variant' => 'success'],
+		['icon' => 'fa-solid fa-layer-group', 'value' => (string) count($types_used), 'label' => __('admin/servers.stats_types'), 'variant' => 'info'],
+		['icon' => 'fa-solid fa-power-off', 'value' => (string) (count($servers) - $polling_active), 'label' => __('admin/servers.stats_offline'), 'variant' => 'warning'],
 	];
 }
 
@@ -1842,14 +2336,14 @@ function admin_servers_actions(array $server, string $delete_confirm): string
 		admin_modules_action_button(
 			'edit_serv',
 			(string) ($server['id'] ?? ''),
-			'fas fa-pencil-alt',
+			'fa-solid fa-pencil',
 			__('admin/general.server_btn_title_edit'),
 			'btn-outline-primary'
 		)
 		. admin_modules_action_button(
 			'del_serv',
 			(string) ($server['id'] ?? ''),
-			'far fa-trash-alt',
+			'fa-regular fa-trash-can',
 			__('admin/general.server_btn_title_delete'),
 			'btn-outline-danger',
 			'onclick="return confirm(\'' . $delete_confirm . '\');"'
@@ -1891,7 +2385,7 @@ function admin_servers_list_board(array $servers, array $server_types, string $d
 	$html = '<form method="post" class="admin-servers-list-form">';
 	$html .= admin_modules_table(admin_servers_columns(), $rows, [
 		'caption' => __('admin/general.server_list_title'),
-		'icon' => 'fa fa-server',
+		'icon' => 'fa-solid fa-server',
 		'accent' => 'primary',
 		'layout' => 'servers',
 		'class' => 'admin-servers-table-wrap',
@@ -1966,7 +2460,7 @@ function admin_servers_form_board(array $server, array $server_types): string
 
 	$html .= '<div class="admin-settings-subsection">';
 	$html .= '<header class="admin-settings-subsection__header">';
-	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-plug" aria-hidden="true"></i></span>';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fa-solid fa-plug" aria-hidden="true"></i></span>';
 	$html .= '<div class="admin-settings-subsection__heading">';
 	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/servers.form_connection')) . '</h3>';
 
@@ -1983,7 +2477,7 @@ function admin_servers_form_board(array $server, array $server_types): string
 
 	$html .= '<div class="admin-settings-subsection">';
 	$html .= '<header class="admin-settings-subsection__header">';
-	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-sync" aria-hidden="true"></i></span>';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fa-solid fa-arrows-rotate" aria-hidden="true"></i></span>';
 	$html .= '<div class="admin-settings-subsection__heading">';
 	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/servers.form_polling')) . '</h3>';
 	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/servers.form_polling_hint')) . '</p>';
@@ -1997,7 +2491,7 @@ function admin_servers_form_board(array $server, array $server_types): string
 	$html .= '<div class="text-center">';
 	$html .= '<input type="hidden" name="id" value="' . html_encode((string) (int) ($server['id'] ?? 0)) . '">';
 	$html .= '<button class="btn btn-primary" name="save" value="1" type="submit">';
-	$html .= '<i class="fas fa-save me-1" aria-hidden="true"></i>' . html_encode($submit_label);
+	$html .= '<i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>' . html_encode($submit_label);
 	$html .= '</button> ';
 	$html .= '<a class="btn btn-outline-secondary" href="?page=servers&amp;tab=list">' . html_encode(__('admin/menu.btn_cancel')) . '</a>';
 	$html .= '</div></footer>';
@@ -2006,10 +2500,391 @@ function admin_servers_form_board(array $server, array $server_types): string
 	return $html;
 }
 
+function admin_security_nav(array $tabs, string $active): string
+{
+	return admin_tabs($tabs, [
+		'active' => $active,
+		'type' => 'bootstrap',
+		'aria_label' => __('admin/menu.sub_security'),
+	]);
+}
+
+function admin_security_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-security-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_security_tab_close(): string
+{
+	return '</div>';
+}
+
+function admin_security_empty(string $message, string $icon = 'fa-shield-alt'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
 /**
- * Métadonnées visuelles d'un type de signalement.
- *
+ * @param array<int, array<string, mixed>> $banlist
+ * @return array<int, array{icon: string, value: string, label: string, variant: string}>
+ */
+function admin_security_build_stats(array $banlist): array
+{
+	$counts = [
+		'username' => 0,
+		'email' => 0,
+		'ip' => 0,
+		'country' => 0,
+	];
+
+	foreach ($banlist as $ban) {
+		$type = (string) ($ban['type'] ?? '');
+
+		if (isset($counts[$type])) {
+			$counts[$type]++;
+		}
+	}
+
+	return [
+		['icon' => 'fa fa-shield-alt', 'value' => (string) count($banlist), 'label' => __('admin/security.stats_total'), 'variant' => 'primary'],
+		['icon' => 'fa fa-user', 'value' => (string) $counts['username'], 'label' => __('admin/security.stats_username'), 'variant' => 'danger'],
+		['icon' => 'fa fa-network-wired', 'value' => (string) $counts['ip'], 'label' => __('admin/security.stats_ip'), 'variant' => 'warning'],
+		['icon' => 'fa fa-envelope', 'value' => (string) ($counts['email'] + $counts['country']), 'label' => __('admin/security.stats_other'), 'variant' => 'info'],
+	];
+}
+
+/**
  * @return array{label: string, icon: string, accent: string}
+ */
+function admin_security_type_meta(string $type): array
+{
+	static $map = [
+		'username' => ['label' => 'admin/security.select_username', 'icon' => 'fa-user', 'accent' => 'danger'],
+		'email' => ['label' => 'admin/security.select_email', 'icon' => 'fa-envelope', 'accent' => 'info'],
+		'ip' => ['label' => 'admin/security.select_ip', 'icon' => 'fa-network-wired', 'accent' => 'warning'],
+		'country' => ['label' => 'admin/security.table_country', 'icon' => 'fa-globe', 'accent' => 'primary'],
+	];
+
+	return $map[$type] ?? ['label' => '', 'icon' => 'fa-ban', 'accent' => 'secondary'];
+}
+
+function admin_security_type_label(string $type): string
+{
+	$meta = admin_security_type_meta($type);
+
+	return $meta['label'] !== '' ? __($meta['label']) : ucfirst($type);
+}
+
+/**
+ * @return array<int, string>
+ */
+function admin_security_columns(): array
+{
+	return [
+		html_encode(__('admin/security.table_rule')),
+		html_encode(__('admin/security.table_reason')),
+		html_encode(__('admin/security.table_expiration')),
+		html_encode(__('admin/modules.table_action')),
+	];
+}
+
+/**
+ * @param array<string, mixed> $ban
+ * @param array<string, string> $types
+ */
+function admin_security_rule_cell(array $ban, array $types): string
+{
+	$type = (string) ($ban['type'] ?? '');
+	$meta = admin_security_type_meta($type);
+	$rule = html_encode(str_replace(['%', '\_'], ['*', '_'], (string) ($ban['rule'] ?? '')));
+	$type_label = $types[$type] ?? admin_security_type_label($type);
+
+	return admin_modules_item_cell($rule, [
+		'description' => $type_label,
+		'icon' => $meta['icon'],
+		'accent' => $meta['accent'],
+	]);
+}
+
+/**
+ * @param array<string, mixed> $ban
+ */
+function admin_security_reason_cell(array $ban): string
+{
+	$reason = trim((string) ($ban['reason'] ?? ''));
+
+	if ($reason === '') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	return html_encode($reason);
+}
+
+/**
+ * @param array<string, mixed> $ban
+ */
+function admin_security_expires_cell(array $ban): string
+{
+	$expires = (int) ($ban['expires'] ?? 0);
+	$label = Format::today($expires);
+	$is_permanent = $expires <= 0;
+	$is_expired = $expires > 0 && $expires < time();
+
+	if ($is_permanent) {
+		return '<span class="admin-modules-chip admin-security-expires-chip admin-security-expires-chip--permanent">'
+			. html_encode($label)
+			. '</span>';
+	}
+
+	if ($is_expired) {
+		return '<span class="admin-modules-status admin-modules-status--is-inactive">'
+			. '<span class="admin-modules-status__dot" aria-hidden="true"></span>'
+			. html_encode($label)
+			. '</span>';
+	}
+
+	return '<span class="admin-modules-chip admin-security-expires-chip">' . html_encode($label) . '</span>';
+}
+
+/**
+ * @param array<string, mixed> $ban
+ */
+function admin_security_actions(array $ban, string $delete_confirm): string
+{
+	return admin_modules_actions_group(
+		admin_modules_action_button(
+			'delete',
+			(string) ($ban['id'] ?? ''),
+			'far fa-trash-alt',
+			__('admin/general.btn_delete'),
+			'btn-outline-danger',
+			'onclick="return confirm(\'' . $delete_confirm . '\');"'
+		)
+	);
+}
+
+/**
+ * @param array<string, mixed> $ban
+ * @param array<string, string> $types
+ * @return array<int, string>
+ */
+function admin_security_table_row(array $ban, array $types, string $delete_confirm, bool $highlight = false): array
+{
+	$row = [
+		admin_security_rule_cell($ban, $types),
+		admin_security_reason_cell($ban),
+		admin_security_expires_cell($ban),
+		admin_modules_table_actions_cell(admin_security_actions($ban, $delete_confirm)),
+	];
+
+	if ($highlight) {
+		$row['_class'] = 'admin-security-row--highlight';
+	}
+
+	return $row;
+}
+
+/**
+ * @param array<int, array<string, mixed>> $banlist
+ * @param array<string, string> $types
+ */
+function admin_security_list_board(array $banlist, array $types, string $delete_confirm, string $filter = ''): string
+{
+	$filter = trim($filter);
+	$toolbar = '<form method="get" class="admin-security-filter" role="search">'
+		. '<input type="hidden" name="page" value="security">'
+		. '<input type="hidden" name="tab" value="list">'
+		. '<div class="input-group input-group-sm">'
+		. '<input class="form-control" name="filter" type="search" value="' . html_encode($filter) . '" placeholder="' . html_encode(__('admin/security.filter_placeholder')) . '">'
+		. '<button class="btn btn-outline-secondary" type="submit" aria-label="' . html_encode(__('admin/security.filter_submit')) . '">'
+		. '<i class="fas fa-search" aria-hidden="true"></i>'
+		. '</button>'
+		. '</div></form>';
+
+	if (!$banlist) {
+		$html = '<div class="admin-security-list-board">';
+
+		if ($filter !== '') {
+			$html .= admin_status_bar(
+				'info',
+				'<i class="fas fa-info-circle me-1" aria-hidden="true"></i> ' . html_encode(__('admin/security.alert_notfound'))
+			);
+		} else {
+			$html .= admin_security_empty(__('admin/security.alert_notfound'));
+		}
+
+		return $html . '</div>';
+	}
+
+	$rows = [];
+	$highlight_username = App::GET('username');
+	$highlight_ip = App::GET('ip');
+
+	foreach ($banlist as $ban) {
+		$highlight = ($ban['rule'] ?? '') === $highlight_username || ($ban['rule'] ?? '') === $highlight_ip;
+		$rows[] = admin_security_table_row($ban, $types, $delete_confirm, $highlight);
+	}
+
+	$html = '<form method="post" class="admin-security-list-form">';
+	$html .= admin_modules_table(admin_security_columns(), $rows, [
+		'caption' => __('admin/security.main_title'),
+		'icon' => 'fa fa-shield-alt',
+		'accent' => 'danger',
+		'layout' => 'security',
+		'class' => 'admin-security-table-wrap',
+		'toolbar_actions' => $toolbar,
+	]);
+
+	return $html . '</form>';
+}
+
+/**
+ * @param array<string, string> $types
+ */
+function admin_security_form_type_fields(array $types): string
+{
+	$html = admin_form_field_row(
+		__('admin/security.table_type'),
+		Widgets::select('type', $types, '', true, 'class="form-control" id="security-type"'),
+		['for' => 'security-type']
+	);
+
+	$html .= '<div class="admin-security-form__help">' . __('admin/security.small_type') . '</div>';
+
+	return $html;
+}
+
+/**
+ * @param array<string, string> $types
+ */
+function admin_security_form_rule_fields(array $types): string
+{
+	$rule_value = html_encode(App::GET('username', ''));
+	$rule_style = App::GET('username') ? ' style="background-color:#fff3f3;"' : '';
+
+	$html = '<div class="admin-security-form__rule ban ban-username ban-email ban-ip">';
+	$html .= admin_form_field_row(
+		__('admin/security.table_rule'),
+		'<input class="form-control" data-autocomplete="userlist" name="rule" id="security-rule" type="text" value="' . $rule_value . '"' . $rule_style . '>',
+		['for' => 'security-rule']
+	);
+	$html .= '<div class="admin-security-form__help">' . __('admin/security.small_rule') . '</div>';
+	$html .= '</div>';
+
+	$html .= '<div class="admin-security-form__country ban ban-country">';
+	$html .= admin_form_field_row(
+		__('admin/security.table_country'),
+		Widgets::select('country', COUNTRIES, '', true, 'class="form-control" id="security-country"'),
+		['for' => 'security-country']
+	);
+	$html .= '</div>';
+
+	return $html;
+}
+
+function admin_security_form_details_fields(): string
+{
+	$html = admin_form_field_row(
+		__('admin/security.table_reason'),
+		'<input class="form-control" id="security-reason" name="reason" type="text" value="">',
+		['for' => 'security-reason']
+	);
+
+	$html .= admin_form_field_row(
+		__('admin/security.table_expiration'),
+		'<input class="form-control" id="security-expires" name="expires" type="text" value="+1 week">',
+		['for' => 'security-expires']
+	);
+	$html .= '<div class="admin-security-form__help">'
+		. __('admin/security.small_expiration')
+		. ' : <a href="https://www.php.net/manual/fr/function.strtotime.php" target="_blank" rel="noopener">strtotime</a>.'
+		. '</div>';
+
+	return $html;
+}
+
+/**
+ * @param array<string, string> $types
+ */
+function admin_security_form_board(array $types): string
+{
+	$html = '<div class="admin-security-form admin-security-form--config">';
+	$html .= '<form method="post" role="form" class="form-horizontal admin-settings-grouped-form admin-security-form__form" id="admin-security-form">';
+	$html .= '<section class="admin-settings-section admin-settings-section--grouped">';
+	$html .= '<div class="admin-settings-section__body admin-settings-section__body--grouped">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-ban" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/security.form_rule')) . '</h3>';
+	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/security.form_intro')) . '</p>';
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body">';
+	$html .= admin_security_form_type_fields($types);
+	$html .= admin_security_form_rule_fields($types);
+	$html .= '</div></div>';
+
+	$html .= '<hr class="admin-settings-subsection__divider">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-info-circle" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/security.form_details')) . '</h3>';
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body">';
+	$html .= admin_security_form_details_fields();
+	$html .= '</div></div>';
+
+	$html .= '</div>';
+	$html .= '<footer class="admin-settings-section__footer">';
+	$html .= '<div class="text-center">';
+	$html .= '<button class="btn btn-primary" name="add_menu" value="" type="submit">';
+	$html .= '<i class="fas fa-save me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.btn_save'));
+	$html .= '</button> ';
+	$html .= '<a class="btn btn-outline-secondary" href="?page=security&amp;tab=list">' . html_encode(__('admin/menu.btn_cancel')) . '</a>';
+	$html .= '</div></footer>';
+	$html .= '</section></form></div>';
+
+	return $html . admin_security_form_script();
+}
+
+function admin_security_form_script(): string
+{
+	$ip = addslashes(App::GET('ip', ''));
+	$username = addslashes(App::GET('username', ''));
+	$email = addslashes(App::GET('email', ''));
+
+	return '<script>
+(function () {
+	var $type = $(\'#security-type\');
+	if (!$type.length) return;
+
+	$type.on(\'change\', function () {
+		var value = this.value;
+		switch (value) {
+			case \'ip\':
+				$(\'#security-rule\').val(\'' . $ip . '\').removeAttr(\'data-autocomplete\');
+				break;
+			case \'username\':
+				$(\'#security-rule\').val(\'' . $username . '\').attr(\'data-autocomplete\', \'userlist\');
+				break;
+			case \'email\':
+				$(\'#security-rule\').val(\'' . $email . '\').removeAttr(\'data-autocomplete\');
+				break;
+		}
+		$(\'.ban\').hide();
+		$(\'.ban.ban-\' + value).show();
+	}).trigger(\'change\');
+})();
+</script>';
+}
+
+/**
+ * Affiche la navigation de la page pages admin (style dashboard).
+ *
+ * @param array<string, array{label: string, icon?: string, href?: string, external?: bool, ms_auto?: bool}> $tabs
  */
 function admin_reports_type_meta(string $type): array
 {
@@ -2097,7 +2972,7 @@ function admin_reports_actions_cell(array $report): string
 
 	$actions = admin_modules_action_link(
 		$link,
-		'fa fa-eye',
+		'fa-solid fa-eye',
 		__('admin/reports.btn_view'),
 		'btn-outline-primary'
 	);
@@ -2105,7 +2980,7 @@ function admin_reports_actions_cell(array $report): string
 	$actions .= admin_modules_action_button(
 		'dismiss',
 		(string) ($report['id'] ?? ''),
-		'fa fa-check',
+		'fa-solid fa-check',
 		__('admin/reports.btn_dismiss'),
 		'btn-outline-warning',
 		'onclick="return confirm(\'' . $dismiss_confirm . '\');"'
@@ -2122,16 +2997,16 @@ function admin_reports_actions_cell(array $report): string
 function admin_reports_build_stats(int $total_pending, array $type_counts): array
 {
 	$stats = [[
-		'icon' => 'fa fa-flag',
+		'icon' => 'fa-solid fa-flag',
 		'value' => (string) $total_pending,
 		'label' => __('admin/reports.stats_total'),
 		'variant' => 'danger',
 	]];
 
 	$known = [
-		'forum' => ['icon' => 'fa fa-comments', 'label' => __('admin/reports.stats_forum'), 'variant' => 'primary'],
-		'comment' => ['icon' => 'fa fa-comment', 'label' => __('admin/reports.stats_comment'), 'variant' => 'info'],
-		'profile' => ['icon' => 'fa fa-user', 'label' => __('admin/reports.stats_profile'), 'variant' => 'warning'],
+		'forum' => ['icon' => 'fa-solid fa-comments', 'label' => __('admin/reports.stats_forum'), 'variant' => 'primary'],
+		'comment' => ['icon' => 'fa-solid fa-comment', 'label' => __('admin/reports.stats_comment'), 'variant' => 'info'],
+		'profile' => ['icon' => 'fa-solid fa-user', 'label' => __('admin/reports.stats_profile'), 'variant' => 'warning'],
 	];
 
 	foreach ($known as $type => $meta) {
@@ -2179,7 +3054,7 @@ function admin_reports_filters(array $types, array $selected_types): string
 		$html .= '<label class="admin-reports-filter-chip' . ($checked ? ' admin-reports-filter-chip--active' : '') . '">';
 		$html .= '<input type="checkbox" name="types[]" value="' . html_encode($type_name) . '"' . ($checked ? ' checked' : '') . ' class="admin-reports-filter-chip__input">';
 		$html .= '<span class="admin-reports-filter-chip__content">';
-		$html .= '<i class="fas ' . html_encode($meta['icon']) . '" aria-hidden="true"></i>';
+		$html .= '<i class="fa-solid ' . html_encode($meta['icon']) . '" aria-hidden="true"></i>';
 		$html .= html_encode(admin_reports_type_label($type_name));
 		$html .= '</span></label>';
 	}
@@ -2226,7 +3101,7 @@ function admin_reports_table(array $reports, array $options = []): string
 
 	return admin_modules_table($columns, $rows, [
 		'caption' => $options['caption'] ?? __('admin/reports.caption'),
-		'icon' => $options['icon'] ?? 'fa fa-flag',
+		'icon' => $options['icon'] ?? 'fa-solid fa-flag',
 		'accent' => $options['accent'] ?? 'danger',
 		'class' => trim('admin-reports-table-wrap ' . ($options['class'] ?? '')),
 		'layout' => 'reports',
@@ -2234,10 +3109,2522 @@ function admin_reports_table(array $reports, array $options = []): string
 }
 
 /**
- * Récupère les informations de la page courante dans l'admin
- * @param string $type 'icon', 'title', 'description', 'both', 'all', ou 'html'
- * @return string|array
+ * @return array<int, string>
  */
+function admin_comments_columns(): array
+{
+	return [
+		__('admin/comments.table_msg'),
+		__('admin/comments.table_user'),
+		__('admin/comments.table_state'),
+		'&nbsp;',
+	];
+}
+
+function admin_comments_empty(string $message, string $icon = 'fa-comment'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+function admin_comments_message_cell(array $comment): string
+{
+	return '<div class="admin-comments-message">' . html_encode((string) ($comment['message'] ?? '')) . '</div>';
+}
+
+function admin_comments_user_cell(array $comment): string
+{
+	$user = trim((string) ($comment['username'] ?? ''));
+
+	if ($user === '') {
+		$user = trim((string) ($comment['poster_name'] ?? ''));
+	}
+
+	return '<span class="admin-comments-user">' . html_encode($user !== '' ? $user : '—') . '</span>';
+}
+
+function admin_comments_state_cell(array $comment, array $status_labels): string
+{
+	$state = (int) ($comment['state'] ?? 1);
+	$label = $status_labels[$state] ?? $status_labels[1] ?? '';
+	$variant = 'secondary';
+
+	if ($state === 0) {
+		$variant = 'warning';
+	} elseif ($state === 2) {
+		$variant = 'danger';
+	} elseif ($state === 1) {
+		$variant = 'success';
+	}
+
+	return '<span class="badge text-bg-' . html_encode($variant) . ' admin-comments-state">' . html_encode($label) . '</span>';
+}
+
+function admin_comments_actions_cell(array $comment): string
+{
+	$state = (int) ($comment['state'] ?? 1);
+	$actions = '';
+	$confirm = html_encode(__('admin/menu.ajax_confirm'), ENT_QUOTES);
+
+	if ($state === 2) {
+		$actions .= admin_modules_action_button(
+			'com_accept',
+			(string) ($comment['id'] ?? ''),
+			'fa-solid fa-check',
+			__('admin/comments.btn_accept'),
+			'btn-outline-success',
+			'onclick="return confirm(\'' . $confirm . '\');"'
+		);
+	}
+
+	if (has_permission('mod.comment_censure') && $state !== 2) {
+		$actions .= admin_modules_action_button(
+			'com_censure',
+			(string) ($comment['id'] ?? ''),
+			'fa-solid fa-ban',
+			__('admin/comments.btn_censor'),
+			'btn-outline-warning',
+			'onclick="return confirm(\'' . $confirm . '\');"'
+		);
+	}
+
+	if (has_permission('mod.comment_delete')) {
+		$actions .= admin_modules_action_button(
+			'com_delete',
+			(string) ($comment['id'] ?? ''),
+			'fa-solid fa-trash-can',
+			__('admin/comments.btn_delete'),
+			'btn-outline-danger',
+			'onclick="return confirm(\'' . $confirm . '\');"'
+		);
+	}
+
+	$page_id = (int) ($comment['page_id'] ?? 0);
+
+	if ($page_id > 0) {
+		$actions .= admin_modules_action_link(
+			App::getURL($page_id, [], '#msg' . (int) ($comment['id'] ?? 0)),
+			'fa-solid fa-eye',
+			__('admin/comments.btn_view'),
+			'btn-outline-primary'
+		);
+	}
+
+	return admin_modules_table_actions_cell($actions);
+}
+
+/**
+ * @param array<int, array<string, mixed>> $comments
+ * @param array<int, string> $status_labels
+ */
+function admin_comments_table(array $comments, array $status_labels, array $options = []): string
+{
+	if (!$comments) {
+		return admin_comments_empty(
+			$options['empty'] ?? __('admin/comments.no_comment'),
+			$options['empty_icon'] ?? 'fa-comment'
+		);
+	}
+
+	$columns = admin_comments_columns();
+	$rows = [];
+
+	foreach ($comments as $comment) {
+		$state = (int) ($comment['state'] ?? 1);
+		$row = [
+			admin_comments_message_cell($comment),
+			admin_comments_user_cell($comment),
+			admin_comments_state_cell($comment, $status_labels),
+			admin_comments_actions_cell($comment),
+		];
+
+		if ($state === 0) {
+			$row['_class'] = 'admin-comments-row--pending';
+		} elseif ($state === 2) {
+			$row['_class'] = 'admin-comments-row--censored';
+		}
+
+		$rows[] = $row;
+	}
+
+	return admin_modules_table($columns, $rows, [
+		'caption' => $options['caption'] ?? __('admin/comments.title'),
+		'icon' => $options['icon'] ?? 'fa-solid fa-comments',
+		'accent' => $options['accent'] ?? 'primary',
+		'class' => trim('admin-comments-table-wrap ' . ($options['class'] ?? '')),
+		'layout' => 'comments',
+	]);
+}
+
+function admin_comments_build_stats(int $total, int $pending, int $censored): array
+{
+	$approved = max(0, $total - $pending - $censored);
+
+	return [
+		[
+			'icon' => 'fa-solid fa-comments',
+			'value' => (string) $total,
+			'label' => __('admin/comments.stats_total'),
+			'variant' => 'primary',
+		],
+		[
+			'icon' => 'fa-solid fa-clock',
+			'value' => (string) $pending,
+			'label' => __('admin/comments.stats_pending'),
+			'variant' => 'warning',
+		],
+		[
+			'icon' => 'fa-solid fa-ban',
+			'value' => (string) $censored,
+			'label' => __('admin/comments.stats_censored'),
+			'variant' => 'danger',
+		],
+		[
+			'icon' => 'fa-solid fa-check',
+			'value' => (string) $approved,
+			'label' => __('admin/comments.stats_ok'),
+			'variant' => 'success',
+		],
+	];
+}
+
+/**
+ * @param array<int, array<string, mixed>> $comments
+ * @param array<int, string> $status_labels
+ */
+function admin_comments_board(array $comments, int $total, int $page_num, int $page_id, array $status_labels): string
+{
+	if (!$comments) {
+		return admin_comments_empty(__('admin/comments.no_comment'));
+	}
+
+	$form_action = '?page=comments';
+
+	if ($page_id > 0) {
+		$form_action .= '&page_id=' . $page_id;
+	}
+
+	$html = '<form method="post" action="' . html_encode($form_action) . '" class="admin-comments-form">';
+	$html .= admin_comments_table($comments, $status_labels);
+
+	if ($total > 25) {
+		$html .= '<div class="admin-comments-pager">';
+		$html .= Widgets::pager((int) ceil($total / 25), $page_num, 10, null, (int) App::GET('prevpn', 0));
+		$html .= '</div>';
+	}
+
+	return $html . '</form>';
+}
+
+function admin_downloads_empty(string $message, string $icon = 'fa-download'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+/**
+ * @return array<string, array{icon: string, accent: string}>
+ */
+function admin_file_type_map(): array
+{
+	return [
+		'image' => ['icon' => 'fa-image', 'accent' => 'info'],
+		'video' => ['icon' => 'fa-film', 'accent' => 'danger'],
+		'audio' => ['icon' => 'fa-music', 'accent' => 'success'],
+		'archive' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'document' => ['icon' => 'fa-file-alt', 'accent' => 'primary'],
+		'spreadsheet' => ['icon' => 'fa-file-excel', 'accent' => 'success'],
+		'presentation' => ['icon' => 'fa-file-powerpoint', 'accent' => 'warning'],
+		'text' => ['icon' => 'fa-file-alt', 'accent' => 'primary'],
+		'code' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'font' => ['icon' => 'fa-font', 'accent' => 'secondary'],
+		'ebook' => ['icon' => 'fa-book', 'accent' => 'primary'],
+		'database' => ['icon' => 'fa-database', 'accent' => 'info'],
+		'executable' => ['icon' => 'fa-cogs', 'accent' => 'secondary'],
+		'unknown' => ['icon' => 'fa-file', 'accent' => 'secondary'],
+	];
+}
+
+/**
+ * @return array<string, array{icon: string, accent: string}>
+ */
+function admin_file_extension_icon_map(): array
+{
+	return [
+		'pdf' => ['icon' => 'fa-file-pdf', 'accent' => 'danger'],
+		'doc' => ['icon' => 'fa-file-word', 'accent' => 'primary'],
+		'docx' => ['icon' => 'fa-file-word', 'accent' => 'primary'],
+		'odt' => ['icon' => 'fa-file-word', 'accent' => 'primary'],
+		'rtf' => ['icon' => 'fa-file-word', 'accent' => 'primary'],
+		'xls' => ['icon' => 'fa-file-excel', 'accent' => 'success'],
+		'xlsx' => ['icon' => 'fa-file-excel', 'accent' => 'success'],
+		'ods' => ['icon' => 'fa-file-excel', 'accent' => 'success'],
+		'ppt' => ['icon' => 'fa-file-powerpoint', 'accent' => 'warning'],
+		'pptx' => ['icon' => 'fa-file-powerpoint', 'accent' => 'warning'],
+		'odp' => ['icon' => 'fa-file-powerpoint', 'accent' => 'warning'],
+		'zip' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'rar' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'7z' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'tar' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'gz' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'bz2' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'xz' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'jar' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'apk' => ['icon' => 'fa-file-archive', 'accent' => 'warning'],
+		'mp3' => ['icon' => 'fa-file-audio', 'accent' => 'success'],
+		'wav' => ['icon' => 'fa-file-audio', 'accent' => 'success'],
+		'ogg' => ['icon' => 'fa-file-audio', 'accent' => 'success'],
+		'flac' => ['icon' => 'fa-file-audio', 'accent' => 'success'],
+		'aac' => ['icon' => 'fa-file-audio', 'accent' => 'success'],
+		'm4a' => ['icon' => 'fa-file-audio', 'accent' => 'success'],
+		'mp4' => ['icon' => 'fa-file-video', 'accent' => 'danger'],
+		'avi' => ['icon' => 'fa-file-video', 'accent' => 'danger'],
+		'mkv' => ['icon' => 'fa-file-video', 'accent' => 'danger'],
+		'mov' => ['icon' => 'fa-file-video', 'accent' => 'danger'],
+		'webm' => ['icon' => 'fa-file-video', 'accent' => 'danger'],
+		'flv' => ['icon' => 'fa-file-video', 'accent' => 'danger'],
+		'wmv' => ['icon' => 'fa-file-video', 'accent' => 'danger'],
+		'jpg' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'jpeg' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'png' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'gif' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'webp' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'svg' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'bmp' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'ico' => ['icon' => 'fa-file-image', 'accent' => 'info'],
+		'txt' => ['icon' => 'fa-file-alt', 'accent' => 'primary'],
+		'md' => ['icon' => 'fa-file-alt', 'accent' => 'primary'],
+		'log' => ['icon' => 'fa-file-alt', 'accent' => 'primary'],
+		'csv' => ['icon' => 'fa-file-csv', 'accent' => 'success'],
+		'html' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'htm' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'css' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'js' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'ts' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'json' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'xml' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'php' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'py' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'java' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'c' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'cpp' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'h' => ['icon' => 'fa-file-code', 'accent' => 'primary'],
+		'sql' => ['icon' => 'fa-database', 'accent' => 'info'],
+		'db' => ['icon' => 'fa-database', 'accent' => 'info'],
+		'sqlite' => ['icon' => 'fa-database', 'accent' => 'info'],
+		'ttf' => ['icon' => 'fa-font', 'accent' => 'secondary'],
+		'otf' => ['icon' => 'fa-font', 'accent' => 'secondary'],
+		'woff' => ['icon' => 'fa-font', 'accent' => 'secondary'],
+		'woff2' => ['icon' => 'fa-font', 'accent' => 'secondary'],
+		'eot' => ['icon' => 'fa-font', 'accent' => 'secondary'],
+		'epub' => ['icon' => 'fa-book', 'accent' => 'primary'],
+		'mobi' => ['icon' => 'fa-book', 'accent' => 'primary'],
+		'azw' => ['icon' => 'fa-book', 'accent' => 'primary'],
+		'azw3' => ['icon' => 'fa-book', 'accent' => 'primary'],
+		'exe' => ['icon' => 'fa-cogs', 'accent' => 'secondary'],
+		'msi' => ['icon' => 'fa-cogs', 'accent' => 'secondary'],
+		'dmg' => ['icon' => 'fa-cogs', 'accent' => 'secondary'],
+		'deb' => ['icon' => 'fa-cogs', 'accent' => 'secondary'],
+		'rpm' => ['icon' => 'fa-cogs', 'accent' => 'secondary'],
+		'iso' => ['icon' => 'fa-compact-disc', 'accent' => 'warning'],
+	];
+}
+
+/**
+ * @return array{icon: string, accent: string}
+ */
+function admin_file_type_meta(string $type): array
+{
+	$map = admin_file_type_map();
+
+	return $map[$type] ?? $map['unknown'];
+}
+
+function admin_downloads_type_meta(string $type): array
+{
+	return admin_file_type_meta($type);
+}
+
+/**
+ * @param array<int, \Evo\Models\File> $files
+ * @return array<int, array{icon: string, value: string, label: string, variant: string}>
+ */
+function admin_downloads_build_stats(array $files): array
+{
+	$total_hits = 0;
+	$total_size = 0;
+	$types = [];
+
+	foreach ($files as $file) {
+		$total_hits += (int) $file->hits;
+		$total_size += (int) $file->size;
+		$type = (string) $file->type;
+
+		if ($type !== '') {
+			$types[$type] = true;
+		}
+	}
+
+	return [
+		['icon' => 'fa fa-download', 'value' => (string) count($files), 'label' => __('admin/downloads.stats_total'), 'variant' => 'primary'],
+		['icon' => 'fa fa-mouse-pointer', 'value' => (string) $total_hits, 'label' => __('admin/downloads.stats_hits'), 'variant' => 'success'],
+		['icon' => 'fa fa-hdd', 'value' => Format::size($total_size), 'label' => __('admin/downloads.stats_size'), 'variant' => 'info'],
+		['icon' => 'fa fa-tags', 'value' => (string) count($types), 'label' => __('admin/downloads.stats_types'), 'variant' => 'warning'],
+	];
+}
+
+/**
+ * @return array<int, string>
+ */
+function admin_downloads_columns(): array
+{
+	return [
+		html_encode(__('admin/downloads.table_file')),
+		html_encode(__('admin/downloads.table_date')),
+		html_encode(__('admin/downloads.table_size')),
+		html_encode(__('admin/downloads.table_hits')),
+		html_encode(__('admin/downloads.table_actions')),
+	];
+}
+
+function admin_downloads_item_cell(\Evo\Models\File $file): string
+{
+	$caption = trim((string) $file->caption);
+	$caption = $caption !== '' ? $caption : (string) $file->name;
+	$meta = admin_downloads_type_meta((string) $file->type);
+
+	return admin_modules_item_cell($caption, [
+		'description' => (string) $file->name,
+		'url' => App::getURL($file->path),
+		'icon' => $meta['icon'],
+		'accent' => $meta['accent'],
+	]);
+}
+
+function admin_downloads_date_cell(\Evo\Models\File $file): string
+{
+	return !empty($file->posted)
+		? html_encode(Format::today((int) $file->posted, true))
+		: '<span class="admin-modules-muted">&mdash;</span>';
+}
+
+function admin_downloads_size_cell(\Evo\Models\File $file): string
+{
+	return '<span class="admin-downloads-size">' . html_encode(Format::size((int) $file->size)) . '</span>';
+}
+
+function admin_downloads_hits_cell(\Evo\Models\File $file): string
+{
+	return '<span class="admin-modules-chip admin-downloads-hits-chip">' . html_encode((string) (int) $file->hits) . '</span>';
+}
+
+function admin_downloads_actions(\Evo\Models\File $file, string $delete_confirm): string
+{
+	$id = (string) $file->id;
+	$edit_href = '?page=downloads&view=add&edit=' . rawurlencode($id);
+
+	return admin_modules_actions_group(
+		admin_modules_action_link(
+			$edit_href,
+			'fas fa-pencil-alt',
+			__('admin/downloads.btn_edit'),
+			'btn-outline-primary'
+		)
+		. admin_modules_action_link(
+			App::getURL($file->path),
+			'fas fa-external-link-alt',
+			__('admin/downloads.btn_open'),
+			'btn-outline-info'
+		)
+		. admin_modules_action_button(
+			'delete',
+			$id,
+			'far fa-trash-alt',
+			__('admin/general.btn_delete'),
+			'btn-outline-danger',
+			'onclick="return confirm(\'' . $delete_confirm . '\');"'
+		)
+	);
+}
+
+/**
+ * @return array<int, string>
+ */
+function admin_downloads_table_row(\Evo\Models\File $file, string $delete_confirm): array
+{
+	$search = strtolower(trim((string) $file->caption . ' ' . (string) $file->name . ' ' . (string) $file->description));
+
+	return [
+		'_search' => $search,
+		admin_downloads_item_cell($file),
+		admin_downloads_date_cell($file),
+		admin_downloads_size_cell($file),
+		admin_downloads_hits_cell($file),
+		admin_modules_table_actions_cell(admin_downloads_actions($file, $delete_confirm)),
+	];
+}
+
+/**
+ * Barre d'outils liste téléchargements (recherche + action).
+ */
+function admin_downloads_filters(string $filter): string
+{
+	$html = '<div class="admin-downloads-toolbar">';
+	$html .= '<div class="admin-downloads-toolbar__search">';
+	$html .= '<span class="admin-downloads-toolbar__search-label">' . html_encode(__('admin/downloads.search_label')) . '</span>';
+	$html .= '<label class="admin-downloads-toolbar__search-field">';
+	$html .= '<i class="fas fa-search" aria-hidden="true"></i>';
+	$html .= '<input type="search" name="filter" class="form-control" value="' . html_encode($filter) . '" placeholder="' . html_encode(__('admin/downloads.search_placeholder')) . '" autocomplete="off" data-admin-toolbar-search-input>';
+	$html .= '</label>';
+
+	if ($filter !== '') {
+		$html .= '<a class="btn btn-link btn-sm admin-downloads-toolbar__reset" href="#" data-admin-toolbar-search-reset role="button">';
+		$html .= html_encode(__('admin/downloads.search_reset'));
+		$html .= '</a>';
+	} else {
+		$html .= '<a class="btn btn-link btn-sm admin-downloads-toolbar__reset d-none" href="#" data-admin-toolbar-search-reset role="button" hidden>';
+		$html .= html_encode(__('admin/downloads.search_reset'));
+		$html .= '</a>';
+	}
+
+	$html .= '</div>';
+	$html .= '<a href="?page=downloads&amp;view=add" class="btn btn-primary btn-sm admin-downloads-toolbar__add">';
+	$html .= '<i class="fas fa-plus me-1" aria-hidden="true"></i>' . html_encode(__('admin/downloads.tab_add'));
+	$html .= '</a></div>';
+
+	return $html;
+}
+
+function admin_downloads_add_board(?\Evo\Models\File $edit_file = null): string
+{
+	$is_edit = $edit_file !== null;
+	$id = $is_edit ? (int) $edit_file->id : 0;
+	$textarea_id = 'download-description-' . ($id ?: 'new');
+	$caption = $is_edit ? (string) $edit_file->caption : '';
+	$name = $is_edit ? (string) $edit_file->name : '';
+	$posted = $is_edit ? date('Y-m-d H:i', (int) $edit_file->posted) : date('Y-m-d H:i');
+	$description = $is_edit ? (string) $edit_file->description : '';
+
+	$html = '<div class="admin-downloads-content-wrap admin-downloads-content-wrap--add">';
+	$html .= '<div class="admin-downloads-add-panel">';
+	$html .= '<form method="post" enctype="multipart/form-data" role="form" class="form-horizontal admin-settings-grouped-form admin-downloads-add-form" id="admin-downloads-add-form">';
+	$html .= admin_csrf_field();
+
+	if ($is_edit) {
+		$html .= '<input type="hidden" name="file_id" value="' . $id . '">';
+	}
+
+	$html .= '<section class="admin-settings-section admin-settings-section--grouped">';
+	$html .= '<div class="admin-settings-section__body admin-settings-section__body--grouped">';
+
+	if (!$is_edit) {
+		$html .= '<div class="admin-settings-subsection admin-downloads-add-form__file-section">';
+		$html .= '<header class="admin-settings-subsection__header admin-settings-subsection__header--split admin-downloads-add-form__file-header">';
+		$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-cloud-upload-alt" aria-hidden="true"></i></span>';
+		$html .= '<div class="admin-settings-subsection__heading">';
+		$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/downloads.add_section_file')) . '</h3>';
+		$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/downloads.add_file_intro')) . '</p>';
+		$html .= '</div>';
+		$html .= '<div class="admin-file-dropzone__header-actions">';
+		$html .= '<div class="admin-file-dropzone__header-actions-group" data-dropzone-header-actions hidden>';
+		$html .= '<button type="button" class="btn btn-outline-danger btn-sm" data-dropzone-detail-remove>';
+		$html .= '<i class="fas fa-times me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.file_drop_detail_remove'));
+		$html .= '</button></div>';
+		$html .= '<a class="btn btn-outline-secondary btn-sm" href="?page=downloads&amp;view=list">' . html_encode(__('admin/downloads.btn_back_list')) . '</a>';
+		$html .= '</div></header>';
+		$html .= '<div class="admin-settings-subsection__body admin-downloads-add-form__dropzone-body">';
+		$html .= admin_file_dropzone([
+			'name' => 'new_download',
+			'multiple' => false,
+			'preview' => true,
+			'detail' => true,
+			'detail_remove_in' => 'header',
+			'title' => __('admin/downloads.upload_title'),
+			'hint' => __('admin/general.file_drop_hint'),
+			'summary' => __('admin/downloads.upload_ready'),
+			'detail_status' => __('admin/downloads.upload_ready'),
+			'class' => 'admin-downloads-add-form__dropzone',
+			'autofill' => [
+				'form' => '#admin-downloads-add-form',
+				'fields' => [
+					'caption' => 'file[caption]',
+					'name' => 'file[name]',
+					'posted' => 'file[posted]',
+				],
+			],
+		]);
+		$html .= '</div></div>';
+		$html .= '<hr class="admin-settings-subsection__divider admin-downloads-add-form__info-divider">';
+	} else {
+		$html .= '<div class="admin-downloads-edit__meta admin-downloads-add-form__meta">';
+		$html .= '<span class="admin-downloads-edit__meta-item"><span class="admin-downloads-edit__meta-label">' . html_encode(__('admin/downloads.info_size')) . '</span> <strong>' . html_encode(Format::size((int) $edit_file->size)) . '</strong></span>';
+		$html .= '<span class="admin-downloads-edit__meta-item"><span class="admin-downloads-edit__meta-label">' . html_encode(__('admin/downloads.info_type')) . '</span> <strong>' . html_encode((string) $edit_file->type) . '</strong></span>';
+		$html .= '<span class="admin-downloads-edit__meta-item"><span class="admin-downloads-edit__meta-label">' . html_encode(__('admin/downloads.info_mime')) . '</span> <strong>' . html_encode((string) $edit_file->mime_type) . '</strong></span>';
+		$html .= '<span class="admin-downloads-edit__meta-item"><span class="admin-downloads-edit__meta-label">' . html_encode(__('admin/downloads.info_hits')) . '</span> <strong>' . html_encode((string) (int) $edit_file->hits) . '</strong></span>';
+		$html .= '</div>';
+	}
+
+	$html .= '<div class="admin-settings-subsection admin-downloads-add-form__info-section">';
+	$html .= '<header class="admin-settings-subsection__header admin-downloads-add-form__info-header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-edit" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode($is_edit ? __('admin/downloads.edit_title') : __('admin/downloads.add_section_info')) . '</h3>';
+	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/downloads.add_info_intro')) . '</p>';
+	$html .= '</div>';
+	$html .= '</header>';
+	$html .= '<div class="admin-settings-subsection__body admin-downloads-add-form__fields">';
+	$html .= '<div class="admin-form-fields-grid admin-form-fields-grid--downloads">';
+	$html .= '<div class="admin-form-fields-grid__row admin-form-fields-grid__row--3">';
+	$html .= admin_form_field_stack(
+		__('admin/downloads.info_title'),
+		'<input type="text" id="download-caption-' . html_encode($textarea_id) . '" name="file[caption]" class="form-control" value="' . html_encode($caption) . '">',
+		['for' => 'download-caption-' . $textarea_id]
+	);
+	$html .= admin_form_field_stack(
+		__('admin/downloads.info_fname'),
+		'<input type="text" id="download-filename-' . html_encode($textarea_id) . '" name="file[name]" class="form-control" value="' . html_encode($name) . '">',
+		['for' => 'download-filename-' . $textarea_id]
+	);
+	$html .= admin_form_field_stack(
+		__('admin/downloads.info_dposted'),
+		'<input type="text" name="file[posted]" class="form-control" value="' . html_encode($posted) . '">'
+	);
+	$html .= '</div>';
+	$html .= '<div class="admin-form-fields-grid__row admin-form-fields-grid__row--1">';
+	$html .= admin_form_field_stack(
+		__('admin/downloads.info_desc'),
+		'<textarea name="file[description]" id="' . html_encode($textarea_id) . '" class="form-control admin-downloads-edit__textarea">' . html_encode($description) . '</textarea>',
+		['for' => $textarea_id]
+	);
+	$html .= '</div>';
+
+	if (!$is_edit) {
+		$html .= '<div class="admin-form-fields-grid__actions">';
+		$html .= '<button type="submit" name="save_download" value="1" class="btn btn-primary btn-sm">';
+		$html .= '<i class="fas fa-upload me-1" aria-hidden="true"></i>' . html_encode(__('admin/downloads.btn_send'));
+		$html .= '</button></div>';
+	}
+
+	$html .= '</div></div></div>';
+	$html .= '</div>';
+
+	if ($is_edit) {
+		$html .= '<footer class="admin-settings-section__footer admin-downloads-add-form__footer">';
+		$html .= '<div class="admin-downloads-edit__actions">';
+		$html .= '<button type="submit" name="save_download" value="1" class="btn btn-primary btn-sm">';
+		$html .= '<i class="fas fa-save me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.btn_save'));
+		$html .= '</button>';
+		$html .= '<a href="' . html_encode(App::getURL($edit_file->path)) . '" class="btn btn-outline-info btn-sm" target="_blank" rel="noopener noreferrer">';
+		$html .= '<i class="fas fa-external-link-alt me-1" aria-hidden="true"></i>' . html_encode(__('admin/downloads.btn_open'));
+		$html .= '</a>';
+		$html .= '<a class="btn btn-outline-secondary btn-sm" href="?page=downloads&amp;view=list">' . html_encode(__('admin/downloads.btn_back_list')) . '</a>';
+		$html .= '</div></footer>';
+	}
+
+	$html .= '</section></form></div></div>';
+
+	return $html;
+}
+
+/**
+ * @param array<int, \Evo\Models\File> $files
+ */
+function admin_downloads_table(array $files, string $delete_confirm, array $options = []): string
+{
+	if (!$files) {
+		return admin_downloads_empty(
+			$options['empty'] ?? __('admin/downloads.empty_filtered'),
+			$options['empty_icon'] ?? 'fa-filter'
+		);
+	}
+
+	$rows = [];
+
+	foreach ($files as $file) {
+		$rows[] = admin_downloads_table_row($file, $delete_confirm);
+	}
+
+	return admin_modules_table(admin_downloads_columns(), $rows, [
+		'caption' => $options['caption'] ?? __('admin/downloads.caption'),
+		'icon' => $options['icon'] ?? 'fa fa-download',
+		'accent' => $options['accent'] ?? 'primary',
+		'class' => trim('admin-downloads-table-wrap ' . ($options['class'] ?? '')),
+		'layout' => 'downloads',
+	]);
+}
+
+/* ── Gallery (admin + frontend) ── */
+
+function gallery_handle_requests(bool $mod_view, string $origin): void
+{
+	if (isset($_FILES['ajaxup'])) {
+		try {
+			$file = \Evo\Models\File::create('ajaxup', $origin);
+			die(json_encode([$file->name, $file->web_id, $file->web_id, $file->size]));
+		} catch (UploadException $e) {
+			die('Error: ' . $e->getMessage());
+		}
+	}
+
+	if (!admin_csrf_valid()) {
+		return;
+	}
+
+	if ($delete = App::POST('delete')) {
+		$delete_ids = is_array($delete) ? $delete : [$delete];
+
+		foreach ($delete_ids as $fileID) {
+			if (($file = \Evo\Models\File::find($fileID, 'web_id')) && ($mod_view || $file->poster->id == App::getCurrentUser()->id)) {
+				$file->delete();
+				App::setSuccess(__('gallery.success_file_updated'));
+			} else {
+				App::setWarning(__('gallery.warning_delete_failed'));
+			}
+		}
+	} elseif (App::POST('caption')) {
+		foreach (App::POST('caption') as $fileID => $newCaption) {
+			if (($file = \Evo\Models\File::find($fileID, 'web_id')) && ($mod_view || $file->poster->id == App::getCurrentUser()->id)) {
+				$file->caption = $newCaption;
+				$file->save();
+			} else {
+				App::setWarning(__('gallery.warning_update_failed'));
+			}
+		}
+	} elseif (App::POST('filename')) {
+		foreach (App::POST('filename') as $fileID => $newName) {
+			if (($file = \Evo\Models\File::find($fileID, 'web_id')) && ($mod_view || $file->poster->id == App::getCurrentUser()->id)) {
+				$file->name = $newName;
+				$file->save();
+			} else {
+				App::setWarning(__('gallery.warning_update_failed'));
+			}
+		}
+	}
+}
+
+/**
+ * @return array<int, \Evo\Models\File>
+ */
+function gallery_fetch_files(bool $mod_view, bool $embed = false): array
+{
+	if ($mod_view) {
+		if ($embed) {
+			$where = 'origin is null or origin in (?, ?, ?)';
+			$where_e = ['website', 'admin', ''];
+		} else {
+			$where = '1';
+			$where_e = [];
+		}
+	} else {
+		$where = '(origin like ? or origin like ?) and poster = ?';
+		$where_e = ['user%', 'forum%', App::getCurrentUser()->id];
+	}
+
+	if (App::REQ('filter')) {
+		$filter = '%' . App::REQ('filter') . '%';
+		$where .= ' AND (name like ? or path like ? or caption like ?) ';
+		$where_e[] = $filter;
+		$where_e[] = $filter;
+		$where_e[] = $filter;
+	}
+
+	return \Evo\Models\File::select("$where order by id desc", ...$where_e);
+}
+
+function admin_gallery_count_missing(): int
+{
+	$not_found = 0;
+
+	foreach (\Evo\Models\File::select() as $file) {
+		if (!file_exists(ROOT_DIR . '/' . $file->path)) {
+			$not_found++;
+		}
+	}
+
+	return $not_found;
+}
+
+function admin_gallery_cleanup_missing(): int
+{
+	$removed = 0;
+
+	foreach (\Evo\Models\File::select() as $file) {
+		if (!file_exists(ROOT_DIR . '/' . $file->path)) {
+			$file->delete();
+			$removed++;
+		}
+	}
+
+	return $removed;
+}
+
+/**
+ * @param array<int, \Evo\Models\File> $files
+ * @return array<int, array{icon: string, value: string, label: string, variant: string}>
+ */
+function admin_gallery_build_stats(array $files, int $not_found): array
+{
+	$images = 0;
+	$total_size = 0;
+
+	foreach ($files as $file) {
+		if (str_starts_with((string) $file->mime_type, 'image/')) {
+			$images++;
+		}
+
+		$total_size += (int) $file->size;
+	}
+
+	return [
+		['icon' => 'fa-solid fa-images', 'value' => (string) count($files), 'label' => __('admin/gallery.stats_total'), 'variant' => 'primary'],
+		['icon' => 'fa-solid fa-image', 'value' => (string) $images, 'label' => __('admin/gallery.stats_images'), 'variant' => 'success'],
+		['icon' => 'fa-solid fa-triangle-exclamation', 'value' => (string) $not_found, 'label' => __('admin/gallery.stats_missing'), 'variant' => 'warning'],
+		['icon' => 'fa-solid fa-hard-drive', 'value' => Format::size($total_size), 'label' => __('admin/gallery.stats_size'), 'variant' => 'info'],
+	];
+}
+
+function admin_gallery_empty(string $message, string $icon = 'fa-images'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+function admin_gallery_cleanup_notice(int $count): string
+{
+	$html = '<div class="admin-gallery-board__notice">';
+	$html .= admin_status_bar(
+		'warning',
+		'<i class="fa-solid fa-triangle-exclamation me-1" aria-hidden="true"></i> '
+		. html_encode(__('admin/gallery.cleanup_notice'))
+	);
+	$html .= '<form method="post" class="admin-gallery-cleanup-form">';
+	$html .= admin_csrf_field();
+	$html .= '<button name="cleanup" value="1" type="submit" class="btn btn-sm btn-outline-warning">';
+	$html .= '<i class="fa-solid fa-broom me-1" aria-hidden="true"></i> '
+		. html_encode(__('admin/gallery.btn_cleanup'))
+		. ' (' . (int) $count . ')';
+	$html .= '</button></form></div>';
+
+	return $html;
+}
+
+function admin_gallery_search_field(string $filter = '', bool $embed = false): string
+{
+	$html = '<div class="admin-gallery-toolbar__search">';
+	$html .= '<label class="admin-gallery-toolbar__search-field">';
+	$html .= '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+	$html .= '<input id="filter" name="filter" type="search" class="form-control form-control-sm" value="' . html_encode($filter) . '" placeholder="' . html_encode(__('gallery.search_placeholder')) . '" autocomplete="off">';
+	$html .= '</label>';
+
+	if ($filter !== '') {
+		$params = ['page' => 'gallery'];
+
+		if ($embed) {
+			$params['embed'] = '1';
+		}
+
+		$html .= '<a class="btn btn-link btn-sm admin-gallery-toolbar__reset" href="?' . html_encode(http_build_query($params)) . '">';
+		$html .= html_encode(__('admin/gallery.search_reset'));
+		$html .= '</a>';
+	}
+
+	$html .= '</div>';
+
+	return $html;
+}
+
+function admin_gallery_toolbar(int $not_found = 0, bool $embed = false, string $filter = ''): string
+{
+	$html = '<div class="admin-gallery-toolbar">';
+	$html .= '<div class="admin-gallery-toolbar__actions">';
+	$html .= '<button id="uploadfile" type="button" class="btn btn-primary btn-sm">';
+	$html .= '<i class="fa-solid fa-upload me-1" aria-hidden="true"></i>' . html_encode(__('gallery.menu_btn_upload'));
+	$html .= '</button>';
+	$html .= '</div>';
+	$html .= admin_gallery_search_field($filter, $embed);
+	$html .= '<div class="admin-gallery-toolbar__selection gallery-controls">';
+	$html .= '<button id="insertgal" type="button" class="btn btn-primary btn-sm d-none">' . html_encode(__('gallery.menu_btn_insert_gal')) . '</button>';
+	$html .= '<button id="insertfile" type="button" class="btn btn-primary btn-sm d-none">' . html_encode(__('gallery.menu_btn_insert_file')) . '</button>';
+	$html .= '<button id="insertthumb" type="button" class="btn btn-primary btn-sm d-none">' . html_encode(__('gallery.menu_btn_insert_thumb')) . '</button>';
+	$html .= '<select id="gallery-thumbsize" class="form-select form-select-sm d-none">';
+	$html .= '<option value="100x100">' . html_encode(__('gallery.menu_btn_crop_small')) . ' (100px)</option>';
+	$html .= '<option value="200x200" selected>' . html_encode(__('gallery.menu_btn_crop_medium')) . ' (200px)</option>';
+	$html .= '<option value="480x480">' . html_encode(__('gallery.menu_btn_crop_large')) . ' (480px)</option>';
+	$html .= '<option value="100">' . html_encode(__('gallery.menu_btn_scale_small')) . ' (100px)</option>';
+	$html .= '<option value="200">' . html_encode(__('gallery.menu_btn_scale_medium')) . ' (200px)</option>';
+	$html .= '<option value="480">' . html_encode(__('gallery.menu_btn_scale_large')) . ' (480px)</option>';
+	$html .= '<option value="0">' . html_encode(__('gallery.menu_btn_full_size')) . '</option>';
+	$html .= '</select>';
+	$html .= '<button id="deletefiles" type="button" class="btn btn-danger btn-sm d-none">';
+	$html .= '<i class="fa-solid fa-xmark me-1" aria-hidden="true"></i>' . html_encode(__('gallery.menu_btn_delete'));
+	$html .= '</button>';
+	$html .= '</div></div>';
+
+	if ($not_found > 0) {
+		$html .= admin_gallery_cleanup_notice($not_found);
+	}
+
+	return $html;
+}
+
+/**
+ * @return array<int, string>
+ */
+function admin_gallery_columns(): array
+{
+	return [
+		html_encode(__('admin/gallery.table_preview')),
+		html_encode(__('gallery.table_details')),
+		html_encode(__('admin/gallery.table_user')),
+		html_encode(__('gallery.table_date')),
+		html_encode(__('gallery.table_category')),
+		html_encode(__('gallery.table_views')),
+		html_encode(__('admin/modules.table_action')),
+	];
+}
+
+function admin_gallery_origin_label(?string $origin): string
+{
+	$origin = trim((string) $origin);
+
+	if ($origin === '' || $origin === 'general') {
+		return __('admin/gallery.origin_general');
+	}
+
+	if ($origin === 'website') {
+		return __('admin/gallery.origin_website');
+	}
+
+	if ($origin === 'admin') {
+		return __('admin/gallery.origin_admin');
+	}
+
+	if ($origin === 'downloads') {
+		return __('admin/menu.sub_download');
+	}
+
+	if (str_starts_with($origin, 'user')) {
+		return __('admin/gallery.origin_user');
+	}
+
+	if (str_starts_with($origin, 'forum')) {
+		return __('admin/gallery.origin_forum');
+	}
+
+	return ucfirst($origin);
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_preview_cell($file, bool $selectable = false): string
+{
+	$caption = html_encode($file->caption ?: $file->name);
+	$class = 'admin-gallery-list-preview' . ($selectable ? ' gallery-container' : '');
+	$attrs = ' class="' . $class . '"';
+
+	if ($selectable) {
+		$attrs .= ' data-id="' . html_encode($file->web_id) . '"'
+			. ' data-type="' . html_encode($file->type) . '"'
+			. ' data-size="' . (int) $file->size . '"'
+			. ' data-caption="' . $caption . '"'
+			. ' data-href="' . html_encode($file->getLink()) . '"';
+	}
+
+	$html = '<div' . $attrs . '>';
+	$html .= '<span class="admin-gallery-list-preview__frame">';
+	$html .= '<img src="' . html_encode($file->getLink(128)) . '" alt="" loading="lazy">';
+	$html .= '</span>';
+	$html .= '<a href="' . html_encode($file->getLink()) . '" class="admin-gallery-list-preview__link" target="_blank" rel="noopener">';
+	$html .= '<i class="fa-solid fa-up-right-from-square me-1" aria-hidden="true"></i>';
+	$html .= html_encode(__('gallery.table_file_view'));
+	$html .= '</a></div>';
+
+	return $html;
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_details_cell($file): string
+{
+	$type_meta = admin_file_type_meta((string) $file->type);
+
+	$html = '<div class="admin-gallery-list-fields file-list">';
+	$html .= '<div class="admin-gallery-list-fields__inputs">';
+	$html .= '<label class="admin-gallery-list-fields__row">';
+	$html .= '<span class="admin-gallery-list-fields__label">' . html_encode(__('gallery.table_file_caption')) . '</span>';
+	$html .= '<input type="text" class="form-control form-control-sm" name="caption[' . html_encode($file->web_id) . ']" value="' . html_encode($file->caption) . '">';
+	$html .= '</label>';
+	$html .= '<label class="admin-gallery-list-fields__row">';
+	$html .= '<span class="admin-gallery-list-fields__label">' . html_encode(__('gallery.table_file_name')) . '</span>';
+	$html .= '<input type="text" class="form-control form-control-sm" name="filename[' . html_encode($file->web_id) . ']" value="' . html_encode($file->name) . '">';
+	$html .= '</label>';
+	$html .= '</div>';
+	$html .= '<div class="admin-gallery-list-fields__meta">';
+	$html .= '<span class="admin-modules-chip admin-gallery-type-chip">';
+	$html .= '<i class="fa-solid ' . html_encode($type_meta['icon']) . ' me-1" aria-hidden="true"></i>';
+	$html .= html_encode((string) $file->type);
+	$html .= '</span>';
+	$html .= '<span class="admin-gallery-list-fields__meta-text">';
+	$html .= html_encode($file->mime_type) . ' · ' . html_encode(Format::size((int) $file->size));
+	$html .= '</span></div></div>';
+
+	return $html;
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_user_cell($file): string
+{
+	$username = trim((string) ($file->poster->username ?? ''));
+
+	if ($username === '') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	return admin_modules_meta_cell($username);
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_date_cell($file): string
+{
+	return !empty($file->posted)
+		? admin_modules_meta_cell(Format::today((int) $file->posted, true))
+		: '<span class="admin-modules-muted">&mdash;</span>';
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_origin_cell($file): string
+{
+	return '<span class="admin-modules-chip admin-gallery-origin-chip">' . html_encode(admin_gallery_origin_label($file->origin ?? '')) . '</span>';
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_views_cell($file): string
+{
+	return '<span class="admin-modules-chip admin-gallery-views-chip">' . html_encode((string) (int) $file->hits) . '</span>';
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_actions_cell($file, string $delete_confirm): string
+{
+	return '<form method="post" class="admin-gallery-row-form m-0">'
+		. admin_csrf_field()
+		. admin_modules_actions_group(
+			admin_modules_action_button(
+				'delete',
+				$file->web_id,
+				'fa-solid fa-trash-can',
+				__('admin/general.btn_delete'),
+				'btn-outline-danger',
+				'onclick="return confirm(\'' . $delete_confirm . '\');"'
+			)
+		)
+		. '</form>';
+}
+
+/**
+ * @param \Evo\Models\File $file
+ */
+function admin_gallery_list_row($file, string $delete_confirm, bool $selectable = false): array
+{
+	return [
+		admin_gallery_preview_cell($file, $selectable),
+		admin_gallery_details_cell($file),
+		admin_gallery_user_cell($file),
+		admin_gallery_date_cell($file),
+		admin_gallery_origin_cell($file),
+		admin_gallery_views_cell($file),
+		admin_gallery_actions_cell($file, $delete_confirm),
+	];
+}
+
+/**
+ * @param array<int, \Evo\Models\File> $files
+ */
+function admin_gallery_list_board(array $files, string $delete_confirm, bool $selectable = false): string
+{
+	if (!$files) {
+		return admin_gallery_empty(__('admin/gallery.empty_filtered'), 'fa-filter');
+	}
+
+	$rows = [];
+
+	foreach ($files as $file) {
+		$rows[] = admin_gallery_list_row($file, $delete_confirm, $selectable);
+	}
+
+	return admin_modules_table(admin_gallery_columns(), $rows, [
+		'layout' => 'gallery',
+		'class' => 'admin-gallery-table-wrap file-list',
+		'caption' => __('admin/gallery.main_title'),
+		'icon' => 'fa-solid fa-images',
+		'accent' => 'primary',
+	]);
+}
+
+/**
+ * @param array<int, \Evo\Models\File> $files
+ */
+function admin_gallery_content(array $files, string $delete_confirm, bool $embed = false): string
+{
+	$content = admin_gallery_list_board($files, $delete_confirm, $embed);
+
+	return '<div id="gallery-content" class="admin-gallery-content gallery"><div id="content">' . $content . '</div></div>';
+}
+
+/**
+ * @param array<int, \Evo\Models\File> $files
+ */
+function admin_gallery_board(array $files, string $delete_confirm, int $not_found): string
+{
+	$filter = trim((string) App::GET('filter', ''));
+	$html = '<div class="admin-gallery-form">';
+	$html .= admin_gallery_toolbar($not_found, true, $filter);
+	$html .= admin_gallery_content($files, $delete_confirm, true);
+	$html .= '</div>';
+
+	return $html;
+}
+
+/**
+ * @param array<int, \Evo\Models\File> $files
+ */
+function admin_gallery_embed(array $files): string
+{
+	$delete_confirm = html_encode(__('gallery.dialog_confirm_delete'));
+
+	return admin_gallery_board($files, $delete_confirm, 0)
+		. admin_gallery_scripts(true, true, true);
+}
+
+function admin_gallery_scripts(bool $mod_view = true, bool $admin_panel = true, bool $embed = false): string
+{
+	$delete_confirm = addslashes(__('gallery.dialog_confirm_delete'));
+
+	if ($mod_view && $admin_panel) {
+		$gallery_path = '/admin/';
+	} elseif ($mod_view) {
+		$gallery_path = '/admin/';
+	} else {
+		$gallery_path = '/';
+	}
+
+	$embed_query = $embed ? '&embed=1' : '';
+
+	return <<<HTML
+<script>
+(function () {
+	var gallery_url = site_url + '{$gallery_path}?page=gallery{$embed_query}';
+	var gallery_pos = 0;
+
+	$('.gallery').on('change keyup', '.file-list input', function () {
+		var post = { csrf: csrf };
+		post[$(this).attr('name')] = $(this).val();
+		$.post('', post);
+	});
+
+	$('.gallery').on('click', '.gallery-container', function (e) {
+		if ($(e.target).closest('.admin-gallery-list-preview__link').length) {
+			return;
+		}
+
+		if ($(this).hasClass('active')) {
+			$(this).removeClass('active');
+		} else {
+			$(this).addClass('active');
+			$(this).attr('data-pos', gallery_pos++);
+		}
+
+		if ($('.gallery .active').length === 0) {
+			$('#insertgal, #insertfile, #insertthumb, #deletefiles, #gallery-thumbsize').addClass('d-none');
+		} else if (!$.fancybox || !$.fancybox.isOpen) {
+			$('#deletefiles').removeClass('d-none');
+		} else if ($('.gallery .active').length > 1) {
+			$('#insertgal, #deletefiles, #gallery-thumbsize').removeClass('d-none');
+			$('#insertfile, #insertthumb').addClass('d-none');
+		} else {
+			$('#insertfile, #insertthumb, #deletefiles, #gallery-thumbsize').removeClass('d-none');
+			$('#insertgal').addClass('d-none');
+		}
+	});
+
+	$('#deletefiles').click(function () {
+		var files = [], captions = [];
+
+		$('.gallery .active').each(function () {
+			files.push($(this).attr('data-id'));
+			captions.push($(this).attr('data-caption'));
+		});
+
+		if (files.length && confirm('{$delete_confirm}\\n' + captions.join("\\n"))) {
+			$('#gallery-content').load(gallery_url + ' #gallery-content > *', { 'delete[]': files, csrf: csrf });
+		}
+	});
+
+	$('#insertthumb, #insertfile').click(function () {
+		var e = $('.gallery .active').first();
+		if (e.length && window._editor) {
+			window._editor.insertFiles([{
+				link: e.attr('data-href'),
+				name: e.attr('data-caption'),
+				type: '',
+				size: e.attr('data-size'),
+				thumb: ($(this).attr('id') === 'insertthumb') ? $('#gallery-thumbsize').val() : 0,
+				id: e.attr('data-id')
+			}]);
+		}
+		if ($.fancybox) { $.fancybox.close(); }
+	});
+
+	$('#insertgal').click(function () {
+		if (!window._editor) { return; }
+		var files = [];
+		$('.gallery .active').sort(function (a, b) {
+			return parseInt($(a).attr('data-pos'), 10) - parseInt($(b).attr('data-pos'), 10);
+		}).each(function () {
+			var e = $(this);
+			files.push({
+				link: e.attr('data-href'),
+				name: e.attr('data-caption'),
+				type: 'thumb',
+				size: e.attr('data-size'),
+				thumb: $('#gallery-thumbsize').val(),
+				id: e.attr('data-id')
+			});
+		});
+		window._editor.insertFiles(files);
+		if ($.fancybox) { $.fancybox.close(); }
+	});
+
+	$('#uploadfile').click(function () {
+		if (typeof ajaxupload !== 'function') { return false; }
+		ajaxupload(function () {
+			$('#gallery-content').load(gallery_url + ' #gallery-content > *');
+		});
+		return false;
+	});
+
+	if (!$('textarea').length) {
+		$('#gallery-thumbsize').addClass('d-none');
+	}
+})();
+</script>
+HTML;
+}
+
+/* ── Admin menu ── */
+
+function admin_menu_nav(array $tabs, string $active): string
+{
+	return admin_tabs($tabs, [
+		'active' => $active,
+		'type' => 'link',
+		'page' => 'menu',
+		'aria_label' => __('admin/menu.title'),
+	]);
+}
+
+function admin_menu_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-menu-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_menu_tab_close(): string
+{
+	return '</div>';
+}
+
+function admin_menu_empty(string $message, string $icon = 'fa-list'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+/**
+ * @param array<int, array<int, array<string, mixed>>> $tree
+ * @return array<int|string, string>
+ */
+function admin_menu_build_parent_list(array $tree, int $parent_id = 0, int $level = 0, ?array &$list = null): array
+{
+	if ($list === null) {
+		$list = [0 => ''];
+	}
+
+	if (empty($tree[$parent_id])) {
+		return $list;
+	}
+
+	foreach ($tree[$parent_id] as $menu) {
+		$list[$menu['id']] = str_repeat('    ', $level) . ($menu['name'] ?? '');
+		admin_menu_build_parent_list($tree, (int) $menu['id'], $level + 1, $list);
+	}
+
+	return $list;
+}
+
+/**
+ * @param array<int, array<string, mixed>> $items
+ * @param array<int, array<int, array<string, mixed>>> $tree
+ * @return array<int, array{icon: string, value: string, label: string, variant: string}>
+ */
+function admin_menu_build_stats(array $items, array $tree): array
+{
+	$root = count($tree[0] ?? []);
+	$nested = max(0, count($items) - $root);
+	$restricted = 0;
+
+	foreach ($items as $item) {
+		if ((int) ($item['visibility'] ?? 0) > 0) {
+			$restricted++;
+		}
+	}
+
+	return [
+		['icon' => 'fa-solid fa-list', 'value' => (string) count($items), 'label' => __('admin/menu.stats_total'), 'variant' => 'primary'],
+		['icon' => 'fa-solid fa-sitemap', 'value' => (string) $root, 'label' => __('admin/menu.stats_root'), 'variant' => 'success'],
+		['icon' => 'fa-solid fa-diagram-project', 'value' => (string) $nested, 'label' => __('admin/menu.stats_nested'), 'variant' => 'info'],
+		['icon' => 'fa-solid fa-lock', 'value' => (string) $restricted, 'label' => __('admin/menu.stats_restricted'), 'variant' => 'warning'],
+	];
+}
+
+function admin_menu_internal_pages(): array
+{
+	$user_pages = Db::QueryAll('select p.page_id, title from {pages} as p join {pages_revs} as r ON r.page_id = p.page_id AND r.revision = p.revisions order by pub_date desc, title asc');
+	$cat_pages = [];
+
+	foreach (Db::QueryAll('SELECT DISTINCT category from {pages} WHERE category <> ""') ?: [] as $cat) {
+		$cat_pages[strtr('category/' . $cat['category'], ' ', '-')] = $cat['category'];
+	}
+
+	return [
+		'' => '---',
+		'Pages' => new HtmlSelectGroup(array_column($user_pages ?: [], 'title', 'page_id')),
+		'Categories' => new HtmlSelectGroup($cat_pages),
+		'Internes' => new HtmlSelectGroup(array_combine(INTERNAL_PAGES, array_map('ucwords', INTERNAL_PAGES))),
+	];
+}
+
+/**
+ * @param array<int, array<int, array<string, mixed>>> $tree
+ */
+function admin_menu_table_rows(int $id, int $level, array &$tree, string $delete_confirm): string
+{
+	$html = '';
+
+	if (empty($tree[$id])) {
+		return $html;
+	}
+
+	foreach ($tree[$id] as $menu) {
+		$name = str_repeat('<span class="admin-menu-tree__arrow"><i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span> ', $level) . html_encode($menu['name'] ?? '');
+		$icon = fa_icon_html($menu['icon'] ?? 'circle', 'solid', ['fa-fw']);
+		$order = (int) ($menu['priority'] ?? 0);
+
+		if (is_null($menu['page_name'])) {
+			$link = html_encode(strpos((string) $menu['link'], '/') ? $menu['link'] : App::getURL($menu['link']));
+			$label = html_encode(Format::truncate((string) $menu['link'], 40));
+		} else {
+			$link = App::getURL($menu['link']);
+			$label = html_encode(Format::truncate((string) $menu['page_name'], 40));
+		}
+
+		$address = '<a href="' . html_encode($link) . '">' . $label . '</a>';
+		$actions = admin_modules_actions_group(
+			admin_modules_action_button('edit_menu', (string) $menu['id'], 'fa-solid fa-pencil', __('admin/menu.btn_title_edit'), 'btn-outline-primary')
+			. admin_modules_action_button('del_menu', (string) $menu['id'], 'fa-regular fa-trash-can', __('admin/menu.btn_title_delete'), 'btn-outline-danger', 'onclick="return confirm(\'' . $delete_confirm . '\');"')
+		);
+
+		$row_class = $level > 0 ? ' admin-menu-row--nested' : '';
+
+		$html .= '<tr id="' . (int) $menu['id'] . '" class="' . trim($row_class) . '">';
+		$html .= '<td data-label="' . html_encode(__('admin/menu.table_name')) . '">' . $name . '</td>';
+		$html .= '<td data-label="' . html_encode(__('admin/menu.table_ico')) . '">' . $icon . '</td>';
+		$html .= '<td class="admin-menu-order-cell" data-label="' . html_encode(__('admin/menu.table_order')) . '">' . $order . '</td>';
+		$html .= '<td data-label="' . html_encode(__('admin/menu.table_addr')) . '">' . $address . '</td>';
+		$html .= '<td data-label="' . html_encode(__('admin/modules.table_action')) . '">' . $actions . '</td>';
+		$html .= '</tr>';
+
+		if (!empty($tree[$menu['id']])) {
+			$html .= admin_menu_table_rows((int) $menu['id'], $level + 1, $tree, $delete_confirm);
+		}
+	}
+
+	return $html;
+}
+
+/**
+ * @param array<int, array<int, array<string, mixed>>> $tree
+ */
+function admin_menu_table(array $tree, string $delete_confirm): string
+{
+	$html = '<div class="admin-reports-table-wrap admin-menu-table-wrap">';
+	$html .= '<div class="admin-modules-table__toolbar">';
+	$html .= '<div class="admin-modules-table__caption">';
+	$html .= '<span class="admin-modules-table__caption-icon admin-modules-table__caption-icon--primary"><i class="fa-solid fa-list" aria-hidden="true"></i></span>';
+	$html .= '<span class="admin-modules-table__caption-text">' . html_encode(__('admin/menu.list_title')) . '</span>';
+	$html .= '</div>';
+	$html .= '<span class="admin-modules-table__count">' . admin_menu_count_items($tree) . '</span>';
+	$html .= '</div>';
+	$html .= '<div class="admin-menu-filters">';
+	$html .= '<span class="admin-menu-filters__hint"><i class="fa-solid fa-grip-vertical me-1" aria-hidden="true"></i>' . html_encode(__('admin/menu.drag_hint_short')) . '</span>';
+	$html .= '<div class="admin-menu-filters__actions">';
+	$html .= '<a href="?page=menu&amp;tab=form" class="btn btn-primary btn-sm"><i class="fa-solid fa-circle-plus me-1" aria-hidden="true"></i>' . html_encode(__('admin/menu.btn_new')) . '</a>';
+	$html .= '</div></div>';
+	$html .= '<div class="table-responsive admin-modules-table-scroll">';
+	$html .= '<table class="table sortable admin-modules-table admin-menu-table mb-0" id="menu-editor">';
+	$html .= '<thead><tr>';
+	$html .= '<th scope="col">' . html_encode(__('admin/menu.table_name')) . '</th>';
+	$html .= '<th scope="col">' . html_encode(__('admin/menu.table_ico')) . '</th>';
+	$html .= '<th scope="col">' . html_encode(__('admin/menu.table_order')) . '</th>';
+	$html .= '<th scope="col">' . html_encode(__('admin/menu.table_addr')) . '</th>';
+	$html .= '<th scope="col">' . html_encode(__('admin/modules.table_action')) . '</th>';
+	$html .= '</tr></thead><tbody>';
+	$html .= admin_menu_table_rows(0, 0, $tree, $delete_confirm);
+	$html .= '</tbody></table></div></div>';
+
+	return $html;
+}
+
+function admin_menu_count_items(array $tree, int $parent_id = 0): int
+{
+	$count = 0;
+
+	foreach ($tree[$parent_id] ?? [] as $menu) {
+		$count++;
+		$count += admin_menu_count_items($tree, (int) $menu['id']);
+	}
+
+	return $count;
+}
+
+/**
+ * @param array<string, mixed> $cur_elem
+ * @param array<int|string, string> $parent_list
+ */
+function admin_menu_form_board(array $cur_elem, array $parent_list, array $pages): string
+{
+	$is_edit = !empty($cur_elem['id']);
+	$title = $is_edit ? __('admin/menu.cur_elem_edit', ['%cur%' => $cur_elem['id']]) : __('admin/menu.cur_elem_add');
+	$link_value = $cur_elem['page_name'] ? '' : (string) ($cur_elem['link'] ?? '');
+
+	$html = '<div class="admin-menu-form">';
+	$html .= '<div class="admin-menu-form-panel">';
+	$html .= '<form class="form-horizontal admin-menu-form-panel__form" method="post" action="?page=menu&amp;tab=form">';
+	$html .= admin_csrf_field();
+	$html .= '<input type="hidden" name="add_menu" value="' . html_encode((string) ($cur_elem['id'] ?: 0)) . '">';
+
+	$html .= admin_settings_section(__('admin/menu.form_identity'), admin_form_field_row(__('admin/menu.table_name'), '<input class="form-control" name="name" type="text" value="' . html_encode((string) ($cur_elem['name'] ?? '')) . '" required>') . admin_form_field_row(__('admin/menu.table_ico'), Widgets::iconSelect('icon', (string) ($cur_elem['icon'] ?? ''))), ['icon' => 'fa-id-card', 'description' => __('admin/menu.form_identity_desc')]);
+
+	$html .= admin_settings_section(__('admin/menu.form_placement'), admin_form_field_row(__('admin/menu.table_parent'), Widgets::select('parent', $parent_list, $cur_elem['parent'] ?? 0, false)) . admin_form_field_row(__('admin/menu.table_order'), Widgets::select('priority', array_keys(array_fill(0, 100, '')), $cur_elem['priority'] ?? 0)), ['icon' => 'fa-sitemap', 'description' => __('admin/menu.form_placement_desc')]);
+
+	$link_fields = admin_form_field_row(__('admin/menu.table_link'), '<input class="form-control" name="link" id="admin-menu-link" type="text" value="' . html_encode($link_value) . '">');
+	$link_fields .= '<div class="mb-3 row"><label class="col-sm-3 col-form-label text-end">' . html_encode(__('admin/menu.table_or')) . '</label><div class="col-sm-8 controls">' . Widgets::select('internal_page', $pages, $cur_elem['link'] ?? '') . '</div></div>';
+	$html .= admin_settings_section(__('admin/menu.form_link'), $link_fields, ['icon' => 'fa-link', 'description' => __('admin/menu.form_link_desc')]);
+
+	$visibility = (int) ($cur_elem['visibility'] ?? 0);
+	$visibility_select = '<select class="form-select" name="visibility">';
+	$visibility_select .= '<option value="0"' . ($visibility === 0 ? ' selected' : '') . '>' . html_encode(__('admin/menu.table_everyone')) . '</option>';
+	$visibility_select .= '<option value="1"' . ($visibility === 1 ? ' selected' : '') . '>' . html_encode(__('admin/menu.table_members_only')) . '</option>';
+	$visibility_select .= '<option value="2"' . ($visibility === 2 ? ' selected' : '') . '>' . html_encode(__('admin/menu.table_guess_only')) . '</option>';
+	$visibility_select .= '</select>';
+	$html .= admin_settings_section(__('admin/menu.form_access'), admin_form_field_row(__('admin/menu.table_viewable'), $visibility_select), ['icon' => 'fa-eye', 'description' => __('admin/menu.form_access_desc')]);
+
+	$html .= '<div class="admin-menu-form-panel__actions text-center">';
+	$html .= '<button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>' . html_encode(__('admin/menu.btn_save')) . '</button> ';
+	$html .= '<a class="btn btn-outline-secondary" href="?page=menu&amp;tab=list">' . html_encode(__('admin/menu.btn_cancel')) . '</a>';
+	$html .= '</div></form></div></div>';
+
+	return $html;
+}
+
+/* ── Admin pages list ── */
+
+/**
+ * @param array<string, int> $counts
+ * @return array<int, array{icon: string, value: string, label: string, variant: string}>
+ */
+function admin_pages_build_stats(array $counts): array
+{
+	$total = array_sum($counts);
+
+	return [
+		['icon' => 'fa-solid fa-file-lines', 'value' => (string) $total, 'label' => __('admin/pages.stats_total'), 'variant' => 'primary'],
+		['icon' => 'fa-solid fa-circle-check', 'value' => (string) ($counts['published'] ?? 0), 'label' => __('admin/pages.stats_published'), 'variant' => 'success'],
+		['icon' => 'fa-solid fa-pencil', 'value' => (string) ($counts['draft'] ?? 0), 'label' => __('admin/pages.stats_draft'), 'variant' => 'warning'],
+		['icon' => 'fa-solid fa-box-archive', 'value' => (string) ($counts['archived'] ?? 0), 'label' => __('admin/pages.stats_archived'), 'variant' => 'info'],
+	];
+}
+
+function admin_pages_empty(string $message, string $icon = 'fa-file-lines'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+function admin_pages_status_meta(string $status): array
+{
+	static $map = [
+		'draft' => ['icon' => 'fa-pencil', 'accent' => 'warning'],
+		'published' => ['icon' => 'fa-circle-check', 'accent' => 'success'],
+		'archived' => ['icon' => 'fa-box-archive', 'accent' => 'secondary'],
+		'revision' => ['icon' => 'fa-clock-rotate-left', 'accent' => 'info'],
+		'autosave' => ['icon' => 'fa-floppy-disk', 'accent' => 'secondary'],
+	];
+
+	return $map[$status] ?? ['icon' => 'fa-file', 'accent' => 'secondary'];
+}
+
+/**
+ * @param array<string, string> $status_labels
+ * @param array<int, string> $selected_statuses
+ */
+function admin_pages_filters(array $status_labels, array $selected_statuses, string $filter): string
+{
+	$items = [];
+
+	foreach ($status_labels as $status => $label) {
+		$meta = admin_pages_status_meta($status);
+		$items[$status] = ['label' => $label, 'icon' => $meta['icon']];
+	}
+
+	$html = '<div class="admin-pages-toolbar">';
+	$html .= admin_filter_chips($items, $selected_statuses, 'statuses', __('admin/pages.filter_label'));
+	$html .= '<div class="admin-pages-toolbar__search">';
+	$html .= '<label class="admin-pages-toolbar__search-field">';
+	$html .= '<i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>';
+	$html .= '<input type="search" name="filter" class="form-control" value="' . html_encode($filter) . '" placeholder="' . html_encode(__('admin/pages.btn_search')) . '">';
+	$html .= '</label>';
+
+	if ($filter !== '') {
+		$params = ['page' => 'pages'];
+
+		foreach ($selected_statuses as $status) {
+			$params['statuses'][] = $status;
+		}
+
+		$html .= '<a class="btn btn-link btn-sm admin-pages-toolbar__reset" href="?' . html_encode(http_build_query($params)) . '">' . html_encode(__('admin/pages.btn_search_reset')) . '</a>';
+	}
+
+	$html .= '</div>';
+	$html .= '<a href="?page=page_edit" class="btn btn-primary btn-sm admin-pages-toolbar__add" title="' . html_encode(__('admin/pages.btn_add_title')) . '">';
+	$html .= '<i class="fa-solid fa-circle-plus me-1" aria-hidden="true"></i>' . html_encode(__('admin/pages.btn_add'));
+	$html .= '</a></div>';
+
+	return $html;
+}
+
+/**
+ * @param array<int, array<string, mixed>> $pages
+ * @param array<string, string> $status_labels
+ */
+function admin_pages_table(array $pages, array $status_labels, string $delete_confirm): string
+{
+	if (!$pages) {
+		return admin_pages_empty(__('admin/pages.empty_filtered'), 'fa-filter');
+	}
+
+	$rows = [];
+
+	foreach ($pages as $page) {
+		$pending = (int) ($page['pub_rev'] ?? 0) !== (int) ($page['revision'] ?? 0);
+		$rev_args = $pending ? ['rev' => $page['revision']] : [];
+		$title = html_encode($page['title'] ?: __('admin/pages.table_noname'));
+		$edit_url = '?page=page_edit&amp;id=' . (int) $page['id'];
+		$view_url = App::getURL($page['slug'] ?: $page['page_id'], $rev_args);
+
+		$item = '<div class="admin-modules-item">';
+		$item .= '<span class="admin-modules-item__content">';
+		$item .= '<a href="' . html_encode($edit_url) . '" class="admin-modules-item__link">' . $title . '</a>';
+		$item .= '<a class="admin-pages-item__permalink" href="' . html_encode($view_url) . '" title="' . html_encode(__('admin/pages.btn_view')) . '"><i class="fa-solid fa-up-right-from-square" aria-hidden="true"></i><span>' . html_encode(__('admin/pages.btn_view')) . '</span></a>';
+
+		if ($pending) {
+			$item .= '<small class="admin-pages-item__revision">' . html_encode(__('admin/pages.table_draft')) . '</small>';
+		}
+
+		$item .= '</span></div>';
+
+		$status = (string) ($page['status'] ?? '');
+		$meta = admin_pages_status_meta($status);
+		$status_cell = '<span class="admin-modules-chip admin-modules-chip--' . html_encode($meta['accent']) . '"><i class="fa-solid ' . html_encode($meta['icon']) . ' me-1" aria-hidden="true"></i>' . html_encode($status_labels[$status] ?? $status) . '</span>';
+
+		$actions = admin_modules_actions_group(
+			admin_modules_action_link('?page=page_edit&id=' . (int) $page['id'], 'fa-solid fa-pencil', __('admin/pages.btn_edit'), 'btn-outline-primary')
+			. '<button type="submit" name="id" value="' . (int) $page['id'] . '" class="btn btn-outline-danger" title="' . html_encode(__('admin/pages.btn_delete')) . '" onclick="return confirm(\'' . $delete_confirm . '\');"><i class="fa-regular fa-trash-can" aria-hidden="true"></i></button>'
+		);
+
+		$rows[] = [
+			$item,
+			$status_cell,
+			'<span class="admin-modules-chip admin-pages-metric-chip">' . html_encode((string) ($page['comments'] ?? 0)) . '</span>',
+			'<span class="admin-modules-chip admin-pages-metric-chip">' . html_encode((string) ($page['views'] ?? 0)) . '</span>',
+			$actions,
+		];
+	}
+
+	return admin_modules_table([
+		html_encode(__('admin/pages.table_page')),
+		html_encode(__('admin/pages.table_status')),
+		html_encode(__('admin/pages.table_comments')),
+		html_encode(__('admin/pages.table_view')),
+		html_encode(__('admin/pages.table_management')),
+	], $rows, [
+		'caption' => __('admin/pages.list_title'),
+		'icon' => 'fa-solid fa-file-lines',
+		'accent' => 'primary',
+		'layout' => 'pages',
+		'class' => 'admin-pages-table-wrap',
+		'row_class' => static function ($row, $index) use ($pages) {
+			$page = $pages[$index] ?? [];
+
+			return (int) ($page['pub_rev'] ?? 0) !== (int) ($page['revision'] ?? 0) ? 'admin-pages-row--pending-revision' : '';
+		},
+	]);
+}
+
+/* ── Admin page edit ── */
+
+/**
+ * @param array<string, mixed> $page
+ * @return array<int, array{icon: string, value: string, label: string, variant: string}>
+ */
+function admin_page_edit_nav(array $tabs, string $active): string
+{
+	return admin_tabs($tabs, [
+		'active' => $active,
+		'type' => 'bootstrap',
+		'aria_label' => __('admin/page_edit.nav_edit'),
+	]);
+}
+
+function admin_page_edit_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-page-edit-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_page_edit_tab_close(): string
+{
+	return '</div>';
+}
+
+/**
+ * @param array<string, mixed> $page
+ */
+function admin_page_edit_build_stats(array $page): array
+{
+	$is_new = empty($page['page_id']);
+	$is_published = !empty($page['pub_rev']) && (int) $page['pub_rev'] === (int) $page['revision'];
+
+	return [
+		['icon' => 'fa fa-code-branch', 'value' => (string) (int) ($page['revisions'] ?? 0), 'label' => __('admin/page_edit.stats_revisions'), 'variant' => 'primary'],
+		['icon' => 'fa fa-eye', 'value' => (string) (int) ($page['views'] ?? 0), 'label' => __('admin/page_edit.stats_views'), 'variant' => 'info'],
+		['icon' => 'fa fa-comments', 'value' => (string) (int) ($page['comments'] ?? 0), 'label' => __('admin/page_edit.stats_comments'), 'variant' => 'warning'],
+		[
+			'icon' => 'fa fa-file-alt',
+			'value' => $is_new ? '&mdash;' : '#' . (int) ($page['revision'] ?? 0),
+			'label' => $is_new ? __('admin/page_edit.stats_new') : ($is_published ? __('admin/pages.status_published') : __('admin/pages.status_draft')),
+			'variant' => $is_new ? 'secondary' : ($is_published ? 'success' : 'warning'),
+		],
+	];
+}
+
+/**
+ * @param array<string, mixed> $page
+ */
+function admin_page_edit_general_fields(array $page): string
+{
+	$type_options = '';
+
+	foreach (PAGE_TYPES as $id => $type) {
+		$selected = ((string) $id === (string) ($page['type'] ?? '')) ? ' selected' : '';
+		$type_options .= '<option value="' . html_encode((string) $id) . '"' . $selected . '>' . html_encode($type) . '</option>';
+	}
+
+	$pub_hint = '';
+
+	if (!empty($page['pub_date'])) {
+		$pub_hint = ' <small>(' . html_encode(Format::today((int) $page['pub_date'])) . ')</small>';
+	}
+
+	$draft_selected = empty($page['pub_rev']) || (int) $page['pub_rev'] !== (int) $page['revision'];
+
+	$html = '<div class="row g-3 admin-page-edit-grid">';
+	$html .= '<div class="col-lg-8">';
+	$html .= '<label class="form-label" for="page-edit-title">' . html_encode(__('admin/page_edit.title')) . '</label>';
+	$html .= '<input class="form-control" id="page-edit-title" name="title" type="text" placeholder="' . html_encode(__('admin/page_edit.title_ph')) . '" value="' . html_encode((string) ($page['title'] ?? '')) . '">';
+	$html .= '</div>';
+	$html .= '<div class="col-lg-4">';
+	$html .= '<label class="form-label" for="page-edit-type">' . html_encode(__('admin/page_edit.type')) . '</label>';
+	$html .= '<select name="type" id="page-edit-type" class="form-control">' . $type_options . '</select>';
+	$html .= '</div>';
+	$html .= '<div class="col-lg-8">';
+	$html .= '<label class="form-label" for="page-edit-slug">' . html_encode(__('admin/page_edit.url')) . '</label>';
+	$html .= '<div class="input-group">';
+	$html .= '<span class="input-group-text">' . html_encode(App::getURL('/')) . '</span>';
+	$html .= '<input class="form-control" id="page-edit-slug" name="slug" type="text" placeholder="Slug" value="' . html_encode((string) ($page['slug'] ?? '')) . '">';
+	$html .= '</div></div>';
+	$html .= '<div class="col-lg-4">';
+	$html .= '<label class="form-label" for="page-edit-status">' . html_encode(__('admin/page_edit.visibility')) . '</label>';
+	$html .= '<select name="status" id="page-edit-status" class="form-control">';
+	$html .= '<option value="published">' . html_encode(__('admin/page_edit.status_published')) . $pub_hint . '</option>';
+	$html .= '<option value="draft"' . ($draft_selected ? ' selected' : '') . '>' . html_encode(__('admin/page_edit.status_draft')) . '</option>';
+	$html .= '</select></div></div>';
+
+	return $html;
+}
+
+/**
+ * @param array<string, mixed> $page
+ * @param array<int|string, string> $thumbnails
+ */
+function admin_page_edit_extra_fields(array $page, array $thumbnails): string
+{
+	$sticky_options = '<option value="0">' . html_encode(__('admin/page_edit.option_dont_sticky')) . '</option>';
+
+	foreach (range(1, 100) as $sticky) {
+		$selected = ((int) ($page['sticky'] ?? 0) === $sticky) ? ' selected' : '';
+		$sticky_options .= '<option value="' . $sticky . '"' . $selected . '>' . html_encode(__('admin/page_edit.position') . ' ' . $sticky) . '</option>';
+	}
+
+	$html = '<div class="admin-page-edit-extra d-none">';
+	$html .= '<div class="row g-3 admin-page-edit-grid">';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-category">' . html_encode(__('admin/page_edit.category')) . '</label>';
+	$html .= '<input type="text" id="page-edit-category" name="category" value="' . html_encode((string) ($page['category'] ?? '')) . '" class="form-control" data-autocomplete="categorylist" data-autocomplete-instant>';
+	$html .= '</div>';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-tags">' . html_encode(__('admin/page_edit.tags')) . '</label>';
+	$html .= '<input type="text" id="page-edit-tags" name="category" disabled class="form-control" placeholder="Not implemented">';
+	$html .= '</div>';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-redirect">' . html_encode(__('admin/page_edit.redirect')) . '</label>';
+	$html .= '<input type="text" id="page-edit-redirect" name="redirect" value="' . html_encode((string) ($page['redirect'] ?? '')) . '" class="form-control">';
+	$html .= '</div>';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-pub-date">' . html_encode(__('admin/page_edit.date_on')) . '</label>';
+	$html .= '<input type="text" id="page-edit-pub-date" name="pub_date_text" value="' . html_encode(!empty($page['pub_date']) ? date('Y-m-d H:i', (int) $page['pub_date']) : '') . '" class="form-control">';
+	$html .= '</div>';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-image" title="' . html_encode(__('admin/page_edit.option_thumbnails_title')) . '">' . html_encode(__('admin/page_edit.option_thumbnail')) . '</label>';
+	$html .= '<div id="page-edit-image">' . Widgets::select('image', ['' => __('admin/page_edit.option_thumbnail_auto')] + $thumbnails, $page['image'] ?? '') . '</div>';
+	$html .= '</div>';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-comments">' . html_encode(__('admin/page_edit.nav_comments')) . '</label>';
+	$html .= '<select name="allow_comments" id="page-edit-comments" class="form-control">';
+	$html .= '<option value="1">' . html_encode(__('admin/general.yes')) . '</option>';
+	$html .= '<option value="0"' . ((int) ($page['allow_comments'] ?? 1) === 0 ? ' selected' : '') . '>' . html_encode(__('admin/general.no')) . '</option>';
+	$html .= '<option value="2"' . ((int) ($page['allow_comments'] ?? 1) === 2 ? ' selected' : '') . '>' . html_encode(__('admin/page_edit.option_closing')) . '</option>';
+	$html .= '</select></div>';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-toc">' . html_encode(__('admin/page_edit.option_summary')) . '</label>';
+	$html .= '<select name="display_toc" id="page-edit-toc" class="form-control">';
+	$html .= '<option value="1">' . html_encode(__('admin/general.yes')) . '</option>';
+	$html .= '<option value="0"' . (empty($page['display_toc']) ? ' selected' : '') . '>' . html_encode(__('admin/general.no')) . '</option>';
+	$html .= '</select></div>';
+	$html .= '<div class="col-md-6 col-xl-3">';
+	$html .= '<label class="form-label" for="page-edit-sticky">' . html_encode(__('admin/page_edit.option_sticky')) . '</label>';
+	$html .= '<select name="sticky" id="page-edit-sticky" class="form-control" title="' . html_encode(__('admin/page_edit.option_sticky_help')) . '">' . $sticky_options . '</select>';
+	$html .= '</div></div></div>';
+
+	return $html;
+}
+
+/**
+ * @param array<string, mixed> $page
+ */
+function admin_page_edit_content_fields(array $page): string
+{
+	$html = '<div class="admin-page-edit-editor">';
+	$html .= '<div class="admin-page-edit-editor__toolbar">';
+	$html .= '<label class="form-label mb-0" for="editor">' . html_encode(__('admin/page_edit.form_content')) . '</label>';
+	$html .= '<div class="admin-page-edit-editor__format">' . Widgets::select('format', ['wysiwyg' => 'WYSIWYG', 'markdown' => 'Markdown+'], $page['format'] ?? '', true, '') . '</div>';
+	$html .= '</div>';
+	$html .= '<textarea class="form-control admin-page-edit-editor__textarea" id="editor" name="content" placeholder="' . html_encode(__('admin/page_edit.content_ph')) . '">' . html_encode((string) ($page['content'] ?? '')) . '</textarea>';
+	$html .= '<p class="admin-page-edit-autosave" id="AutoSaveStatus" aria-live="polite"></p>';
+	$html .= '</div>';
+
+	return $html;
+}
+
+/**
+ * @param array<string, mixed> $page
+ * @param array<int|string, string> $thumbnails
+ */
+function admin_page_edit_form_board(array $page, array $thumbnails, string $delete_confirm, string $copy_confirm): string
+{
+	$html = '<div class="admin-page-edit-form">';
+	$html .= '<div class="admin-settings-section admin-settings-section--grouped admin-page-edit-form__sections">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-sliders-h" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/page_edit.form_general')) . '</h3>';
+	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/page_edit.form_general_desc')) . '</p>';
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body">';
+	$html .= admin_page_edit_general_fields($page);
+	$html .= '<div class="admin-page-edit-extra-toggle-wrap">';
+	$html .= '<button type="button" class="btn btn-sm btn-outline-secondary admin-page-edit-extra-toggle" id="admin-page-edit-extra-toggle">';
+	$html .= '<i class="fas fa-cog me-1" aria-hidden="true"></i>' . html_encode(__('admin/page_edit.more_options'));
+	$html .= '</button></div>';
+	$html .= admin_page_edit_extra_fields($page, $thumbnails);
+	$html .= '</div></div>';
+
+	$html .= '<hr class="admin-settings-subsection__divider">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-align-left" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/page_edit.form_content')) . '</h3>';
+	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/page_edit.form_content_desc')) . '</p>';
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body admin-page-edit-form__editor">';
+	$html .= admin_page_edit_content_fields($page);
+	$html .= '</div></div>';
+
+	$html .= '<footer class="admin-settings-section__footer admin-page-edit-form__footer">';
+	$html .= '<div class="admin-page-edit-form__actions">';
+	$html .= '<button class="btn btn-primary" type="submit">';
+	$html .= '<i class="fas fa-save me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.btn_save'));
+	$html .= '</button>';
+
+	if (!empty($page['page_id'])) {
+		$html .= ' <button class="btn btn-outline-danger" name="delete" value="delete" type="submit" onclick="return confirm(\'' . $delete_confirm . '\');">';
+		$html .= '<i class="fas fa-trash-alt me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.btn_delete'));
+		$html .= '</button>';
+		$html .= ' <button class="btn btn-outline-info" name="copy" value="copy" type="submit" onclick="return confirm(\'' . $copy_confirm . '\');">';
+		$html .= '<i class="fas fa-copy me-1" aria-hidden="true"></i>' . html_encode(__('admin/page_edit.make_copy'));
+		$html .= '</button>';
+	}
+
+	$html .= ' <a class="btn btn-outline-secondary" href="?page=pages">' . html_encode(__('admin/menu.btn_cancel')) . '</a>';
+	$html .= '</div></footer></div></div>';
+
+	return $html;
+}
+
+/**
+ * @return array<int, string>
+ */
+function admin_page_edit_history_columns(): array
+{
+	return [
+		html_encode(__('admin/page_edit.table_compare')),
+		'#',
+		html_encode(__('admin/page_edit.table_date')),
+		html_encode(__('admin/page_edit.table_eta')),
+		html_encode(__('admin/page_edit.table_author')),
+		html_encode(__('admin/page_edit.table_size')),
+		html_encode(__('admin/page_edit.table_attch')),
+		html_encode(__('admin/modules.table_action')),
+	];
+}
+
+/**
+ * @param array<string, mixed> $row
+ * @param array<string, mixed> $page
+ * @return array{class?: string, cells: array<int, string>}
+ */
+function admin_page_edit_history_row(array $row, array $page, int $index, int $count): array
+{
+	$compare = '<input type="radio" name="rev1" value="' . (int) $row['revision'] . '"' . ($index + 1 === $count ? ' disabled' : '') . '> ';
+	$compare .= '<input type="radio" name="rev2" value="' . (int) $row['revision'] . '"' . ($index === 0 ? ' disabled' : '') . '>';
+
+	$attachments = implode('<br>', (array) @unserialize($row['attached_files'] ?? ''));
+	$actions = admin_modules_action_link(
+		'?page=page_edit&id=' . (int) $row['id'],
+		'fa fa-pencil-alt',
+		__('admin/page_edit.open_editor'),
+		'btn-outline-primary'
+	);
+	$actions .= admin_modules_action_link(
+		App::getURL('pageview', ['id' => (int) $row['page_id'], 'rev' => (int) $row['revision']]),
+		'fa fa-eye',
+		__('admin/general.see'),
+		'btn-outline-secondary'
+	);
+
+	$result = [
+		'cells' => [
+			'<span class="admin-page-edit-compare-inputs">' . $compare . '</span>',
+			(string) (int) $row['revision'],
+			html_encode(Format::today((int) $row['posted'])),
+			html_encode((string) ($row['status'] ?? '')),
+			html_encode((string) ($row['username'] ?? '')),
+			html_encode((string) ($row['size'] ?? '')),
+			$attachments !== '' ? $attachments : '&mdash;',
+			admin_modules_table_actions_cell($actions),
+		],
+	];
+
+	if ((int) ($page['pub_rev'] ?? 0) === (int) $row['revision']) {
+		$result['class'] = 'admin-page-edit-history-row--published';
+	} elseif ((int) ($page['revision'] ?? 0) === (int) $row['revision']) {
+		$result['class'] = 'admin-page-edit-history-row--current';
+	}
+
+	return $result;
+}
+
+/**
+ * @param array<string, mixed> $page
+ */
+function admin_page_edit_history_board(array $page): string
+{
+	$rows_data = Db::QueryAll(
+		'SELECT r.*, p.*, a.username, LENGTH(r.content) as size
+		 FROM {pages} as p
+		 JOIN {pages_revs} as r ON r.page_id = p.page_id
+		 LEFT JOIN {users} as a ON author = a.id
+		 WHERE p.page_id = ?
+		 ORDER by revision DESC',
+		$page['page_id']
+	) ?: [];
+
+	if (!$rows_data) {
+		return admin_settings_empty(__('admin/page_edit.history_empty'), 'fa-history');
+	}
+
+	$rows = [];
+	$count = count($rows_data);
+
+	foreach ($rows_data as $index => $row) {
+		$entry = admin_page_edit_history_row($row, $page, $index, $count);
+		$row_html = $entry['cells'];
+
+		if (!empty($entry['class'])) {
+			$row_html['_class'] = $entry['class'];
+		}
+
+		$rows[] = $row_html;
+	}
+
+	$compare_btn = '<button name="compare" class="btn btn-primary btn-sm" value="1" type="submit">';
+	$compare_btn .= '<i class="fas fa-not-equal me-1" aria-hidden="true"></i>' . html_encode(__('admin/page_edit.btn_compare'));
+	$compare_btn .= '</button>';
+
+	return admin_modules_table(admin_page_edit_history_columns(), $rows, [
+		'caption' => __('admin/page_edit.nav_history'),
+		'icon' => 'fa fa-history',
+		'accent' => 'info',
+		'layout' => 'page_edit',
+		'toolbar_actions' => $compare_btn,
+		'class' => 'admin-page-edit-history-wrap',
+	]);
+}
+
+/**
+ * @param array<string, mixed> $page
+ */
+function admin_page_edit_diff_board(array $page, int $rev1, int $rev2): string
+{
+	$html = '<div id="diffbox" class="admin-page-edit-diff">';
+
+	if ($rev1 && $rev2) {
+		$rev = Db::QueryAll(
+			'SELECT revision, content, posted FROM {pages_revs} WHERE page_id = ? AND (revision = ? OR revision = ?)',
+			$page['page_id'],
+			$rev1,
+			$rev2,
+			true
+		);
+
+		if (count($rev) !== 2) {
+			App::setWarning(__('admin/page_edit.warning_rev_invalid'));
+		} else {
+			$diff = (new \FineDiff\FineDiff($rev[$rev2]['content'], $rev[$rev1]['content'], \FineDiff\FineDiff::$wordGranularity))->renderDiffToHTML();
+			$d1 = '<strong><small>' . Format::today($rev[$rev1]['posted'], true) . '</small></strong>';
+			$d2 = '<strong><small>' . Format::today($rev[$rev2]['posted'], true) . '</small></strong>';
+
+			$html .= '<div class="admin-page-edit-diff__legend">';
+			$html .= '<p><ins>' . html_encode(__('admin/page_edit.red')) . '</ins> : '
+				. html_encode(__('admin/page_edit.present_in')) . ' ' . (int) $rev1 . ' (' . $d1 . ') '
+				. html_encode(__('admin/page_edit.but_not_in')) . ' ' . (int) $rev2 . ' (' . $d2 . ')</p>';
+			$html .= '<p><del>' . html_encode(__('admin/page_edit.green')) . '</del> : '
+				. html_encode(__('admin/page_edit.present_in')) . ' ' . (int) $rev2 . ' (' . $d2 . ') '
+				. html_encode(__('admin/page_edit.but_not_in')) . ' ' . (int) $rev1 . ' (' . $d1 . ')</p>';
+			$html .= '</div>';
+			$html .= '<div class="admin-page-edit-diff__pane pane diff">' . $diff . '</div>';
+			$html .= '<script>document.querySelector(\'[href="#diff"]\')?.click();</script>';
+		}
+	} else {
+		$html .= admin_settings_empty(__('admin/page_edit.diff_empty'), 'fa-not-equal');
+		$html .= '<script>document.querySelector(\'[href="#diff"]\')?.classList.add(\'d-none\');</script>';
+	}
+
+	return $html . '</div>';
+}
+
+/* ── Admin avatars ── */
+
+/**
+ * Navigation par onglets de la page avatars admin.
+ */
+function admin_avatars_nav(string $view): string
+{
+	$tabs = [
+		'library' => [
+			'label' => __('admin/avatars.tab_library'),
+			'icon' => 'fa-images',
+			'href' => '?page=avatars&view=library',
+		],
+		'create' => [
+			'label' => __('admin/avatars.tab_create'),
+			'icon' => 'fa-folder-plus',
+			'href' => '?page=avatars&view=create',
+		],
+	];
+
+	return admin_tabs($tabs, [
+		'active' => $view,
+		'type' => 'link',
+		'aria_label' => __('admin/avatars.main_title'),
+	]);
+}
+
+function admin_avatars_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-avatars-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_avatars_tab_close(): string
+{
+	return '</div>';
+}
+
+function admin_avatars_empty(string $message, string $icon = 'fa-images'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+/**
+ * @return array<int, array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int}>
+ */
+function admin_avatars_collect(string $dir): array
+{
+	$categories = [];
+
+	if ($dirs = glob(rtrim($dir, '/\\') . '/*', GLOB_ONLYDIR)) {
+		foreach ($dirs as $cat_dir) {
+			$cat = basename($cat_dir);
+			$avatars = [];
+
+			if ($files = glob($cat_dir . '/*.{jpg,jpeg,png,gif}', GLOB_BRACE)) {
+				foreach ($files as $avatar) {
+					$avatars[] = [
+						'path' => $avatar,
+						'url' => App::getAsset(substr($avatar, strlen(ROOT_DIR))),
+						'name' => basename($avatar),
+					];
+				}
+			}
+
+			$categories[] = [
+				'name' => $cat,
+				'avatars' => $avatars,
+				'count' => count($avatars),
+			];
+		}
+	}
+
+	usort($categories, static fn(array $a, array $b): int => strcasecmp($a['name'], $b['name']));
+
+	return $categories;
+}
+
+/**
+ * @param array<int, array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int}> $categories
+ * @return array<int, array{icon: string, value: string, label: string, variant: string}>
+ */
+function admin_avatars_build_stats(array $categories): array
+{
+	$total_avatars = 0;
+	$empty_categories = 0;
+
+	foreach ($categories as $category) {
+		$total_avatars += $category['count'];
+
+		if ($category['count'] === 0) {
+			$empty_categories++;
+		}
+	}
+
+	$category_count = count($categories);
+	$average = $category_count > 0 ? (string) round($total_avatars / $category_count, 1) : '0';
+
+	return [
+		['icon' => 'fa fa-folder', 'value' => (string) $category_count, 'label' => __('admin/avatars.stats_categories'), 'variant' => 'primary'],
+		['icon' => 'fa fa-user-circle', 'value' => (string) $total_avatars, 'label' => __('admin/avatars.stats_avatars'), 'variant' => 'success'],
+		['icon' => 'fa fa-images', 'value' => $average, 'label' => __('admin/avatars.stats_average'), 'variant' => 'info'],
+		['icon' => 'fa fa-folder-open', 'value' => (string) $empty_categories, 'label' => __('admin/avatars.stats_empty'), 'variant' => 'warning'],
+	];
+}
+
+/**
+ * Supprime un avatar d'une catégorie existante.
+ */
+function admin_avatars_delete_file(string $dir, string $cat, string $filename): bool
+{
+	$filename = basename(Format::safeFilename($filename));
+
+	if ($filename === '' || $filename === 'index.html') {
+		return false;
+	}
+
+	if (!preg_match('/\.(jpe?g|png|gif)$/i', $filename)) {
+		return false;
+	}
+
+	$cat_dir = rtrim($dir, '/\\') . '/' . $cat;
+	$path = $cat_dir . '/' . $filename;
+	$real_dir = realpath($cat_dir);
+	$real_path = realpath($path);
+
+	if ($real_dir === false || $real_path === false || strpos($real_path, $real_dir) !== 0) {
+		return false;
+	}
+
+	return is_file($real_path) && @unlink($real_path);
+}
+
+/**
+ * Supprime une catégorie d'avatars et tous les fichiers qu'elle contient.
+ */
+function admin_avatars_delete_category(string $dir, string $cat): bool
+{
+	if (!preg_match('#^[-a-zA-Z0-9_]+$#', $cat)) {
+		return false;
+	}
+
+	$root = realpath(rtrim($dir, '/\\'));
+	$cat_dir = rtrim($dir, '/\\') . '/' . $cat;
+	$real_cat = realpath($cat_dir);
+
+	if ($root === false || $real_cat === false || !is_dir($real_cat) || dirname($real_cat) !== $root) {
+		return false;
+	}
+
+	return rrmdir($real_cat);
+}
+
+function admin_avatars_max_size(): int
+{
+	return 512;
+}
+
+/**
+ * Enregistre un avatar uploadé en limitant sa taille à admin_avatars_max_size().
+ */
+function admin_avatars_save_image(string $tmp_path, string $dest_path): bool
+{
+	$info = @getimagesize($tmp_path);
+
+	if (!$info || !in_array($info[2], [IMAGETYPE_GIF, IMAGETYPE_JPEG, IMAGETYPE_PNG], true)) {
+		return false;
+	}
+
+	$types = [
+		IMAGETYPE_GIF => 'gif',
+		IMAGETYPE_JPEG => 'jpeg',
+		IMAGETYPE_PNG => 'png',
+	];
+	$type = $types[$info[2]];
+	$max = admin_avatars_max_size();
+	[$width, $height] = [$info[0], $info[1]];
+
+	if ($width <= $max && $height <= $max) {
+		if (is_uploaded_file($tmp_path)) {
+			return move_uploaded_file($tmp_path, $dest_path);
+		}
+
+		return @copy($tmp_path, $dest_path);
+	}
+
+	$ratio = min($max / $width, $max / $height);
+	$new_width = max(1, (int) round($width * $ratio));
+	$new_height = max(1, (int) round($height * $ratio));
+	$source = @call_user_func('imagecreatefrom' . $type, $tmp_path);
+
+	if (!$source) {
+		return false;
+	}
+
+	$dest = imagecreatetruecolor($new_width, $new_height);
+
+	if ($type === 'png' || $type === 'gif') {
+		imagealphablending($dest, false);
+		imagesavealpha($dest, true);
+	}
+
+	imagecopyresampled($dest, $source, 0, 0, 0, 0, $new_width, $new_height, $width, $height);
+	$saved = call_user_func('image' . $type, $dest, $dest_path);
+
+	imagedestroy($source);
+	imagedestroy($dest);
+
+	if ($saved && is_uploaded_file($tmp_path)) {
+		@unlink($tmp_path);
+	}
+
+	return $saved;
+}
+
+/**
+ * Modal réutilisable pour prévisualiser une image au clic.
+ */
+function admin_image_preview_modal(array $options = []): string
+{
+	static $rendered = false;
+
+	if ($rendered) {
+		return '';
+	}
+
+	$rendered = true;
+	$id = $options['id'] ?? 'admin-image-preview-modal';
+	$max = (int) ($options['max_size'] ?? admin_avatars_max_size());
+	$title = html_encode($options['title'] ?? __('admin/general.image_preview_title'));
+
+	return '<div id="' . html_encode($id) . '" class="modal fade admin-image-preview-modal" tabindex="-1" aria-hidden="true">'
+		. '<div class="modal-dialog modal-dialog-centered admin-image-preview-modal__dialog">'
+		. '<div class="modal-content border-0 shadow">'
+		. '<div class="modal-header py-2">'
+		. '<h6 class="modal-title admin-image-preview-modal__title text-truncate">' . $title . '</h6>'
+		. '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="' . html_encode(__('messages/form.cancel')) . '"></button>'
+		. '</div>'
+		. '<div class="modal-body admin-image-preview-modal__body p-2 text-center">'
+		. '<img class="admin-image-preview-modal__img admin-image-preview-modal__img--loading" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">'
+		. '</div></div></div></div>';
+}
+
+function admin_avatars_grid(array $avatars, string $delete_confirm): string
+{
+	if (!$avatars) {
+		return admin_panel_empty(__('admin/avatars.category_empty'), 'fa-image', [
+			'class' => 'admin-avatars-category__empty',
+		]);
+	}
+
+	$view_label = html_encode(__('admin/avatars.view_avatar'));
+	$html = '<div class="admin-avatars-grid">';
+
+	foreach ($avatars as $avatar) {
+		$html .= '<figure class="admin-avatars-card">';
+		$html .= '<button type="submit" class="admin-avatars-card__delete" name="delete_avatar" value="' . html_encode($avatar['name']) . '" title="' . html_encode(__('admin/general.btn_delete')) . '" onclick="return confirm(\'' . $delete_confirm . '\');">';
+		$html .= '<i class="far fa-trash-alt" aria-hidden="true"></i>';
+		$html .= '<span class="visually-hidden">' . html_encode(__('admin/general.btn_delete')) . '</span>';
+		$html .= '</button>';
+		$html .= '<button type="button" class="admin-avatars-card__preview admin-avatars-card__preview--clickable" data-admin-image-preview="' . html_encode($avatar['url']) . '" data-admin-image-title="' . html_encode($avatar['name']) . '" title="' . $view_label . '" aria-label="' . $view_label . '">';
+		$html .= '<img src="' . html_encode($avatar['url']) . '" alt="' . html_encode($avatar['name']) . '" loading="lazy">';
+		$html .= '</button>';
+		$html .= '<figcaption class="admin-avatars-card__title">' . html_encode($avatar['name']) . '</figcaption>';
+		$html .= '</figure>';
+	}
+
+	return $html . '</div>';
+}
+
+function admin_avatars_accept_types(): string
+{
+	return '.jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif';
+}
+
+/**
+ * Génère un nom de fichier sûr quand le nom d'origine est absent ou invalide.
+ */
+function admin_avatars_fallback_filename(string $tmp_path, int $index = 0): string
+{
+	$ext = 'png';
+	$info = $tmp_path !== '' ? @getimagesize($tmp_path) : false;
+
+	if ($info) {
+		$ext_map = [
+			IMAGETYPE_GIF => 'gif',
+			IMAGETYPE_JPEG => 'jpg',
+			IMAGETYPE_PNG => 'png',
+		];
+		$ext = $ext_map[$info[2]] ?? 'png';
+	}
+
+	return 'avatar-' . time() . '-' . $index . '.' . $ext;
+}
+
+/**
+ * Normalise la structure $_FILES pour un champ upload[].
+ *
+ * @return array{name: array<int, string>, type: array<int, string>, tmp_name: array<int, string>, error: array<int, int>, size: array<int, int>}|null
+ */
+function admin_avatars_normalize_upload(array $files): ?array
+{
+	if (empty($files['name'])) {
+		return null;
+	}
+
+	if (!is_array($files['name'])) {
+		return [
+			'name' => [(string) $files['name']],
+			'type' => [(string) ($files['type'] ?? '')],
+			'tmp_name' => [(string) ($files['tmp_name'] ?? '')],
+			'error' => [(int) ($files['error'] ?? UPLOAD_ERR_NO_FILE)],
+			'size' => [(int) ($files['size'] ?? 0)],
+		];
+	}
+
+	return $files;
+}
+
+/**
+ * Prépare un nom de fichier d'avatar à partir du nom d'origine ou du fichier temporaire.
+ */
+function admin_avatars_resolve_filename(string $original_name, string $tmp_path, int $index = 0): string
+{
+	$original_name = trim(basename(str_replace('\\', '/', $original_name)));
+	$filename = $original_name !== '' ? basename(Format::safeFilename($original_name)) : '';
+
+	if ($filename === '' || !preg_match('/\.(jpe?g|gif|png)$/i', $filename)) {
+		$filename = admin_avatars_fallback_filename($tmp_path, $index);
+	}
+
+	return $filename;
+}
+
+/**
+ * Traite l'upload d'avatars dans une catégorie existante.
+ */
+function admin_avatars_process_uploads(string $dir, string $cat): void
+{
+	if (empty($_FILES['upload'])) {
+		return;
+	}
+
+	$files = admin_avatars_normalize_upload($_FILES['upload']);
+
+	if (!$files) {
+		return;
+	}
+
+	foreach ($files['name'] as $index => $name) {
+		$tmp_path = (string) ($files['tmp_name'][$index] ?? '');
+		$display_name = trim((string) $name) !== '' ? (string) $name : admin_avatars_fallback_filename($tmp_path, (int) $index);
+		$filename = admin_avatars_resolve_filename((string) $name, $tmp_path, (int) $index);
+		$path = $dir . $cat . '/' . $filename;
+
+		if ((int) ($files['error'][$index] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+			App::setWarning(__('admin/avatars.alert_upload_error', ['%name%' => $display_name]), true);
+		}
+		elseif (!preg_match('/\.(jpg|gif|png)$/i', $filename) || !in_array(@getimagesize($tmp_path)[2], [1, 2, 3], true)) {
+			App::setWarning(__('admin/avatars.alert_invalid_format', ['%name%' => $display_name]), true);
+		}
+		elseif (file_exists($path)) {
+			App::setWarning(__('admin/avatars.alert_file_exist', ['%path%' => $path]), true);
+		}
+		elseif (admin_avatars_save_image($tmp_path, $path)) {
+			chmod($path, 0755);
+			App::setSuccess(__('admin/avatars.alert_avatar_added', ['%name%' => $display_name]), true);
+		}
+		else {
+			App::setWarning(__('admin/avatars.alert_upload_error', ['%name%' => $display_name]), true);
+		}
+	}
+}
+
+/**
+ * Corps d'une catégorie d'avatars (grille + zone de dépôt).
+ *
+ * @param array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int} $category
+ */
+function admin_avatars_category_body(array $category, string $delete_confirm): string
+{
+	$html = admin_avatars_grid($category['avatars'], $delete_confirm);
+	$html .= admin_file_dropzone([
+		'title' => __('admin/avatars.drop_title_short'),
+		'hint' => __('admin/avatars.drop_hint_short'),
+		'browse' => __('admin/avatars.btn_upload'),
+		'accept' => admin_avatars_accept_types(),
+		'auto_submit' => true,
+		'compact' => true,
+		'icon' => 'fa-cloud-upload-alt',
+		'class' => 'admin-avatars-category__dropzone',
+	]);
+
+	return $html;
+}
+
+/**
+ * @param array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int} $category
+ */
+function admin_avatars_category_panel(array $category, string $delete_confirm, bool $expanded = false): string
+{
+	$cat = $category['name'];
+	$collapse_id = admin_collapsible_slug('avatar-cat-', $cat);
+	$delete_category_confirm = html_encode(__('admin/avatars.alert_delete_category', [
+		'%cat%' => $cat,
+		'%count%' => (string) $category['count'],
+	]));
+	$heading = '<span class="admin-modules-table__caption admin-avatars-category__heading">';
+	$heading .= '<span class="admin-modules-table__caption-icon admin-modules-table__caption-icon--info">';
+	$heading .= '<i class="fa fa-folder" aria-hidden="true"></i></span>';
+	$heading .= '<div class="admin-avatars-category__titles">';
+	$heading .= '<h3 class="admin-avatars-category__title">' . html_encode($cat) . '</h3>';
+	$heading .= '<p class="admin-avatars-category__meta">' . html_encode(__('admin/avatars.category_count', ['%count%' => (string) $category['count']])) . '</p>';
+	$heading .= '</div></span>';
+
+	$html = '<article class="admin-avatars-category admin-collapsible" data-avatars-category="' . html_encode($cat) . '">';
+	$html .= '<form method="post" enctype="multipart/form-data" class="admin-avatars-category__form">';
+	$html .= '<input type="hidden" name="categorie" value="' . html_encode($cat) . '">';
+	$html .= '<header class="admin-modules-table__toolbar admin-avatars-category__header admin-collapsible__header">';
+	$html .= admin_collapsible_toggle($collapse_id, $heading, $expanded, [
+		'class' => 'admin-avatars-category__toggle',
+		'label' => __('admin/avatars.btn_toggle_category'),
+	]);
+	$html .= '<div class="admin-modules-table__toolbar-actions admin-avatars-category__actions">';
+	$html .= '<button type="submit" class="btn btn-sm btn-outline-danger" name="delete_category" value="1" onclick="return confirm(\'' . $delete_category_confirm . '\');">';
+	$html .= '<i class="far fa-trash-alt me-1" aria-hidden="true"></i>' . html_encode(__('admin/avatars.btn_delete_category'));
+	$html .= '</button>';
+	$html .= '</div></header>';
+	$html .= admin_collapsible_body_open($collapse_id, $expanded, 'admin-avatars-category__body');
+	$html .= admin_avatars_category_body($category, $delete_confirm);
+	$html .= admin_collapsible_body_close();
+	$html .= '</form></article>';
+
+	return $html;
+}
+
+/**
+ * Réponse JSON pour l'upload ou la suppression AJAX d'avatars.
+ *
+ * @param array<int, array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int}> $categories
+ * @param array<int, array{icon: string, value: string, label: string, variant: string}> $stats
+ */
+function admin_avatars_json_response(array $categories, array $stats, string $category_name, string $delete_confirm): void
+{
+	$category = null;
+
+	foreach ($categories as $item) {
+		if ($item['name'] === $category_name) {
+			$category = $item;
+			break;
+		}
+	}
+
+	if (!$category) {
+		http_response_code(404);
+	}
+
+	header('Content-Type: application/json; charset=utf-8');
+	echo json_encode([
+		'ok' => $category !== null,
+		'category' => $category_name,
+		'body' => $category ? admin_avatars_category_body($category, $delete_confirm) : '',
+		'meta' => $category ? __('admin/avatars.category_count', ['%count%' => (string) $category['count']]) : '',
+		'stats' => admin_stat_grid($stats, ['variant' => 'kpi', 'class' => 'mb-0']),
+		'alerts' => App::renderAlertsHtml(),
+	], JSON_UNESCAPED_UNICODE);
+	exit;
+}
+
+/**
+ * @param array<int, array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int}> $categories
+ */
+function admin_avatars_library_board(array $categories, string $delete_confirm): string
+{
+	if (!$categories) {
+		return '<div class="admin-avatars-content-wrap admin-avatars-content-wrap--empty">'
+			. admin_avatars_empty(__('admin/avatars.empty_library'))
+			. '</div>';
+	}
+
+	$html = '<div class="admin-avatars-content-wrap">';
+
+	foreach ($categories as $category) {
+		$html .= admin_avatars_category_panel($category, $delete_confirm);
+	}
+
+	return $html . '</div>';
+}
+
+function admin_avatars_create_board(): string
+{
+	$html = '<div class="admin-avatars-content-wrap admin-avatars-content-wrap--create">';
+	$html .= '<div class="admin-avatars-create-panel">';
+	$html .= '<form method="post" enctype="multipart/form-data" role="form" class="form-horizontal admin-settings-grouped-form admin-avatars-create-form" id="admin-avatars-create-form">';
+	$html .= '<section class="admin-settings-section admin-settings-section--grouped">';
+	$html .= '<div class="admin-settings-section__body admin-settings-section__body--grouped">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-folder-plus" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/avatars.create_section_category')) . '</h3>';
+	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/avatars.create_intro')) . '</p>';
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body">';
+	$html .= admin_form_field_row(
+		__('admin/avatars.catname'),
+		'<input class="form-control" id="avatar-category-name" name="categorie" type="text" pattern="[-a-zA-Z0-9_]+" required autocomplete="off" placeholder="' . html_encode(__('admin/avatars.catname_placeholder')) . '">',
+		['for' => 'avatar-category-name', 'hint' => __('admin/avatars.create_hint')]
+	);
+	$html .= '</div></div>';
+
+	$html .= '<hr class="admin-settings-subsection__divider">';
+
+	$html .= '<div class="admin-settings-subsection">';
+	$html .= '<header class="admin-settings-subsection__header">';
+	$html .= '<span class="admin-settings-subsection__icon"><i class="fas fa-images" aria-hidden="true"></i></span>';
+	$html .= '<div class="admin-settings-subsection__heading">';
+	$html .= '<h3 class="admin-settings-subsection__title">' . html_encode(__('admin/avatars.create_section_upload')) . '</h3>';
+	$html .= '<p class="admin-settings-subsection__desc">' . html_encode(__('admin/avatars.create_upload_intro')) . '</p>';
+	$html .= '</div></header>';
+	$html .= '<div class="admin-settings-subsection__body admin-avatars-create-form__dropzone-body">';
+	$html .= admin_file_dropzone([
+		'title' => __('admin/avatars.drop_title'),
+		'hint' => __('admin/avatars.drop_hint'),
+		'browse' => __('admin/avatars.drop_browse'),
+		'summary' => __('admin/avatars.drop_summary'),
+		'accept' => admin_avatars_accept_types(),
+		'preview' => true,
+		'icon' => 'fa-cloud-upload-alt',
+		'class' => 'admin-avatars-create-form__dropzone',
+	]);
+	$html .= '</div></div>';
+
+	$html .= '</div>';
+	$html .= '<footer class="admin-settings-section__footer">';
+	$html .= '<div class="text-center">';
+	$html .= '<button class="btn btn-primary" name="create" value="1" type="submit">';
+	$html .= '<i class="fas fa-plus me-1" aria-hidden="true"></i>' . html_encode(__('admin/avatars.btn_create'));
+	$html .= '</button>';
+	$html .= '<a class="btn btn-outline-secondary" href="?page=avatars&view=library">' . html_encode(__('admin/menu.btn_cancel')) . '</a>';
+	$html .= '</div></footer>';
+	$html .= '</section></form></div></div>';
+
+	return $html;
+}
+
+/**
+ * @param array<int, array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int}> $categories
+ */
+function admin_avatars_tab_body(array $categories, string $view, string $delete_confirm): string
+{
+	$html = admin_avatars_tab_open('library', $view === 'library');
+	$html .= '<div id="avatars-content" class="admin-avatars-content"><div id="content">';
+	$html .= admin_avatars_library_board($categories, $delete_confirm);
+	$html .= '</div></div>';
+	$html .= admin_avatars_tab_close();
+	$html .= admin_avatars_tab_open('create', $view === 'create');
+	$html .= admin_avatars_create_board();
+	$html .= admin_avatars_tab_close();
+
+	return $html;
+}
+
 function getCurrentPageInfo($type = 'both')
  {
 	 $page = App::GET('page');
@@ -2245,7 +5632,7 @@ function getCurrentPageInfo($type = 'both')
 	 if ($page === 'modules' && ($pluginId = App::GET('plugin', ''))) {
 		 $module = App::getModule($pluginId);
 		 if ($module) {
-			 $icon = 'fa-cogs';
+			 $icon = fa_icon_classes('fa-gears');
 			 $title = $module->infos->name;
 			 $description = $module->infos->name . ' v' . $module->infos->version;
 
@@ -2262,23 +5649,23 @@ function getCurrentPageInfo($type = 'both')
 					 return ['icon' => $icon, 'title' => $title, 'description' => $description];
 				 case 'html':
 				 default:
-					 return '<i class="fa ' . $icon . ' me-3"></i>' . html_encode($title);
+					 return fa_icon_html($icon, 'solid', ['me-3']) . html_encode($title);
 			 }
 		 }
 	 }
 	 
 	 $pageIcons = [
-		 '' => 'fa-info-circle',
-		 'index' => 'fa-info-circle',
+		 '' => 'fa-circle-info',
+		 'index' => 'fa-circle-info',
 		 'settings' => 'fa-keyboard',
-		 'reports' => 'fa-exclamation-circle',
+		 'reports' => 'fa-circle-exclamation',
 		 'servers' => 'fa-server',
 		 'page_edit' => 'fa-file',
-		 'pages' => 'fa-file-alt',
+		 'pages' => 'fa-file-lines',
 		 'menu' => 'fa-list',
 		 'gallery' => 'fa-images',
-		 'avatars' => 'fa-grin-squint-tears',
-		 'downloads' => 'fa-file-download',
+		 'avatars' => 'fa-face-grin-squint-tears',
+		 'downloads' => 'fa-file-arrow-down',
 		 'forums' => 'fa-list',
 		 'comments' => 'fa-comments',
 		 'broadcast' => 'fa-envelope',
@@ -2286,8 +5673,8 @@ function getCurrentPageInfo($type = 'both')
 		 'groups' => 'fa-layer-group',
 		 'history' => 'fa-user-secret',
 		 'security' => 'fa-user-slash',
-		 'modules' => 'fa-cogs',
-		 'backup' => 'fa-file-archive',
+		 'modules' => 'fa-gears',
+		 'backup' => 'fa-file-zipper',
 		 'file_editor' => 'fa-file-code',
 	 ];
 	 
@@ -2339,7 +5726,8 @@ function getCurrentPageInfo($type = 'both')
 		 'file_editor' => 'Éditeur de fichiers pour modifications directes',
 	 ];
 	 
-	 $icon = $pageIcons[$page] ?? 'fa-tachometer-alt';
+	 $iconRef = $pageIcons[$page] ?? 'fa-gauge-high';
+	 $icon = fa_icon_classes($iconRef);
 	 $title = $pageTitles[$page] ?? ucfirst($page ?: 'Dashboard');
 	 $description = $pageDescriptions[$page] ?? 'Page d\'administration';
 	 
@@ -2356,7 +5744,7 @@ function getCurrentPageInfo($type = 'both')
 			 return ['icon' => $icon, 'title' => $title, 'description' => $description];
 		 case 'html':
 		 default:
-			 return '<i class="fa ' . $icon . ' me-3"></i>' . $title;
+			 return fa_icon_html($iconRef, 'solid', ['me-3']) . html_encode($title);
 	 }
  } 
 

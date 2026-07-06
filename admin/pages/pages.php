@@ -2,81 +2,96 @@
 
 has_permission('admin.manage_pages', true);
 
-$ppp = 10;
-$pn = isset($_REQUEST['pn']) && $_REQUEST['pn'] > 0 ? $_REQUEST['pn'] : 1;
+$per_page = 10;
+$page_num = max(1, (int) App::GET('pn', 1));
+$offset = ($page_num - 1) * $per_page;
+$filter_raw = trim((string) App::GET('filter', ''));
+$filter = $filter_raw !== '' ? '%' . $filter_raw . '%' : '%';
 
-if (App::GET('filter')) {
-	$filter = '%' . App::GET('filter') . '%';
-} else {
-	$filter = '%';
+$status_labels = [
+	'draft' => __('admin/pages.status_draft'),
+	'published' => __('admin/pages.status_published'),
+	'archived' => __('admin/pages.status_archived'),
+];
+
+$status_keys = array_keys($status_labels);
+$selected_statuses = App::REQ('statuses', $status_keys);
+
+$base_join = 'FROM {pages} as p
+	JOIN {pages_revs} as r ON r.page_id = p.page_id AND r.revision IN(p.revisions, p.pub_rev)';
+
+$total_all = (int) Db::Get('SELECT count(*) ' . $base_join);
+
+$status_counts = Db::QueryAll(
+	'SELECT r.status, count(*) as cnt ' . $base_join . ' GROUP BY r.status'
+);
+
+$counts = [];
+
+foreach ($status_counts as $row) {
+	$counts[(string) ($row['status'] ?? '')] = (int) ($row['cnt'] ?? 0);
 }
 
-$status = ['draft' => __('admin/pages.status_draft'), 'published' => __('admin/pages.status_published'), 'archived' => __('admin/pages.status_archived')];
+$pages_stats = admin_pages_build_stats($counts);
+$delete_confirm = html_encode(__('admin/pages.btn_sur'));
+$total_filtered = 0;
+$pages = [];
+
+if ($selected_statuses) {
+	$placeholders = implode(', ', array_fill(0, count($selected_statuses), '?'));
+	$query_params = array_merge([$filter], $selected_statuses);
+	$where = 'WHERE r.title LIKE ? AND r.status IN (' . $placeholders . ')';
+
+	$total_filtered = (int) Db::Get('SELECT count(*) ' . $base_join . ' ' . $where, ...$query_params);
+
+	$pages = Db::QueryAll(
+		'SELECT r.*, p.* ' . $base_join . ' ' . $where . '
+		ORDER BY r.status, p.pub_date DESC
+		LIMIT ' . $offset . ', ' . $per_page,
+		...$query_params
+	);
+}
 ?>
-<div class="float-end">
-	<form method="post" class="form-inline">
-		<input id="filter" name="filter" class="form-control" type="text" value="<?= html_encode(App::GET('filter')) ?>" placeholder="<?= __('admin/pages.btn_search') ?>">
-		<button type="submit" hidden></button>
-	</form>
+
+<div class="admin-dashboard admin-pages">
+	<?= admin_stat_grid($pages_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
+
+	<section class="admin-tabs-board admin-pages-board">
+		<div class="admin-tabs-board__body admin-pages-board__body admin-tabs-panel">
+			<?php if (!$total_all): ?>
+				<?= admin_pages_empty(__('admin/pages.empty_none')) ?>
+			<?php else: ?>
+				<form method="get" id="admin-pages-form" class="admin-pages-form">
+					<input type="hidden" name="page" value="pages">
+					<?= admin_pages_filters($status_labels, $selected_statuses, $filter_raw) ?>
+				</form>
+
+				<form action="?page=page_edit" method="post" class="admin-pages-list-form">
+					<input type="hidden" name="delete" value="1">
+					<?= admin_pages_table($pages, $status_labels, $delete_confirm) ?>
+
+					<?php if ($total_filtered > $per_page): ?>
+						<div class="admin-pages-pager">
+							<?= Widgets::pager((int) ceil($total_filtered / $per_page), $page_num, 10); ?>
+						</div>
+					<?php endif; ?>
+				</form>
+			<?php endif; ?>
+		</div>
+	</section>
 </div>
 
-<legend style="padding-top:5px;"><?= __('admin/pages.title') ?></legend>
+<script>
+(function () {
+	var form = document.getElementById('admin-pages-form');
+	if (!form) {
+		return;
+	}
 
-<ul class="nav nav-tabs admin-tabs">
-	<li class="nav-item"><a class="nav-link active" href="#all" data-bs-toggle="tab"><?= __('admin/pages.table_all') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#published" data-bs-toggle="tab"><?= __('admin/pages.table_published') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#draft" data-bs-toggle="tab"><?= __('admin/pages.table_draft') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#archived" data-bs-toggle="tab"><?= __('admin/pages.table_archives') ?></a></li>
-	<li class="nav-item ms-auto"><a class="nav-link" href="?page=page_edit" title="<?= __('admin/pages.btn_add_title') ?>"><i class="far fa-lg fa-file"></i> <?= __('admin/pages.btn_add') ?></a></li>
-</ul>
-
-<div class="tab-content admin-tabs-panel">
-	<div class="tab-pane fade active show" id="all" style="padding: 1em;">
-
-<form action="?page=page_edit" method="post">
-	<input type="hidden" name="delete" value="1">
-	<div id="content">
-		<table class="table">
-			<thead>
-				<th style="width:50%"><?= __('admin/pages.table_page') ?></th>
-				<th style="width:0px;"></th>
-				<th><?= __('admin/pages.table_status') ?></th>
-				<th><?= __('admin/pages.table_comments') ?></th>
-				<th><?= __('admin/pages.table_view') ?></th>
-				<th><?= __('admin/pages.table_management') ?></th>
-			</thead>
-			<tbody>
-		<?php
-			//select where status <> "revision"
-			$ptotal = ceil(Db::Get('select count(*) FROM {pages} as p JOIN {pages_revs} as r ON r.page_id = p.page_id AND r.revision IN(p.revisions, p.pub_rev) WHERE r.title LIKE ?', $filter) / $ppp);
-			$pages =  Db::QueryAll('SELECT r.*, p.* FROM {pages} as p
-									JOIN {pages_revs} as r ON r.page_id = p.page_id AND r.revision IN(p.revisions, p.pub_rev)
-									WHERE r.title LIKE ?
-									ORDER BY r.status, p.pub_date DESC LIMIT ?, ?',
-									$filter, ($pn - 1) * $ppp, $ppp);
-			foreach($pages as $page) {
-				$a = ($page['pub_rev'] != $page['revision'] ? ['rev' => $page['revision']]:[]);
-				echo '<tr'.($page['pub_rev'] != $page['revision'] ? ' class="bg-light"':'').'>';
-					echo '<td><a href="?page=page_edit&id='.$page['id'].'">'.html_encode($page['title'] ?: __('admin/pages.table_noname')).'</a>';
-					// if ($page['pub_rev'] != $page['revision'])
-					// 	echo '<small><em> - Brouillon</em></small>';
-					echo '</td>';
-					echo '<td><a title="Permalink" href="'.App::getURL($page['slug']?:$page['page_id'], $a).'"><small>'.__('admin/pages.btn_view').'</small></a></td>';
-					echo '<td>'.($status[$page['status']] ?? $page['status']).'</td>';
-					echo '<td>'.$page['comments'].'</td>';
-					echo '<td>'.$page['views'].'</td>';
-					echo '<td>';
-						echo '<a title="'.__('admin/pages.btn_edit').'" href="?page=page_edit&id='.$page['id'].'" class="btn btn-primary btn-sm"><i class="fa fa-pencil-alt"></i></a> ';
-						echo '<button title="'.__('admin/pages.btn_delete').'" class="btn btn-danger btn-sm" name="id" value="'.$page['id'].'" onclick="return confirm(\''.__('admin/pages.btn_sur').'\');"><i class="far fa-trash-alt"></i></button>';
-					echo '</td>';
-				echo '</tr>';
-				};
-		?>
-			</tbody>
-		</table>
-		<?= Widgets::pager(count($pages) < $ppp ? $pn : $ptotal, $pn, 10); ?>
-	</div>
-</form>
-
-</div>
-</div>
+	form.querySelectorAll('.admin-filter-chip__input').forEach(function (input) {
+		input.addEventListener('change', function () {
+			form.submit();
+		});
+	});
+})();
+</script>

@@ -3,6 +3,8 @@
 has_permission('admin.manage_media', true);
 
 $dir = ROOT_DIR . '/upload/avatars/';
+$view = App::GET('view') === 'create' ? 'create' : 'library';
+$avatars_ajax = IS_AJAX && IS_POST && (App::POST('delete_avatar') || !empty($_FILES['upload']));
 
 if (!IS_POST) {
 
@@ -10,100 +12,85 @@ if (!IS_POST) {
 elseif (!preg_match('#^[-a-zA-Z0-9_]+$#', $cat = App::POST('categorie', '')))
 {
 	App::setWarning(__('admin/avatars.alert_forbiden_chars', ['%cat%' => $cat]));
+
+	if (App::POST('create')) {
+		$view = 'create';
+	}
 }
-elseif (App::POST('create')) //SI le formulaire est envoyé on éxécute le code
+elseif (App::POST('create'))
 {
 	if (file_exists($dir . $cat)) {
 		App::setWarning(__('admin/avatars.alert_already_exist', ['%cat%' => $cat]));
+		$view = 'create';
 	} elseif (@mkdir($dir . $cat, 0755, true)) {
 		@touch($dir . $cat . '/index.html');
 		App::setSuccess(__('admin/avatars.alert_fcreate_success', ['%cat%' => $cat]));
+		admin_avatars_process_uploads($dir, $cat);
+		$view = 'library';
 	} else {
 		App::setWarning(__('admin/avatars.alert_fcreate_error', ['%cat%' => $cat]));
+		$view = 'create';
 	}
 }
-elseif (App::POST('delete')) //SI le formulaire est envoyé on éxécute le code
+elseif (App::POST('delete_category'))
 {
-	if (rrmdir($dir . $cat)) {
+	if (admin_avatars_delete_category($dir, $cat)) {
 		App::setSuccess(__('admin/avatars.alert_fdelete_success', ['%cat%' => $cat]));
 	} else {
 		App::setWarning(__('admin/avatars.alert_fdelete_error', ['%cat%' => $cat]));
 	}
-}
-elseif(!empty($_FILES['upload']))
-{
-	$files = $_FILES['upload'];
-	foreach($files['name'] as $index => $name) {
-		$filename = Format::safeFilename($name);
-		$path = $dir . $cat . '/' . $filename;
 
-		if ($filename == '') {
-			App::setWarning(__('admin/avatars.alert_empty_name_aconv',['%name%' => $name]), true);
-		}
-		elseif (!preg_match('/\.(jpg|gif|png)$/', $filename) || !in_array(@getimagesize($files['tmp_name'][$index])[2], [1, 2, 3])) {
-			App::setWarning(__('admin/avatars.alert_invalid_format',['%name%' => $name]), true);
-		}
-		elseif(file_exists($path)) {
-			App::setWarning(__('admin/avatars.alert_file_exist',['%path%' => $path]), true);
-		}
-		elseif (move_uploaded_file($files['tmp_name'][$index], $path)) {
-			chmod($path, 0755);
-			App::setSuccess(__('admin/avatars.alert_avatar_added',['%name%' => $name]), true);
-		}
-		else {
-			App::setWarning(__('admin/avatars.alert_upload_error',['%name%' => $name]), true);
-		}
+	$view = 'library';
+}
+elseif (App::POST('delete_avatar'))
+{
+	$avatar_file = (string) App::POST('delete_avatar');
+
+	if (admin_avatars_delete_file($dir, $cat, $avatar_file)) {
+		App::setSuccess(__('admin/avatars.alert_avatar_deleted', ['%name%' => basename($avatar_file)]));
+	} else {
+		App::setWarning(__('admin/avatars.alert_avatar_delete_error', ['%name%' => basename($avatar_file)]));
 	}
+
+	$view = 'library';
+}
+elseif (!empty($_FILES['upload']))
+{
+	admin_avatars_process_uploads($dir, $cat);
+	$view = 'library';
+}
+
+$categories = admin_avatars_collect($dir);
+$avatars_stats = admin_avatars_build_stats($categories);
+$delete_confirm = html_encode(__('admin/avatars.alert_delete_avatar'));
+
+if ($avatars_ajax) {
+	$post_cat = App::POST('categorie', '');
+
+	if (preg_match('#^[-a-zA-Z0-9_]+$#', $post_cat)) {
+		admin_avatars_json_response($categories, $avatars_stats, $post_cat, $delete_confirm);
+	}
+
+	http_response_code(400);
+	header('Content-Type: application/json; charset=utf-8');
+	echo json_encode([
+		'ok' => false,
+		'alerts' => App::renderAlertsHtml(),
+	], JSON_UNESCAPED_UNICODE);
+	exit;
 }
 ?>
-<div class="card">
-	<div class="card-header">
-		<h4><?= __('admin/avatars.title') ?></h4>
-	</div>
-	<div class="card-body">
-	<form class="form-horizontal" role="form" style="margin-bottom: -13px;" method="post">
-	  <div class="mb-3 row">
-		<label class="col-sm-3 col-form-label text-right"><?= __('admin/avatars.catname') ?></label>
-		<div class="col-sm-6">
-		  <input type="text" class="form-control" name="categorie">
+
+<div class="admin-dashboard admin-avatars">
+	<?= admin_stat_grid($avatars_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
+
+	<section class="admin-tabs-board admin-avatars-board">
+		<?= admin_avatars_nav($view) ?>
+
+		<div class="tab-content admin-tabs-board__body admin-avatars-board__body admin-tabs-panel">
+			<?= admin_avatars_tab_body($categories, $view, $delete_confirm) ?>
 		</div>
-	  <button type="submit" class="btn btn-success" style="margin-top: 2px;" name="create" value="1"><?= __('admin/avatars.btn_create') ?></button>
-	  </div>
-	</form>
-	</div>
+	</section>
 </div>
 
-<?php
-if ($files = glob($dir.'/*', GLOB_ONLYDIR)) {
-	foreach($files as $cat_dir) {
-		$cat = basename($cat_dir);
-
-		echo '<div class="card mt-4">';
-		echo '<div class="card-header">';
-			echo '<form method="post" enctype="multipart/form-data"><input type="hidden" name="categorie" value="' . $cat . '">';
-				echo '<button class="btn btn-danger" style="position:relative;top:-5px;float:right" onclick="return confirm(\''.__('admin/avatars.alert_delete_advise').'\');" name="delete" value="1">'.__('admin/general.btn_delete').'</button>';
-				echo '<input type="file" class="float-right" name="upload[]" multiple>';
-			echo '</form>';
-			echo '<h4>'. __('admin/avatars.category') .' : '.$cat.'</h4>';
-		echo '</div>';
-
-		if ($avatars = glob($cat_dir.'/*.{jpg,jpeg,png,gif}', GLOB_BRACE)) {
-				echo '<ul class="clearfix">';
-				foreach ($avatars as $avatar) {
-					$url = App::getAsset(substr($avatar, strlen(ROOT_DIR)));
-					echo '<div style="padding:10px;float:left;display:block">';
-						echo '<img style="border-radius:5px;margin-right:5px;margin-top:10px" width="64" src="'.$url.'">';
-					echo '</div>';
-				}
-				echo '</ul>';
-			}
-		echo '</div>';
-	}
-}
-?>
-
-<script>
-$('input[type=file]').on('change', function() {
-	if ($(this)[0].files[0]) $(this).parent().submit();
-});
-</script>
+<?= admin_image_preview_modal() ?>

@@ -17,7 +17,7 @@
 				<ul id="nav-mobile" class="show-on-medium-and-up">
 					<li class="left">
 						<a href="#" data-bs-target="slide-out" class="sidenav-trigger">
-							<i class="fa fa-bars fa-lg"></i>Menu
+							<i class="fa-solid fa-bars fa-lg"></i>Menu
 						</a>
 					</li>
 				</ul>
@@ -25,7 +25,7 @@
 					<?php if ($update_available): ?>
 					<li>
 						<a href="<?=$update_available ?: EVO_UPDATE_URL;?>" class="notification" title="<?= __('admin/header.update_available') ?>">
-							<i class="fa fa-tasks fa-lg fa-inverse"></i><?= __('admin/header.update_available') ?>
+							<i class="fa-solid fa-list-check fa-lg fa-inverse"></i><?= __('admin/header.update_available') ?>
 						</a>
 					</li>
 					<?php endif; ?>
@@ -33,7 +33,7 @@
 					<?php if ($comments_nbr): ?>
 					<li>
 						<a href="?page=comments" class="notification">
-							<i class="fa fa-comment-dots fa-lg fa-inverse"></i> <?= __plural('admin/header.comments', $comments_nbr) ?>
+							<i class="fa-solid fa-comment-dots fa-lg fa-inverse"></i> <?= __plural('admin/header.comments', $comments_nbr) ?>
 						</a>
 					</li>
 					<?php endif; ?>
@@ -41,13 +41,13 @@
 					<?php if ($reports_nbr): ?>
 					<li>
 						<a href="?page=reports" class="notification">
-							<i class="fa fa-flag fa-lg fa-inverse"></i><?= __plural('admin/header.reports', $reports_nbr) ?>
+							<i class="fa-solid fa-flag fa-lg fa-inverse"></i><?= __plural('admin/header.reports', $reports_nbr) ?>
 						</a>
 					</li>
 					<?php endif; ?>
 
 					<li class="admin_settings">
-						<a href="<?= App::getURL('/') ?>"><i class="fa-fw fa-lg fa fa-sign-out-alt"></i> <?= __('admin/header.site') ?></a>
+						<a href="<?= App::getURL('/') ?>"><i class="fa-solid fa-fw fa-lg fa-right-from-bracket"></i> <?= __('admin/header.site') ?></a>
 					</li>
 				</ul>
 			</div>
@@ -75,12 +75,12 @@
 					<div class="plugin-header-inner">
 						<div class="plugin-header-content">
 							<h3 class="text-white plugin-header-title">
-								<i class="fas <?= getCurrentPageInfo('icon') ?>"></i>
+								<i class="<?= html_encode(getCurrentPageInfo('icon')) ?>"></i>
 								<?= getCurrentPageInfo('title') ?>
 							</h3>
 							<p class="text-white-50 fs-large lead mb-0"><?= getCurrentPageInfo('description') ?></p>
 						</div>
-						<span class="icon-background fas <?= getCurrentPageInfo('icon') ?>" aria-hidden="true"></span>
+						<span class="<?= html_encode(getCurrentPageInfo('icon')) ?> icon-background" aria-hidden="true"></span>
 					</div>
 				</div>
 			</div>

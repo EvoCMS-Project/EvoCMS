@@ -11,39 +11,39 @@ if ((!$topic['closed'] || $forum_moderator || has_permission('mod.forum_topic_cl
 	echo	'<a href="'.App::getURL('forums', ['topic'=>$topic['id'],'compose'=>1]).'">'. __('forum.reply').'</a> ';
 
 if ($forum_moderator || has_permission('mod.forum_topic_close')) {
-	if ($topic['closed']) echo '<button class="btn btn-primary btn-sm" name="closed" value="0" title="'. __('forum.btn_open') .'"><i class="fa fa-lock-open"></i></button> ';
-	else echo '<button class="btn btn-primary btn-sm" name="closed" value="1" title="'. __('forum.btn_close') .'"><i class="fa fa-lock"></i></button> ';
+	if ($topic['closed']) echo '<button class="btn btn-primary btn-sm" name="closed" value="0" title="'. __('forum.btn_open') .'"><i class="fa-solid fa-lock-open"></i></button> ';
+	else echo '<button class="btn btn-primary btn-sm" name="closed" value="1" title="'. __('forum.btn_close') .'"><i class="fa-solid fa-lock"></i></button> ';
 }
 
 if ($forum_moderator || has_permission('mod.forum_topic_stick')) {
-	if ($topic['sticky']) echo '<div class="btn-group"><button class="btn btn-info btn-sm active" name="sticky" value="0" title="'. __('forum.btn_unsticky').'"><i class="fas fa-thumbtack"></i></button></div> ';
-	else echo '<button class="btn btn-info btn-sm" name="sticky" value="1" title="'. __('forum.btn_sticky').'"><i class="fas fa-thumbtack"></i></button> ';
+	if ($topic['sticky']) echo '<div class="btn-group"><button class="btn btn-info btn-sm active" name="sticky" value="0" title="'. __('forum.btn_unsticky').'"><i class="fa-solid fa-thumbtack"></i></button></div> ';
+	else echo '<button class="btn btn-info btn-sm" name="sticky" value="1" title="'. __('forum.btn_sticky').'"><i class="fa-solid fa-thumbtack"></i></button> ';
 }
 
 if ($forum_moderator || has_permission('mod.forum_topic_redirect')) {
 	echo '<a class="btn btn-warning btn-sm" name="redirect-topic" href="'.App::getURL('forums', ['edit'=>$topic['first_post_id']]).'" title="'. __('forum.btn_make_redirect') .'">'.
-		 '<i class="fas fa-location-arrow"></i></a> ';
+		 '<i class="fa-solid fa-location-arrow"></i></a> ';
 }
 
 if ($forum_moderator || has_permission('mod.forum_topic_move')) {
 	echo '<button type="button" class="btn btn-warning btn-sm" name="move-topic" value="'.$topic['id'].'" title="'. __('forum.btn_move_topic') .'" onclick="$(\'#move-topic-container\').toggle();">'.
-		 '<i class="fa fa-arrow-right"></i></button> ';
+		 '<i class="fa-solid fa-arrow-right"></i></button> ';
 }
 
 if ($forum_moderator || has_permission('mod.forum_topic_delete')) {
 	echo '<button class="btn btn-danger btn-sm" name="delete-topic" value="'.$topic['id'].'" title="'. __('forum.btn_delete_topic') .'" onclick="return confirm(\''. __('forum.btn_delete_topic_confirm') .'\');">'.
-		 '<i class="fa fa-times"></i></button> ';
+		 '<i class="fa-solid fa-xmark"></i></button> ';
 }
 echo '		</form></div>';
 
 if ($topic['redirect'])
-echo'<i class="fa fa-location-arrow" title="'. __('forum.table_btn_redirect').'"></i> ';
+echo'<i class="fa-solid fa-location-arrow" title="'. __('forum.table_btn_redirect').'"></i> ';
 
 if ($topic['closed'])
-echo '<i class="fa fa-lock" title="'. __('forum.table_btn_closed').'"></i> ';
+echo '<i class="fa-solid fa-lock" title="'. __('forum.table_btn_closed').'"></i> ';
 
 if ($topic['sticky'])
-echo'<i class="fa fa-thumbtack" title="'. __('forum.table_btn_sticky').'"></i> ';
+echo'<i class="fa-solid fa-thumbtack" title="'. __('forum.table_btn_sticky').'"></i> ';
 
 
 echo html_encode($topic['subject']);
@@ -93,13 +93,13 @@ if ($posts) {
 				echo '<span class="float-right">';
 
 				if ( (has_permission() && App::getCurrentUser()->id == $post['poster_id']) || has_permission('moderator') ) {
-					echo '&nbsp;<a onclick="return confirm(\''. __('forum.ajax_confirm').'?\');" href="'.App::getURL('forums', ['topic'=>$post['topic_id'],'delete-post'=>$post['id']]).'" style="color:red" title="'. __('forum.btn_delete') .'"><i class="fas fa-trash"></i></a> ';
-					echo '&nbsp;<a href="'.App::getURL('forums', ['edit'=>$post['id']]).'" title="'. __('user.edit') .'"><i class="fa fa-pencil-alt"></i></a> ';
+					echo '&nbsp;<a onclick="return confirm(\''. __('forum.ajax_confirm').'?\');" href="'.App::getURL('forums', ['topic'=>$post['topic_id'],'delete-post'=>$post['id']]).'" style="color:red" title="'. __('forum.btn_delete') .'"><i class="fa-solid fa-trash-can"></i></a> ';
+					echo '&nbsp;<a href="'.App::getURL('forums', ['edit'=>$post['id']]).'" title="'. __('user.edit') .'"><i class="fa-solid fa-pencil"></i></a> ';
 				}
 
-				echo '&nbsp;<a href="" onclick="return report('.$post['id'].');" title="'. __('user.report') .'"><i class="fas fa-flag"></i></a> ';
+				echo '&nbsp;<a href="" onclick="return report('.$post['id'].');" title="'. __('user.report') .'"><i class="fa-solid fa-flag"></i></a> ';
 
-				echo '&nbsp;<a href="'.App::getURL('forums', ['topic'=>$post['topic_id'],'quote'=>$post['id']]).'" title="'. __('forum.post_quote') .'"><i class="fa fa-quote-right"></i></a>';
+				echo '&nbsp;<a href="'.App::getURL('forums', ['topic'=>$post['topic_id'],'quote'=>$post['id']]).'" title="'. __('forum.post_quote') .'"><i class="fa-solid fa-quote-right"></i></a>';
 
 				echo '&nbsp;</span></div>';
 				echo '<div class="comment p-3">' . bbcode2html($post['message']) . '</div>';

@@ -3,7 +3,6 @@
 has_permission('admin.manage_pages', true);
 
 use Evo\Models\File;
-use FineDiff\FineDiff;
 
 $page = [
 	'id' => 0,
@@ -149,255 +148,93 @@ if ($page['revision'] < $page['revisions']) {
 	App::setNotice(__('admin/page_edit.notice_edit_newer',['%revision%' => $page['revision'],'%pub_rev%' => $page['pub_rev']]));
 }
 
-if ($page['page_id']) {
-	echo '<legend><a href="?page=pages">Pages</a> / <a href="?page=page_edit&page_id=' . $page['page_id'] . '">' . html_encode(trim($page['title'])) . '</a></legend>';
-} else {
-	echo '<legend><a href="?page=pages">Pages</a> / Nouvelle page</legend>';
-}
-
 $rev1 = (int)App::REQ('rev1');
 $rev2 = (int)App::REQ('rev2');
 
-// To do: Use fancy box gallery to choose image instead
 $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime_type like ? and origin = ?', 'image/%', 'website') ?: [], 'name', 'id');
+$page_stats = admin_page_edit_build_stats($page);
+$delete_confirm = html_encode(__('admin/page_edit.delete_confirm'));
+$copy_confirm = html_encode(__('admin/page_edit.make_copy_confirm'));
+
+$page_nav = [
+	'edit' => ['label' => __('admin/page_edit.nav_edit'), 'icon' => 'fa-pencil-alt'],
+];
+
+if ($page['page_id']) {
+	$page_nav['history'] = ['label' => __('admin/page_edit.nav_history'), 'icon' => 'fa-history'];
+	$page_nav['diff'] = ['label' => __('admin/page_edit.nav_diff'), 'icon' => 'fa-not-equal'];
+	$page_nav['comments'] = ['label' => __('admin/page_edit.nav_comments'), 'icon' => 'fa-comments'];
+	$page_nav['view'] = [
+		'label' => __('admin/page_edit.nav_view'),
+		'icon' => 'fa-external-link-alt',
+		'href' => App::getURL($page['page_id'], ['rev' => 'last']),
+		'external' => true,
+		'ms_auto' => true,
+	];
+}
 ?>
-<ul class="nav nav-tabs admin-tabs">
-	<li class="nav-item"><a class="nav-link active" href="#page_edit" data-bs-toggle="tab"><?= __('admin/page_edit.nav_edit') ?></a></li>
-	<?php if ($page['page_id']) { ?>
-		<li class="nav-item"><a class="nav-link" href="#page_hist" data-bs-toggle="tab"><?= __('admin/page_edit.nav_history') ?></a></li>
-		<li class="nav-item"><a class="nav-link" href="#page_diff" data-bs-toggle="tab"><?= __('admin/page_edit.nav_diff') ?></a></li>
-		<li class="nav-item"><a class="nav-link" href="#page_comments" data-bs-toggle="tab"><?= __('admin/page_edit.nav_comments') ?></a></li>
-		<li class="nav-item"><a class="nav-link" href="<?= App::getURL($page['page_id'], ['rev' => 'last']) ?>"><?= __('admin/page_edit.nav_view') ?></a></li>
-	<?php } ?>
-</ul>
-<form method="post">
-	<input type="hidden" id="id" name="id" value="<?= $page['id'] ?>">
-	<input type="hidden" id="page_id" name="page_id" value="<?= $page['page_id'] ?>">
-	<div class="tab-content admin-tabs-panel">
-		<div class="tab-pane fade show active" id="page_edit">
-			<div class="control-group">
-				<div class="mb-3 row">
-					<div class="col-sm-9">
-						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.title') ?> :</label>
-						<div class="controls">
-							<input class="form-control" name="title" type="text" placeholder="<?= __('admin/page_edit.title_ph') ?>" value="<?php echo html_encode($page['title']); ?>" />
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.type') ?> :</label>
-						<div class="controls">
-							<select name="type" class="form-control">
-								<?php foreach (PAGE_TYPES as $id => $type) echo '<option value="' . $id . '" ' . ($id == $page['type'] ? 'selected' : '') . '>' . $type . '</option>'; ?>
-							</select>
-						</div>
-					</div>
-				</div>
-				<div class="mb-3 row">
-					<div class="col-sm-9">
-						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.url') ?> :</label>
-						<div class="controls">
-							<div class="input-group">
-								<div class="input-group-prepend"><span class="input-group-text"><?= App::getURL('/') ?></span></div>
-								<input class="form-control" name="slug" type="text" placeholder="Slug" value="<?= html_encode($page['slug']) ?>" />
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<label class="col-form-label text-end" for="title"><?= __('admin/page_edit.visibility') ?> :</label>
-						<div class="controls">
-							<select name="status" class="form-control">
-								<option value="published"><?= __('admin/page_edit.status_published') ?> <small><?php if ($page['pub_date']) echo '(' . Format::today($page['pub_date']) . ')'; ?></small></option>
-								<option value="draft" <?php if (!$page['pub_rev'] || $page['pub_rev'] != $page['revision']) echo 'selected'; ?>><?= __('admin/page_edit.status_draft') ?></option>
-							</select>
-						</div>
-					</div>
-				</div>
+
+<div class="admin-dashboard admin-page-edit">
+	<?= admin_stat_grid($page_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
+
+	<section class="admin-tabs-board admin-page-edit-board">
+		<form method="post" id="admin-page-edit-form" class="admin-page-edit-form">
+			<input type="hidden" id="id" name="id" value="<?= (int) $page['id'] ?>">
+			<input type="hidden" id="page_id" name="page_id" value="<?= (int) $page['page_id'] ?>">
+
+			<?= admin_page_edit_nav($page_nav, 'edit') ?>
+
+			<div class="tab-content admin-tabs-board__body admin-page-edit-board__body admin-tabs-panel admin-page-edit-board__body--content">
+				<?= admin_page_edit_tab_open('edit', true) ?>
+					<?= admin_page_edit_form_board($page, $thumbnails, $delete_confirm, $copy_confirm) ?>
+				<?= admin_page_edit_tab_close() ?>
+
+				<?php if ($page['page_id']): ?>
+					<?= admin_page_edit_tab_open('history', false) ?>
+						<?= admin_page_edit_history_board($page) ?>
+					<?= admin_page_edit_tab_close() ?>
+
+					<?= admin_page_edit_tab_open('comments', false) ?>
+					<?= admin_page_edit_tab_close() ?>
+
+					<?= admin_page_edit_tab_open('diff', false) ?>
+						<?= admin_page_edit_diff_board($page, $rev1, $rev2) ?>
+					<?= admin_page_edit_tab_close() ?>
+				<?php endif; ?>
 			</div>
-			<div class="control-group row pt-1">
-				<div class="col-sm-12 text-end">
-					<a href="" id="extra-option"><?= __('admin/page_edit.more_options') ?></a>
-				</div>
-			</div>
-			<div class="control-group">
-				<div class="mb-3 row">
-					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.category') ?> :</label>
-						<div class="controls">
-							<input type="text" name="category" value="<?= html_encode($page['category']) ?>" class="form-control" data-autocomplete="categorylist" data-autocomplete-instant>
-						</div>
-					</div>
-					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.tags') ?> :</label>
-						<div class="controls">
-							<input type="text" name="category" disabled class="form-control" placeholder="Not implemented">
-						</div>
-					</div>
-					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.redirect') ?> :</label>
-						<div class="controls">
-							<input type="text" name="redirect" value="<?= html_encode($page['redirect']) ?>" class="form-control">
-						</div>
-					</div>
-					<div class="col-sm-3 extra-option">
-						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.date_on') ?> :</label>
-						<div class="controls">
-							<input type="text" name="pub_date_text" value="<?= $page['pub_date'] ? date('Y-m-d H:i', $page['pub_date']) : '' ?>" class="form-control">
-						</div>
-					</div>
-				</div>
-
-				<div class="mb-3 row extra-option pb-3">
-					<div class="col-sm-3">
-						<label class="col-form-label text-end" for="name"><span title="<?= __('admin/page_edit.option_thumbnails_title') ?>"><?= __('admin/page_edit.option_thumbnail') ?></span> :</label>
-						<div class="controls">
-							<?= Widgets::select('image', ['' => 'Automatique'] + $thumbnails, $page['image']) ?>
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.nav_comments') ?> :</label>
-						<div class="controls">
-							<select name="allow_comments" class="form-control">
-								<option value="1">Oui</option>
-								<option value="0" <?= ($page['allow_comments'] == 0) ? 'selected' : '' ?>><?= __('admin/general.no') ?></option>
-								<option value="2" <?= ($page['allow_comments'] == 2) ? 'selected' : '' ?>><?= __('admin/page_edit.option_closing') ?></option>
-							</select>
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.option_summary') ?> :</label>
-						<div class="controls">
-							<select name="display_toc" class="form-control">
-								<option value="1">Oui</option>
-								<option value="0" <?= $page['display_toc'] ? '' : 'selected' ?>><?= __('admin/general.no') ?></option>
-							</select>
-						</div>
-					</div>
-					<div class="col-sm-3">
-						<label class="col-form-label text-end" for="name"><?= __('admin/page_edit.option_sticky') ?> :</label>
-						<div class="controls">
-							<select name="sticky" class="form-control" title="<?= __('admin/page_edit.option_sticky_help') ?>">
-								<option value="0"><?= __('admin/page_edit.option_dont_sticky') ?></option>
-								<?php
-								foreach (range(1, 100) as $sticky) {
-									if ($page['sticky'] == $sticky) {
-										echo '<option selected="selected" value="' . $sticky . '">'.__('admin/page_edit.position').' ' . $sticky . '</option>';
-									} else {
-										echo '<option value="' . $sticky . '">'.__('admin/page_edit.position').' ' . $sticky . '</option>';
-									}
-								}
-								?>
-							</select>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div class="pt-2">
-				<textarea class="form-control" id="editor" name="content" placeholder="<?= __('admin/page_edit.content_ph') ?>" style="height:300px;"><?= html_encode($page['content']) ?></textarea>
-				<em id="AutoSaveStatus"></em>
-				<div class="float-end">
-					<?= Widgets::select('format', ['wysiwyg'  => 'WYSIWYG', 'markdown' => 'Markdown+'], $page['format'], true, '') ?>
-				</div>
-			</div>
-			<div class="clearfix"></div>
-			<div class="text-center">
-				<button class='btn btn-success'><?= __('admin/general.btn_save') ?></button>
-				<button class='btn btn-danger' name="delete" value="delete" onclick="return confirm('<?= __('admin/page_edit.delete_confirm') ?>');"><?= __('admin/general.btn_save') ?></button>
-				<button class='btn btn-info' name="copy" value="copy" onclick="return confirm('<?= __('admin/page_edit.make_copy_confirm') ?>');"><?= __('admin/page_edit.make_copy') ?></button>
-			</div>
-		</div>
-
-		<div class="tab-pane fade" id="page_hist">
-			<table class="table">
-				<thead>
-					<th width="30px;"><button name="compare" class="btn btn-primary btn-sm" value="1"><?= __('admin/page_edit.btn_compare') ?></button></th>
-					<th>#</th>
-					<th><?= __('admin/page_edit.table_date') ?></th>
-					<th><?= __('admin/page_edit.table_eta') ?></th>
-					<th><?= __('admin/page_edit.table_author') ?></th>
-					<th><?= __('admin/page_edit.table_size') ?></th>
-					<th><?= __('admin/page_edit.table_attch') ?></th>
-					<th style="width:120px;"></th>
-				</thead>
-				<tbody>
-					<?php
-					$q = Db::QueryAll('SELECT r.*, p.*, a.username, LENGTH(r.content) as size
-								   FROM {pages} as p
-								   JOIN {pages_revs} as r ON r.page_id = p.page_id
-								   LEFT JOIN {users} as a ON author = a.id
-								   WHERE p.page_id = ?
-								   ORDER by revision DESC', $page['page_id']);
-					$count = count($q);
-
-					foreach($q as $i => $row) {
-						echo '<tr ';
-						if ($page['pub_rev'] == $row['revision']) echo 'class="success"';
-						if ($page['revision'] == $row['revision']) echo 'class="info"';
-
-						echo '><td class="text-center;">';
-						echo '<input type="radio" name="rev1" value="' . $row['revision'] . '"' . ($i + 1 == $count ? 'disabled' : '') . '> ';
-						echo '<input type="radio" name="rev2" value="' . $row['revision'] . '"' . ($i == 0 ? 'disabled' : '') . '> ';
-						echo '</td><td>' . $row['revision'] . '</td><td>' . Format::today($row['posted']) . '</td>';
-						echo '<td>' . $row['status'] . '</td><td>' . $row['username'] . '</td><td>' . $row['size'] . '</td><td>' . implode('<br>', (array) @unserialize($row['attached_files'])) . '</td><td class="btn-group">';
-						echo '<a title="'.__('admin/page_edit.open_editor').'" href="?page=page_edit&id=' . $row['id'] . '" class="btn btn-primary btn-sm"><i class="fa fa-pencil-alt"></i></button> ';
-						echo '<a title="'.__('admin/general.see').'" href="' . App::getURL('pageview', ['id' => $row['page_id'], 'rev' => $row['revision']]) . '" class="btn btn-info btn-sm"><i class="fa fa-eye"></i></a> ';
-						echo '</td></tr>';
-					}
-					?>
-				</tbody>
-			</table>
-		</div>
-
-		<div class="tab-pane fade" id="page_comments">
-		</div>
-
-		<div class="tab-pane fade p-2" id="page_diff">
-			<div id="diffbox">
-				<?php
-				if ($rev1 && $rev2) {
-					$rev = Db::QueryAll('SELECT revision, content, posted FROM {pages_revs} WHERE page_id = ? AND (revision = ? OR revision = ?)', $page['page_id'], $rev1, $rev2, true);
-					if (count($rev) != 2) {
-						App::setWarning(__('admin/page_edit.warning_rev_invalid'));
-					} else {
-						$diff = (new FineDiff($rev[$rev2]['content'], $rev[$rev1]['content'], FineDiff::$wordGranularity))->renderDiffToHTML();
-						$d1 = '<strong><small>' . Format::today($rev[$rev1]['posted'], true) . '</small></strong>';
-						$d2 = '<strong><small>' . Format::today($rev[$rev2]['posted'], true) . '</small></strong>';
-						echo '<ins>'.__('admin/page_edit.red').'</ins> : '.__('admin/page_edit.present_in').' ' . $rev1 . ' (' . $d1 . ') '.__('admin/page_edit.but_not_in').' ' . $rev2 . ' (' . $d2 . ')<br>';
-						echo '<del>'.__('admin/page_edit.green').'</del> : '.__('admin/page_edit.present_in').' ' . $rev2 . ' (' . $d2 . ') '.__('admin/page_edit.but_not_in').' ' . $rev1 . ' (' . $d1 . ')<br>';
-						echo '<div class="pane diff" style="white-space:pre-wrap">' . $diff . '</div>';
-					}
-					echo '<script>$(\'[href="#page_diff"]\').click();</script>';
-				} else {
-					echo '<script>$(\'[href="#page_diff"]\').addClass(\'d-none\');</script>';
-				}
-				?>
-			</div>
-		</div>
-	</div>
-</form>
+		</form>
+	</section>
+</div>
 <?php include ROOT_DIR . '/includes/Editors/editors.php'; ?>
-<script>// <!--
+<script>
+(function () {
+	var form = document.getElementById('admin-page-edit-form');
+	if (!form) {
+		return;
+	}
+
 	load_editor('editor', $('#format').val());
-	$('#format').change(function() {
+	$('#format').change(function () {
 		load_editor('editor', $('#format').val(), true);
 	});
 
 	var editor_content = null;
-	setTimeout(function() {
+	setTimeout(function () {
 		editor_content = window._editor.getContent();
 	}, 3000);
-	setInterval(function() {
+
+	setInterval(function () {
 		var current_content = window._editor.getContent();
 		if (editor_content !== null && editor_content !== current_content) {
 			$.ajax({
 				url: '',
 				type: 'POST',
-				data: $('form').serialize() + '&autosave=1' + ($('#BtnDraft').length ? '&draft=1' : ''),
-				success: function(data) {
+				data: $(form).serialize() + '&autosave=1' + ($('#BtnDraft').length ? '&draft=1' : ''),
+				success: function (data) {
 					$('#AutoSaveStatus').html('Saved at ' + new Date().timeNow());
 					$('#id').val($('#id', data).val());
 					$('#page_id').val($('#page_id').val());
-					if ("replaceState" in history) {
+					if ('replaceState' in history) {
 						history.replaceState(null, null, '?page=page_edit&id=' + $('#id').val());
 					}
 				}
@@ -406,18 +243,21 @@ $thumbnails = array_column(Db::QueryAll('select id, name from {files} where mime
 		editor_content = current_content;
 	}, 30000);
 
-	$('#extra-option').click(function() {
-		$('.extra-option').toggle();
+	$('#admin-page-edit-extra-toggle').on('click', function () {
+		$('.admin-page-edit-extra').toggleClass('d-none');
 		return false;
 	});
-	$('.extra-option').addClass('d-none');
 
-	$('[href="#page_comments"').click(function() {
-		$.get('?page=comments&page_id=<?= $page['page_id'] ?>',
-			data => $('#page_comments').html($(data).filter('#content'))
-		);
+	$('[href="#comments"]').on('click', function () {
+		$.get('?page=comments&page_id=<?= (int) $page['page_id'] ?>', function (data) {
+			$('#comments').html($(data).filter('#content'));
+		});
 	});
 
-	<?php if ($page['id']) echo 'if ("replaceState" in history)  { history.replaceState(null, null, "?page=page_edit&id=' . $page['id'] . '");}' ?>
-	// -->
+	<?php if ($page['id']): ?>
+	if ('replaceState' in history) {
+		history.replaceState(null, null, '?page=page_edit&id=<?= (int) $page['id'] ?>');
+	}
+	<?php endif; ?>
+})();
 </script>

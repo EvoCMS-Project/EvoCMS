@@ -5,14 +5,14 @@ use \App;
 class Social
 {
 	private static $providers = [
-        'facebook' => ['Facebook', 'fa-facebook-f', '#^https://(www\.)?facebook\.com/.+$#i'],
-        'twitter'  => ['Twitter',  'fa-twitter',    '#^https://(www\.)?twitter\.com/.+$#i'],
-        'instagram'=> ['Instagram','fa-instagram',  '#^https://(www\.)?instagram\.com/.+$#i'],
-        'discord'  => ['Discord',  'fa-discord',    '#^https://(www\.)?discord\.gg/.+$#i'],
-        'skype'    => ['Skype',    'fa-skype',      '#^skype:[^?;]+$#i'],
-        'twitch'   => ['Twitch',   'fa-twitch',     '#^https://(www\.)?twitch\.tv/.+$#i'],
-        'youtube'  => ['YouTube',  'fa-youtube',    '#^https://(www\.)?(youtube\.com|youtu\.be)/channel/.+$#i'],
-        'reddit'   => ['Reddit',   'fa-reddit',     '#^https://(www\.)?(reddit\.com)/(u|r|user)/.+$#i'],
+        'facebook' => ['Facebook', 'fa-solid fa-facebook-f', '#^https://(www\.)?facebook\.com/.+$#i'],
+        'twitter'  => ['Twitter',  'fa-solid fa-twitter',    '#^https://(www\.)?twitter\.com/.+$#i'],
+        'instagram'=> ['Instagram','fa-solid fa-instagram',  '#^https://(www\.)?instagram\.com/.+$#i'],
+        'discord'  => ['Discord',  'fa-solid fa-discord',    '#^https://(www\.)?discord\.gg/.+$#i'],
+        'skype'    => ['Skype',    'fa-solid fa-skype',      '#^skype:[^?;]+$#i'],
+        'twitch'   => ['Twitch',   'fa-solid fa-twitch',     '#^https://(www\.)?twitch\.tv/.+$#i'],
+        'youtube'  => ['YouTube',  'fa-solid fa-youtube',    '#^https://(www\.)?(youtube\.com|youtu\.be)/channel/.+$#i'],
+        'reddit'   => ['Reddit',   'fa-solid fa-reddit',     '#^https://(www\.)?(reddit\.com)/(u|r|user)/.+$#i'],
     ];
 
 	public static function getProviders($user_enabled_only = true)

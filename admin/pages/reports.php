@@ -73,7 +73,7 @@ if ($selected_types) {
 		return;
 	}
 
-	form.querySelectorAll('.admin-reports-filter-chip__input').forEach(function (input) {
+	form.querySelectorAll('.admin-filter-chip__input').forEach(function (input) {
 		input.addEventListener('change', function () {
 			form.submit();
 		});

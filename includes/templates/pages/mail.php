@@ -2,8 +2,8 @@
 	<li class="nav-item"><a class="nav-link <?=$tab_mail?:'active'?>"href="#inbox" data-bs-toggle="tab"><?= __('mail.tab_inbox') ?> <span class='badge bg-success'><?= count($mail_inbox) ?></span></a></li>
 	<li class="nav-item"><a class="nav-link" href="#outbox" data-bs-toggle="tab"><?= __('mail.tab_outbox') ?> <span class='badge bg-info'><?= count($mail_outbox) ?></span></a></li>
 	<li class="nav-item"><a class="nav-link" href="#trash" data-bs-toggle="tab"><?= __('mail.tab_trash') ?> <span class='badge bg-info'><?= count($mail_trash) ?></span></a></li>
-	<li class="nav-item"><a class="nav-link <?=!$tab_mail?:'active'?>" href="#mail" data-bs-toggle="tab"><i class="fa fa-pencil-alt"></i> <?= __('mail.tab_composer') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="<?=App::getURL('mail');?>"><i class="fa fa-sync"></i></a></li>
+	<li class="nav-item"><a class="nav-link <?=!$tab_mail?:'active'?>" href="#mail" data-bs-toggle="tab"><i class="fa-solid fa-pencil"></i> <?= __('mail.tab_composer') ?></a></li>
+	<li class="nav-item"><a class="nav-link" href="<?=App::getURL('mail');?>"><i class="fa-solid fa-arrows-rotate"></i></a></li>
 </ul>
 <div class="tab-content">
 <form method="post" class="tab-pane fade <?=$tab_mail?:'active show'?>" id="inbox" action="<?=App::getURL('mail');?>">
@@ -24,17 +24,17 @@
 					echo '<tr>';
 						echo '<td>';
 							if ($mail['viewed']) {
-								echo '<i title="'. __('mail.inbox_read') .'" class="fa fa-2x ' . MESSAGE_TYPES[$mail['type']]['icon.viewed'] . '">';
+								echo '<i title="'. __('mail.inbox_read') .'" class="fa-solid fa-2x ' . MESSAGE_TYPES[$mail['type']]['icon.viewed'] . '">';
 							} else {
-								echo '<i title="'. __('mail.inbox_new') .'" class="fa fa-2x ' . MESSAGE_TYPES[$mail['type']]['icon.new'] . '">';
+								echo '<i title="'. __('mail.inbox_new') .'" class="fa-solid fa-2x ' . MESSAGE_TYPES[$mail['type']]['icon.new'] . '">';
 							}
 						echo '</td>';
 						echo '<td>' . html_encode($mail['username']) . '</td>';
 						echo '<td>' . html_encode($mail['sujet']) . '</td>';
 						echo '<td style="white-space:nowrap;">' . Format::today($mail['posted'], true) . '</td>';
 						echo '<td class="text-end btn-group">';
-							echo '<a href="' . App::getURL('mail', ['id' => $mail['id']], '#mail') . '" title="'. __('mail.inbox_view') .'" class="btn btn-primary btn-sm"><i class="far fa-eye fa-1"></i></a> ';
-							echo "<button name='del_email' value='{$mail['id']}' title='". __('mail.inbox_delete') ."' class='btn btn-danger btn-sm'><i class='far fa-trash-alt'></i></button> ";
+							echo '<a href="' . App::getURL('mail', ['id' => $mail['id']], '#mail') . '" title="'. __('mail.inbox_view') .'" class="btn btn-primary btn-sm"><i class="fa-regular fa-eye fa-1"></i></a> ';
+							echo "<button name='del_email' value='{$mail['id']}' title='". __('mail.inbox_delete') ."' class='btn btn-danger btn-sm'><i class='fa-regular fa-trash-can'></i></button> ";
 						echo '</td>';
 					echo '</tr>';
 				}
@@ -62,8 +62,8 @@
 						echo '<td>' . html_encode($mailsent['sujet']) . '</td>';
 						echo '<td>' . Format::today($mailsent['posted']) . '</td>';
 						echo '<td>' . Format::today($mailsent['viewed']) . '</td>';
-						echo '<td class="btn-group"><a href="'.App::getURL('mail', ['id' => $mailsent['id'], '#mail']).'" title="'. __('mail.outbox_btn_view') .'" class="btn btn-primary btn-sm"><i class="far fa-eye fa-1"></i></a> ';
-						echo "<button name='del_email' value='{$mailsent['id']}' title='". __('mail.outbox_btn_delete') ."' class='btn btn-danger btn-sm'><i class='far fa-trash-alt'></i></button></td>";
+						echo '<td class="btn-group"><a href="'.App::getURL('mail', ['id' => $mailsent['id'], '#mail']).'" title="'. __('mail.outbox_btn_view') .'" class="btn btn-primary btn-sm"><i class="fa-regular fa-eye fa-1"></i></a> ';
+						echo "<button name='del_email' value='{$mailsent['id']}' title='". __('mail.outbox_btn_delete') ."' class='btn btn-danger btn-sm'><i class='fa-regular fa-trash-can'></i></button></td>";
 					echo "</tr>";
 				}
 			?>
@@ -89,9 +89,9 @@
 					echo '<tr>';
 						echo '<td style="width: 40px;">';
 						if ($mail['viewed']) {
-							echo '<i title="'. __('mail.trash_read') .'" class="far fa-2x fa-eye">';
+							echo '<i title="'. __('mail.trash_read') .'" class="fa-regular fa-2x fa-eye">';
 						} else {
-							echo '<i title="'. __('mail.trash_unread') .'" class="fa fa-2x fa-envelope">';
+							echo '<i title="'. __('mail.trash_unread') .'" class="fa-solid fa-2x fa-envelope">';
 						}
 						echo '</td>';
 						echo '<td style="width:110px;">' . html_encode($mail['ru'] === App::getCurrentUser()->username ? $mail['su'] : $mail['ru']) . '</td>';
@@ -99,7 +99,7 @@
 						echo '<td>' . Format::today($mail['posted']) . '</td>';
 						echo '<td>' . Format::today($mail['viewed']) . '</td>';
 						echo '<td class="text-end">';
-							echo "<button name='restore_email' value='{$mail['id']}' title='". __('mail.trash_restore') ."' class='btn btn-success btn-sm'><i class='fa fa-save'></i></button> ";
+							echo "<button name='restore_email' value='{$mail['id']}' title='". __('mail.trash_restore') ."' class='btn btn-success btn-sm'><i class='fa-solid fa-floppy-disk'></i></button> ";
 						echo '</td>';
 					echo '</tr>';
 				}
@@ -126,7 +126,7 @@
 					<div class="flag">
 						<a style="color:#aaa;" href="<?=App::getURL('mail', ['id' => $message['id']], '#mail')?>">#<?=$message['id']?></a><br>
 						<span class="badge badge-<?=MESSAGE_TYPES[$message['type']]['class']?>"><?=ucwords(MESSAGE_TYPES[$message['type']]['label'])?></span>
-						<button type="submit" onclick="return confirm('Sur?');" name="del_email" value="<?=$message['id']?>" class="btn btn-sm btn-danger" title="Supprimer"><i class="far fa-trash-alt"></i></button>
+						<button type="submit" onclick="return confirm('Sur?');" name="del_email" value="<?=$message['id']?>" class="btn btn-sm btn-danger" title="Supprimer"><i class="fa-regular fa-trash-can"></i></button>
 					</div>
 					<div class="auteur">
 						<strong><a href="<?=App::getURL('user', ['id' => $message['s_id']])?>"><?=html_encode($message['username'])?></a></strong>
