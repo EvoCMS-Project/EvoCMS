@@ -158,37 +158,39 @@ $modules_stats = [
     <section class="admin-tabs-board admin-modules-board">
         <?= admin_modules_nav($modules_nav, $tab) ?>
 
-        <div class="admin-tabs-board__body admin-modules-board__body admin-tabs-panel admin-modules-board__body--content">
-            <?php if ($catalog_unavailable && in_array($tab, ['themes', 'modules', 'lang'], true)): ?>
-                <div class="admin-modules-board__notice">
-                    <?= admin_status_bar(
-                        'warning',
-                        '<i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i> ' . __('admin/modules.alert_catalog_error')
-                    ) ?>
-                </div>
-            <?php endif; ?>
-
-            <?php if ($tab === 'installed'): ?>
+        <div class="tab-content admin-tabs-board__body admin-modules-board__body admin-tabs-panel admin-modules-board__body--content">
+            <?= admin_modules_tab_open('installed', $tab === 'installed') ?>
                 <?= admin_modules_installed_board($installed_themes, $installed_plugins, $mod_delete_confirm) ?>
-            <?php elseif ($tab === 'themes'): ?>
+            <?= admin_modules_tab_close() ?>
+
+            <?= admin_modules_tab_open('themes', $tab === 'themes') ?>
+                <?= admin_modules_catalog_notice($catalog_unavailable) ?>
                 <?= admin_modules_catalog_board($gui, [
                     'title' => __('admin/modules.tab_themes'),
                     'icon' => 'fa fa-palette',
                     'accent' => 'info',
                     'empty' => __('admin/modules.empty_catalog'),
                 ]) ?>
-            <?php elseif ($tab === 'modules'): ?>
+            <?= admin_modules_tab_close() ?>
+
+            <?= admin_modules_tab_open('modules', $tab === 'modules') ?>
+                <?= admin_modules_catalog_notice($catalog_unavailable) ?>
                 <?= admin_modules_catalog_board($mod, [
                     'title' => __('admin/modules.tab_modules'),
                     'icon' => 'fa fa-puzzle-piece',
                     'accent' => 'primary',
                     'empty' => __('admin/modules.empty_catalog'),
                 ]) ?>
-            <?php elseif ($tab === 'lang'): ?>
+            <?= admin_modules_tab_close() ?>
+
+            <?= admin_modules_tab_open('lang', $tab === 'lang') ?>
+                <?= admin_modules_catalog_notice($catalog_unavailable) ?>
                 <?= admin_modules_lang_board($lang) ?>
-            <?php elseif ($tab === 'import'): ?>
+            <?= admin_modules_tab_close() ?>
+
+            <?= admin_modules_tab_open('import', $tab === 'import') ?>
                 <?= admin_modules_import_board() ?>
-            <?php endif; ?>
+            <?= admin_modules_tab_close() ?>
         </div>
     </section>
 </div>

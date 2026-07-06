@@ -3596,8 +3596,22 @@ a.admin-kpi-card--linked:focus-visible {
 /* ── Modules admin ── */
 
 .admin-modules-board__body--content > .admin-settings-empty,
-.admin-modules-board__body--content > .admin-status-bar {
+.admin-modules-board__body--content > .admin-status-bar,
+.admin-modules-board__pane > .admin-settings-empty {
 	margin: 1.25rem 1.5rem;
+}
+
+.admin-modules-board__pane {
+	display: flex;
+	flex-direction: column;
+}
+
+.admin-modules-board__pane > .admin-modules-board__notice {
+	margin: -1.5rem -1.5rem 0;
+}
+
+.admin-modules-board__pane > .admin-settings-empty {
+	margin: 0;
 }
 
 .admin-backup-board__notice {

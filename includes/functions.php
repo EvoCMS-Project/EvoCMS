@@ -891,10 +891,33 @@ function admin_modules_nav(array $tabs, string $active): string
 {
 	return admin_tabs($tabs, [
 		'active' => $active,
-		'type' => 'link',
-		'page' => 'modules',
+		'type' => 'bootstrap',
 		'aria_label' => __('admin/modules.main_title'),
 	]);
+}
+
+function admin_modules_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-modules-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_modules_tab_close(): string
+{
+	return '</div>';
+}
+
+function admin_modules_catalog_notice(bool $unavailable): string
+{
+	if (!$unavailable) {
+		return '';
+	}
+
+	return '<div class="admin-modules-board__notice">'
+		. admin_status_bar(
+			'warning',
+			'<i class="fas fa-exclamation-triangle me-1" aria-hidden="true"></i> ' . __('admin/modules.alert_catalog_error')
+		)
+		. '</div>';
 }
 
 /**
