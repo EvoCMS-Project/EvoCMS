@@ -6,6 +6,8 @@ use \Evo\Models\File;
  */
 class Widgets
 {
+	private static $formBuilderScriptLoaded = false;
+
 	/**
 	 *  Display the main menu
 	 */
@@ -508,11 +510,7 @@ class Widgets
 						break;
 
 					case 'image':
-						$files = ['' => 'Valeur par défaut'] + array_column(Db::QueryAll('select path, name from {files} where origin = ?', 'settings') ?: [], 'name', 'path');
-						$attributes .= " style='display:inline;width:40%' onchange='document.getElementById(\"$fieldId\").src=this.value ? site_url+this.value : \"data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7\";'";
-						$buffer .= self::select(null, $files, $field['value'], true, $attributes);
-						$buffer .= ' ou <input name="' . $name . '" type="file" style="display:inline"><br>';
-						$buffer .= '<img id="'.$fieldId.'" src="'.($field['value'] ? App::getAsset($field['value']) : 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7').'" alt="Image preview" title="Image preview" style="height: 150px"><br>';
+						$buffer .= self::imageField($name, $field, $fieldId);
 						break;
 
 					default: // text,password,color,number,etc...
@@ -533,18 +531,86 @@ class Widgets
 			$buffer .= '</div></div>';
 		}
 
-		$buffer .= '<div class="text-center"><input class="btn btn-primary" type="submit" value="' . html_encode($submit_label) . '"></div>';
+		if ($submit_label !== null && $submit_label !== false && $submit_label !== '') {
+			$buffer .= '<div class="text-center"><input class="btn btn-primary" type="submit" value="' . html_encode($submit_label) . '"></div>';
+		}
 
-		$buffer .= '<script>
+		if ($form_tag && !self::$formBuilderScriptLoaded) {
+			self::$formBuilderScriptLoaded = true;
+			$buffer .= self::formBuilderScript();
+		}
+
+		if ($form_tag) {
+			$buffer .= '</form>';
+		}
+
+		return $buffer;
+	}
+
+
+	public static function formBuilderScript(): string
+	{
+		return '<script>
+			if (typeof adminFormImagePreview !== "function") {
+				window.adminFormImagePreview = function(select, imgId, emptySrc) {
+					var img = document.getElementById(imgId);
+					if (!img) return;
+					var wrap = img.closest(".admin-form-image__preview");
+					var src = select.value ? site_url + select.value : emptySrc;
+					img.src = src;
+					if (wrap) wrap.classList.toggle("admin-form-image__preview--empty", !select.value);
+				};
+			}
+
 			$(".form-control").bind("change keyup", function() {
 				var resetCB = $("[data-reset=" + $(this).attr("id") + "]");
 				if (resetCB.length == 1) resetCB[0].checked = $(this).data("default") == $(this).val();
 			});
 		</script>';
+	}
 
-		if ($form_tag) {
-			$buffer .= '</form>';
-		}
+
+	public static function imageField(string $name, array $field, string $fieldId): string
+	{
+		$emptySrc = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+		$value = $field['value'] ?? '';
+		$hasImage = $value !== '' && $value !== null;
+		$previewSrc = $hasImage ? App::getAsset($value) : $emptySrc;
+		$previewId = $fieldId . '-preview';
+		$uploadId = $fieldId . '-upload';
+
+		$files = ['' => __('admin/general.default_value')]
+			+ array_column(Db::QueryAll('select path, name from {files} where origin = ?', 'settings') ?: [], 'name', 'path');
+
+		$selectPlaceholder = $field['placeholder'] ?: __('admin/general.image_select_placeholder');
+		$uploadLabel = __('admin/general.image_upload_placeholder');
+		$previewPlaceholder = __('admin/general.image_preview_placeholder');
+		$separator = __('admin/general.image_or_separator');
+
+		$selectAttributes = [
+			'id' => $fieldId,
+			'name' => $name,
+			'class' => 'form-control admin-form-image__select',
+			'title' => $selectPlaceholder,
+			'aria-label' => $selectPlaceholder,
+			'onchange' => 'adminFormImagePreview(this, ' . json_encode($previewId) . ', ' . json_encode($emptySrc) . ')',
+		];
+
+		$buffer = '<div class="admin-form-image">';
+		$buffer .= '<div class="admin-form-image__preview' . ($hasImage ? '' : ' admin-form-image__preview--empty') . '">';
+		$buffer .= '<img id="' . html_encode($previewId) . '" class="admin-form-image__img" src="' . html_encode($previewSrc) . '" alt="' . html_encode($previewPlaceholder) . '">';
+		$buffer .= '<div class="admin-form-image__placeholder" aria-hidden="true">';
+		$buffer .= '<i class="fas fa-image admin-form-image__placeholder-icon"></i>';
+		$buffer .= '<span class="admin-form-image__placeholder-text">' . html_encode($previewPlaceholder) . '</span>';
+		$buffer .= '</div></div>';
+
+		$buffer .= '<div class="admin-form-image__controls">';
+		$buffer .= self::select(null, $files, $value, true, $selectAttributes);
+		$buffer .= '<span class="admin-form-image__separator">' . html_encode($separator) . '</span>';
+		$buffer .= '<label class="btn btn-sm btn-outline-secondary admin-form-image__upload" for="' . html_encode($uploadId) . '">';
+		$buffer .= '<i class="fas fa-upload me-1" aria-hidden="true"></i>' . html_encode($uploadLabel);
+		$buffer .= '<input id="' . html_encode($uploadId) . '" class="admin-form-image__file" name="' . html_encode($name) . '" type="file" accept="image/*">';
+		$buffer .= '</label></div></div>';
 
 		return $buffer;
 	}

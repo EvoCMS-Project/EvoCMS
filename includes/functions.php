@@ -235,6 +235,231 @@ function admin_section_title(string $title, string $class = 'mb-3'): string
 }
 
 /**
+ * Extrait un sous-ensemble de champs de configuration.
+ *
+ * @param array<string, array<string, mixed>> $settings
+ * @param array<int, string> $keys
+ */
+function admin_settings_pick(array $settings, array $keys): array
+{
+	$picked = [];
+
+	foreach ($keys as $key) {
+		if (isset($settings[$key])) {
+			$picked[$key] = $settings[$key];
+		}
+	}
+
+	return $picked;
+}
+
+function admin_settings_prepare(array $settings): array
+{
+	foreach ($settings as $name => &$description) {
+		$description['default'] = $description['default'] ?? App::getDefaultConfig($name);
+		$description['value'] = App::getConfig($name);
+	}
+	unset($description);
+
+	return $settings;
+}
+
+/**
+ * Affiche plusieurs sous-sections dans une seule carte avec un bouton Enregistrer.
+ *
+ * @param array<int, array{title?: string, icon?: string, description?: string, settings?: array, empty?: string, extra?: string}> $groups
+ */
+function admin_settings_grouped_form(string $tab_id, array $groups, array $options = []): string
+{
+	$submit_label = $options['submit'] ?? __('form.save');
+	$class = $options['class'] ?? '';
+	$form_id = 'admin-settings-form-' . random_hash(4);
+
+	$html = '<form method="post" role="form" class="form-horizontal admin-settings-grouped-form ' . html_encode($class) . '" enctype="multipart/form-data" id="' . html_encode($form_id) . '">';
+	$html .= '<input type="hidden" name="admin_settings_tab" value="' . html_encode($tab_id) . '">';
+	$html .= '<section class="admin-settings-section admin-settings-section--grouped">';
+	$html .= '<div class="admin-settings-section__body admin-settings-section__body--grouped">';
+
+	foreach ($groups as $index => $group) {
+		if ($index > 0) {
+			$html .= '<hr class="admin-settings-subsection__divider">';
+		}
+
+		$html .= '<div class="admin-settings-subsection">';
+
+		if (!empty($group['title'])) {
+			$html .= '<header class="admin-settings-subsection__header">';
+
+			if (!empty($group['icon'])) {
+				$html .= '<span class="admin-settings-subsection__icon"><i class="fas ' . html_encode($group['icon']) . '" aria-hidden="true"></i></span>';
+			}
+
+			$html .= '<div class="admin-settings-subsection__heading">';
+			$html .= '<h3 class="admin-settings-subsection__title">' . html_encode($group['title']) . '</h3>';
+
+			if (!empty($group['description'])) {
+				$html .= '<p class="admin-settings-subsection__desc">' . $group['description'] . '</p>';
+			}
+
+			$html .= '</div></header>';
+		}
+
+		$html .= '<div class="admin-settings-subsection__body">';
+
+		$settings = $group['settings'] ?? [];
+
+		if (!$settings && !empty($group['empty'])) {
+			$html .= admin_settings_empty($group['empty'], $group['icon'] ?? 'fa-inbox');
+		} else {
+			$html .= Widgets::formBuilder(null, admin_settings_prepare($settings), false, null);
+		}
+
+		if (!empty($group['extra'])) {
+			$html .= $group['extra'];
+		}
+
+		$html .= '</div></div>';
+	}
+
+	$html .= '</div>';
+	$html .= '<footer class="admin-settings-section__footer">';
+	$html .= '<div class="text-center"><input class="btn btn-primary" type="submit" value="' . html_encode($submit_label) . '"></div>';
+	$html .= '</footer></section>';
+	$html .= Widgets::formBuilderScript();
+	$html .= '</form>';
+
+	return $html;
+}
+
+/**
+ * Affiche les onglets de la page paramètres admin.
+ *
+ * @param array<string, array{label: string, icon?: string}> $tabs
+ */
+function admin_settings_tabs(array $tabs, string $active): string
+{
+	$html = '<ul class="nav nav-tabs admin-settings__tabs" role="tablist">';
+
+	foreach ($tabs as $id => $tab) {
+		$is_active = $active === $id;
+		$html .= '<li class="nav-item" role="presentation">';
+		$html .= '<a class="nav-link' . ($is_active ? ' active' : '') . '" id="' . html_encode($id) . '-tab" data-bs-toggle="tab" href="#' . html_encode($id) . '" role="tab" aria-controls="' . html_encode($id) . '" aria-selected="' . ($is_active ? 'true' : 'false') . '">';
+
+		if (!empty($tab['icon'])) {
+			$html .= '<i class="fas ' . html_encode($tab['icon']) . ' me-2" aria-hidden="true"></i>';
+		}
+
+		$html .= html_encode($tab['label']) . '</a></li>';
+	}
+
+	return $html . '</ul>';
+}
+
+function admin_settings_tab_open(string $id, bool $active): string
+{
+	return '<div class="tab-pane fade admin-settings__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+}
+
+function admin_settings_tab_close(): string
+{
+	return '</div>';
+}
+
+/**
+ * Affiche une section de paramètres réutilisable.
+ */
+function admin_settings_section(string $title, string $content, array $options = []): string
+{
+	$icon = $options['icon'] ?? '';
+	$class = $options['class'] ?? '';
+	$description = $options['description'] ?? '';
+	$html = '<section class="admin-settings-section ' . html_encode($class) . '">';
+
+	if ($title !== '') {
+		$html .= '<header class="admin-settings-section__header">';
+
+		if ($icon !== '') {
+			$html .= '<span class="admin-settings-section__icon"><i class="fas ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
+		}
+
+		$html .= '<div class="admin-settings-section__heading">';
+		$html .= '<h3 class="admin-settings-section__title">' . html_encode($title) . '</h3>';
+
+		if ($description !== '') {
+			$html .= '<p class="admin-settings-section__desc">' . $description . '</p>';
+		}
+
+		$html .= '</div></header>';
+	}
+
+	return $html . '<div class="admin-settings-section__body">' . $content . '</div></section>';
+}
+
+function admin_settings_empty(string $message, string $icon = 'fa-inbox'): string
+{
+	return '<div class="admin-settings-empty">'
+		. '<i class="fas ' . html_encode($icon) . ' admin-settings-empty__icon" aria-hidden="true"></i>'
+		. '<p class="admin-settings-empty__text">' . html_encode($message) . '</p>'
+		. '</div>';
+}
+
+/**
+ * Affiche la grille de sélection de thèmes.
+ *
+ * @param array<string, array{0: object, 1: string}> $themes
+ */
+function admin_settings_theme_grid(array $themes, string $activeDir): string
+{
+	$html = '<div class="row g-4 admin-settings-themes">';
+
+	foreach ($themes as $dir => [$theme, $preview]) {
+		$is_active = ($dir === $activeDir);
+		$html .= '<div class="col-md-6 col-xl-4">';
+		$html .= '<article class="admin-settings-theme' . ($is_active ? ' admin-settings-theme--active' : '') . '">';
+		$html .= '<div class="admin-settings-theme__preview">';
+		$html .= '<img src="' . html_encode(App::getLocalURL($preview)) . '" alt="' . html_encode($theme->name) . '">';
+		$html .= '</div>';
+		$html .= '<div class="admin-settings-theme__body">';
+		$html .= '<h4 class="admin-settings-theme__name">' . html_encode($theme->name) . '</h4>';
+		$html .= '<p class="admin-settings-theme__version">v' . html_encode($theme->version) . '</p>';
+		$html .= '<p class="admin-settings-theme__desc">' . html_encode($theme->description) . '</p>';
+
+		if ($is_active) {
+			$html .= '<span class="badge admin-settings-theme__badge"><i class="fa fa-check me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.theme_enabled')) . '</span>';
+		} else {
+			$html .= '<button type="submit" class="btn btn-sm btn-primary" name="theme" value="' . html_encode($dir) . '">' . html_encode(__('admin/general.theme_active_btn')) . '</button>';
+		}
+
+		$html .= '</div></article></div>';
+	}
+
+	return $html . '</div>';
+}
+
+function admin_settings_theme_panel(array $themes, string $activeDir): string
+{
+	$content = '<form method="post" class="admin-settings-theme-form" enctype="multipart/form-data">'
+		. admin_settings_theme_grid($themes, $activeDir)
+		. '<p class="admin-settings-theme-form__hint">' . __('admin/general.theme_tips') . '</p>'
+		. '</form>';
+
+	return admin_settings_section(__('admin/general.tab_theme'), $content, ['icon' => 'fa-palette']);
+}
+
+function admin_settings_test_mail(?string $email = null): string
+{
+	$email = $email ?: App::getCurrentUser()->email;
+
+	return '<form method="post" class="admin-settings-test-mail">'
+		. '<label class="form-label admin-settings-test-mail__label">' . html_encode(__('admin/general.email_test')) . '</label>'
+		. '<div class="input-group">'
+		. '<input type="email" class="form-control" name="mail||send-test-mail" value="' . html_encode($email) . '" placeholder="email@example.com" required>'
+		. '<button type="submit" class="btn btn-outline-secondary">'
+		. '<i class="fa fa-paper-plane me-1" aria-hidden="true"></i>' . html_encode(__('admin/general.email_test'))
+		. '</button></div></form>';
+}
+
+/**
  * Affiche un tableau de statistiques classique réutilisable dans l'admin.
  *
  * @param array<int, array{icon?: string, value?: string, label?: string, url?: string}> $items
@@ -597,6 +822,647 @@ function admin_status_bar(string $variant, string $title, string $details = '', 
 	}
 
 	return $html . '</div></div>';
+}
+
+/**
+ * Affiche la navigation de la page modules admin (style dashboard).
+ *
+ * @param array<string, array{label: string, icon?: string}> $tabs
+ */
+function admin_modules_nav(array $tabs, string $active): string
+{
+	$html = '<ul class="nav nav-tabs admin-modules__tabs" role="tablist" aria-label="' . html_encode(__('admin/modules.main_title')) . '">';
+
+	foreach ($tabs as $id => $tab) {
+		$is_active = $active === $id;
+		$html .= '<li class="nav-item" role="presentation">';
+		$html .= '<a class="nav-link' . ($is_active ? ' active' : '') . '" href="?page=modules&amp;tab=' . html_encode($id) . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '">';
+
+		if (!empty($tab['icon'])) {
+			$html .= '<i class="fas ' . html_encode($tab['icon']) . ' me-2" aria-hidden="true"></i>';
+		}
+
+		$html .= html_encode($tab['label']) . '</a></li>';
+	}
+
+	return $html . '</ul>';
+}
+
+function admin_modules_empty(string $message, string $icon = 'fa-box-open'): string
+{
+	return admin_settings_empty($message, $icon);
+}
+
+/**
+ * Affiche un tableau réutilisable pour la page modules admin.
+ *
+ * @param array<int, string> $columns
+ * @param array<int, array<int, string>> $rows
+ * @param array{caption?: string, icon?: string, class?: string, empty?: string, empty_icon?: string} $options
+ */
+function admin_modules_table(array $columns, array $rows, array $options = []): string
+{
+	if (!$rows) {
+		if (!empty($options['empty'])) {
+			return admin_modules_empty($options['empty'], $options['empty_icon'] ?? 'fa-inbox');
+		}
+
+		return '';
+	}
+
+	$class = $options['class'] ?? '';
+	$variant = $options['variant'] ?? 'data';
+	$layout = $options['layout'] ?? ($variant === 'info' ? 'info' : 'catalog');
+	$html = '<div class="admin-modules-table-wrap ' . html_encode($class) . '">';
+
+	if (!empty($options['caption'])) {
+		$html .= '<div class="admin-modules-table__toolbar">';
+		$html .= '<div class="admin-modules-table__caption">';
+
+		if (!empty($options['icon'])) {
+			$accent = $options['accent'] ?? 'primary';
+			$html .= '<span class="admin-modules-table__caption-icon admin-modules-table__caption-icon--' . html_encode($accent) . '">';
+			$html .= '<i class="' . html_encode($options['icon']) . '" aria-hidden="true"></i></span>';
+		}
+
+		$html .= '<span class="admin-modules-table__caption-text">' . html_encode($options['caption']) . '</span>';
+		$html .= '</div>';
+		$html .= '<span class="admin-modules-table__count">' . count($rows) . '</span>';
+		$html .= '</div>';
+	}
+
+	$html .= '<div class="table-responsive admin-modules-table-scroll">';
+	$html .= '<table class="table admin-modules-table mb-0';
+
+	if ($variant === 'info') {
+		$html .= ' admin-modules-table--info';
+	}
+
+	$html .= '">';
+	$html .= admin_modules_table_colgroup($layout);
+
+	if ($variant !== 'info' && $columns) {
+		$html .= '<thead><tr>';
+
+		foreach ($columns as $column) {
+			$html .= '<th scope="col">' . $column . '</th>';
+		}
+
+		$html .= '</tr></thead>';
+	}
+
+	$html .= '<tbody>';
+
+	foreach ($rows as $row) {
+		$html .= '<tr>';
+
+		if ($variant === 'info') {
+			$html .= '<th scope="row">' . ($row[0] ?? '') . '</th>';
+			$html .= '<td>' . ($row[1] ?? '&mdash;') . '</td>';
+		} else {
+			foreach ($row as $index => $cell) {
+				$label = $columns[$index] ?? '';
+				$attrs = $label !== '' ? ' data-label="' . html_encode(strip_tags($label)) . '"' : '';
+				$html .= '<td' . $attrs . '>' . $cell . '</td>';
+			}
+		}
+
+		$html .= '</tr>';
+	}
+
+	return $html . '</tbody></table></div></div>';
+}
+
+/**
+ * Définit les largeurs de colonnes pour les tableaux modules.
+ */
+function admin_modules_table_colgroup(string $layout): string
+{
+	if ($layout === 'info') {
+		return '<colgroup><col class="admin-modules-col-label"><col class="admin-modules-col-value"></colgroup>';
+	}
+
+	return '<colgroup>'
+		. '<col class="admin-modules-col-item">'
+		. '<col class="admin-modules-col-meta">'
+		. '<col class="admin-modules-col-version">'
+		. '<col class="admin-modules-col-status">'
+		. '<col class="admin-modules-col-actions">'
+		. '</colgroup>';
+}
+
+/**
+ * Colonnes standard pour les tableaux modules (catalogue / installé).
+ *
+ * @return array<int, string>
+ */
+function admin_modules_table_columns(): array
+{
+	return [
+		html_encode(__('admin/modules.table_name')),
+		html_encode(__('admin/modules.table_author')),
+		html_encode(__('admin/modules.table_plugin_version')),
+		html_encode(__('admin/modules.table_cms_version')),
+		html_encode(__('admin/modules.table_action')),
+	];
+}
+
+/**
+ * Colonnes pour les composants installés.
+ *
+ * @return array<int, string>
+ */
+function admin_modules_installed_columns(): array
+{
+	return [
+		html_encode(__('admin/modules.table_name')),
+		html_encode(__('admin/modules.table_author')),
+		html_encode(__('admin/modules.table_version_installed')),
+		html_encode(__('admin/modules.table_type')),
+		html_encode(__('admin/modules.table_action')),
+	];
+}
+
+/**
+ * Colonnes pour les packs de langue.
+ *
+ * @return array<int, string>
+ */
+function admin_modules_lang_columns(): array
+{
+	return [
+		html_encode(__('admin/modules.table_name')),
+		html_encode(__('admin/modules.table_author')),
+		html_encode(__('admin/modules.table_progress')),
+		html_encode(__('admin/modules.table_cms_version')),
+		html_encode(__('admin/modules.table_action')),
+	];
+}
+
+/**
+ * Construit la cellule visuelle principale d'une ligne modules.
+ *
+ * @param array{description?: string, url?: string, icon?: string, accent?: string, avatar_html?: string} $options
+ */
+function admin_modules_item_cell(string $name, array $options = []): string
+{
+	$description = $options['description'] ?? '';
+	$url = $options['url'] ?? '';
+	$icon = $options['icon'] ?? 'fa-puzzle-piece';
+	$accent = $options['accent'] ?? 'primary';
+	$avatar_html = $options['avatar_html'] ?? '';
+
+	$html = '<div class="admin-modules-item">';
+
+	if ($avatar_html !== '') {
+		$html .= '<span class="admin-modules-item__avatar admin-modules-item__avatar--custom">' . $avatar_html . '</span>';
+	} else {
+		$html .= '<span class="admin-modules-item__avatar admin-modules-item__avatar--' . html_encode($accent) . '">';
+		$html .= '<i class="fas ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
+	}
+
+	$html .= '<span class="admin-modules-item__content">';
+
+	if ($url !== '') {
+		$html .= '<a href="' . html_encode($url) . '" target="_blank" rel="noopener noreferrer" class="admin-modules-item__link">' . html_encode($name) . '</a>';
+	} else {
+		$html .= '<span class="admin-modules-item__title">' . html_encode($name) . '</span>';
+	}
+
+	if ($description !== '') {
+		$html .= '<span class="admin-modules-item__desc">' . html_encode($description) . '</span>';
+	}
+
+	return $html . '</span></div>';
+}
+
+/**
+ * Affiche une valeur meta ou un tiret discret.
+ */
+function admin_modules_meta_cell(string $value): string
+{
+	$value = trim($value);
+
+	if ($value === '' || $value === '—') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	return '<span class="admin-modules-meta">' . html_encode($value) . '</span>';
+}
+
+/**
+ * Affiche une puce de version.
+ */
+function admin_modules_version_cell(?string $version, string $extra_html = '', bool $prefix_v = true): string
+{
+	if ($version === null || $version === '') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	$label = ($prefix_v ? 'v' : '') . html_encode($version);
+	$html = '<span class="admin-modules-chip">' . $label . '</span>';
+
+	if ($extra_html !== '') {
+		$html .= '<div class="admin-modules-table__update">' . $extra_html . '</div>';
+	}
+
+	return $html;
+}
+
+/**
+ * Affiche un badge de statut installé.
+ */
+function admin_modules_status_cell(bool $active): string
+{
+	$class = $active ? 'is-active' : 'is-inactive';
+	$label = $active ? __('admin/modules.badge_active') : __('admin/modules.badge_inactive');
+
+	return '<span class="admin-modules-status admin-modules-status--' . $class . '">'
+		. '<span class="admin-modules-status__dot" aria-hidden="true"></span>'
+		. html_encode($label)
+		. '</span>';
+}
+
+/**
+ * Regroupe des boutons d'action compacts.
+ */
+function admin_modules_actions_group(string $content): string
+{
+	if ($content === '') {
+		return '<span class="admin-modules-muted">&mdash;</span>';
+	}
+
+	return '<div class="btn-group btn-group-sm admin-modules-actions" role="group">' . $content . '</div>';
+}
+
+function admin_modules_action_link(string $href, string $icon, string $label, string $class = 'btn-outline-secondary'): string
+{
+	$external = $href !== '#' && preg_match('#^https?://#i', $href);
+	$attrs = $external ? ' target="_blank" rel="noopener noreferrer"' : '';
+
+	return '<a href="' . html_encode($href) . '" class="btn ' . html_encode($class) . '" title="' . html_encode($label) . '" aria-label="' . html_encode($label) . '"' . $attrs . '>'
+		. '<i class="' . html_encode($icon) . '" aria-hidden="true"></i></a>';
+}
+
+function admin_modules_action_button(string $name, string $value, string $icon, string $label, string $class = 'btn-outline-secondary', string $extra_attrs = ''): string
+{
+	return '<button type="submit" name="' . html_encode($name) . '" value="' . html_encode($value) . '" class="btn ' . html_encode($class) . '" title="' . html_encode($label) . '" aria-label="' . html_encode($label) . '" ' . $extra_attrs . '>'
+		. '<i class="' . html_encode($icon) . '" aria-hidden="true"></i></button>';
+}
+
+/**
+ * Construit la cellule actions pour un tableau modules.
+ */
+function admin_modules_table_actions_cell(string $actions): string
+{
+	return admin_modules_actions_group($actions);
+}
+
+/**
+ * Construit le HTML des actions pour un composant installé.
+ */
+function admin_modules_installed_actions(array $item, string $delete_confirm): string
+{
+	$html = '';
+
+	if (!empty($item['active'])) {
+		if (!empty($item['has_settings'])) {
+			$html .= admin_modules_action_link(
+				'?page=modules&plugin=' . rawurlencode($item['id']),
+				'fas fa-cog',
+				__('admin/modules.btn_settings'),
+				'btn-outline-primary'
+			);
+		}
+
+		$html .= admin_modules_action_button(
+			'deactivate_plugin',
+			$item['id'],
+			'fas fa-power-off',
+			__('admin/modules.btn_disabling'),
+			'btn-outline-warning'
+		);
+	} else {
+		$html .= admin_modules_action_button(
+			'activate_plugin',
+			$item['id'],
+			'fas fa-check',
+			__('admin/modules.btn_enabling'),
+			'btn-success'
+		);
+		$html .= admin_modules_action_button(
+			'delete_plugin',
+			$item['id'],
+			'fas fa-trash-alt',
+			__('admin/modules.btn_delete_'),
+			'btn-outline-danger',
+			'onclick="return confirm(\'' . $delete_confirm . '\');"'
+		);
+	}
+
+	return $html;
+}
+
+/**
+ * Construit une ligne de tableau pour un composant installé.
+ *
+ * @return array<int, string>
+ */
+function admin_modules_installed_table_row(array $item, string $delete_confirm): array
+{
+	$is_theme = ($item['type'] ?? '') === 'theme';
+
+	return [
+		admin_modules_item_cell($item['name'], [
+			'description' => $item['description'] ?? '',
+			'url' => $item['homepage'] ?? '',
+			'icon' => $is_theme ? 'fa-palette' : 'fa-puzzle-piece',
+			'accent' => $is_theme ? 'info' : 'primary',
+		]),
+		admin_modules_meta_cell($item['author'] ?? ''),
+		admin_modules_version_cell($item['version'] ?? null, $item['update'] ?? '', true),
+		admin_modules_status_cell(!empty($item['active'])),
+		admin_modules_table_actions_cell(admin_modules_installed_actions($item, $delete_confirm)),
+	];
+}
+
+/**
+ * Construit une ligne de tableau pour un élément du catalogue.
+ *
+ * @return array<int, string>
+ */
+function admin_modules_catalog_table_row(object $item, bool $extended = true, string $accent = 'primary', string $icon = 'fa-puzzle-piece'): array
+{
+	return [
+		admin_modules_item_cell($item->name ?? '', [
+			'description' => $item->description ?? '',
+			'icon' => $icon,
+			'accent' => $accent,
+		]),
+		admin_modules_meta_cell($item->author ?? ''),
+		admin_modules_version_cell($item->plugin_version ?? null),
+		admin_modules_version_cell($item->cms_version ?? null, '', false),
+		admin_modules_table_actions_cell(admin_modules_catalog_actions($item, $extended)),
+	];
+}
+
+/**
+ * Construit une ligne de tableau pour un pack de langue.
+ *
+ * @return array<int, string>
+ */
+function admin_modules_lang_table_row(object $item): array
+{
+	$progress = (int) ($item->progress ?? 0);
+	$progress_class = $progress >= 100 ? 'is-complete' : 'is-progress';
+
+	$progress_cell = '<div class="admin-modules-progress admin-modules-progress--' . $progress_class . '">';
+	$progress_cell .= '<div class="admin-modules-progress__track"><span style="width:' . $progress . '%"></span></div>';
+	$progress_cell .= '<span class="admin-modules-progress__value">' . $progress . '%</span></div>';
+
+	return [
+		admin_modules_item_cell($item->name ?? '', [
+			'avatar_html' => flag_icon_html($item->flag ?? '', @COUNTRIES[$item->flag ?? ''] ?? ($item->name ?? '')),
+			'accent' => 'success',
+		]),
+		admin_modules_meta_cell($item->author ?? ''),
+		$progress_cell,
+		admin_modules_version_cell($item->cms_version ?? null, '', false),
+		admin_modules_table_actions_cell(admin_modules_catalog_actions($item, false)),
+	];
+}
+
+/**
+ * Affiche les composants installés dans des tableaux.
+ */
+function admin_modules_installed_board(array $themes, array $plugins, string $delete_confirm): string
+{
+	if (!$themes && !$plugins) {
+		return admin_modules_empty(__('admin/modules.empty_list'), 'fa-inbox');
+	}
+
+	$html = '<form method="post" class="admin-modules-installed-form">';
+	$columns = admin_modules_installed_columns();
+
+	if ($themes) {
+		$rows = [];
+
+		foreach ($themes as $item) {
+			$rows[] = admin_modules_installed_table_row($item, $delete_confirm);
+		}
+
+		$html .= admin_modules_table($columns, $rows, [
+			'caption' => __('admin/modules.section_themes'),
+			'icon' => 'fa fa-palette',
+			'accent' => 'info',
+			'layout' => 'installed',
+		]);
+	}
+
+	if ($plugins) {
+		$rows = [];
+
+		foreach ($plugins as $item) {
+			$rows[] = admin_modules_installed_table_row($item, $delete_confirm);
+		}
+
+		$html .= admin_modules_table($columns, $rows, [
+			'caption' => __('admin/modules.section_modules'),
+			'icon' => 'fa fa-puzzle-piece',
+			'accent' => 'primary',
+			'layout' => 'installed',
+			'class' => $themes ? 'admin-modules-table-wrap--spaced' : '',
+		]);
+	}
+
+	return $html . '</form>';
+}
+
+/**
+ * Construit les actions pour un élément du catalogue.
+ */
+function admin_modules_catalog_actions(object $item, bool $extended = true): string
+{
+	$html = '';
+
+	if (!empty($item->download)) {
+		$html .= admin_modules_action_link(
+			$item->download,
+			'fas fa-download',
+			__('admin/modules.btn_download'),
+			'btn-primary'
+		);
+		$html .= admin_modules_action_link('#', 'fas fa-microchip', __('admin/modules.btn_install'));
+	}
+
+	if ($extended && !empty($item->preview)) {
+		$html .= admin_modules_action_link(
+			$item->preview,
+			'far fa-images',
+			__('admin/modules.btn_preview')
+		);
+	}
+
+	if ($extended && !empty($item->website)) {
+		$html .= admin_modules_action_link(
+			$item->website,
+			'fas fa-globe-americas',
+			__('admin/modules.btn_website')
+		);
+	}
+
+	return $html;
+}
+
+/**
+ * Extrait l'icône Font Awesome sans le préfixe de style.
+ */
+function admin_modules_panel_icon(string $icon): string
+{
+	$icon = trim($icon);
+	$icon = preg_replace('/\b(fa-solid|fa-regular|fa-brands|fa|fas|far|fab)\b/', '', $icon);
+
+	return trim(preg_replace('/\s+/', ' ', $icon)) ?: 'fa-puzzle-piece';
+}
+
+/**
+ * Affiche un catalogue dans un tableau.
+ *
+ * @param array<int, object> $items
+ */
+function admin_modules_catalog_board(array $items, array $panel): string
+{
+	$rows = [];
+	$accent = $panel['accent'] ?? 'primary';
+	$icon = admin_modules_panel_icon($panel['icon'] ?? 'fa fa-puzzle-piece');
+
+	foreach ($items as $item) {
+		$rows[] = admin_modules_catalog_table_row($item, $panel['extended'] ?? true, $accent, $icon);
+	}
+
+	return admin_modules_table(admin_modules_table_columns(), $rows, [
+		'empty' => $panel['empty'] ?? __('admin/modules.empty_catalog'),
+		'empty_icon' => 'fa-store',
+		'layout' => 'catalog',
+	]);
+}
+
+/**
+ * Affiche les packs de langue dans un tableau.
+ *
+ * @param array<int, object> $items
+ */
+function admin_modules_lang_board(array $items): string
+{
+	$rows = [];
+
+	foreach ($items as $item) {
+		$rows[] = admin_modules_lang_table_row($item);
+	}
+
+	return admin_modules_table(admin_modules_lang_columns(), $rows, [
+		'empty' => __('admin/modules.empty_languages'),
+		'empty_icon' => 'fa-language',
+		'layout' => 'lang',
+	]);
+}
+
+/**
+ * Affiche le panneau d'import de module ZIP.
+ */
+function admin_modules_import_board(): string
+{
+	if (!class_exists('ZipArchive')) {
+		return admin_status_bar(
+			'danger',
+			'<i class="fas fa-exclamation-circle me-1" aria-hidden="true"></i> ' . __('admin/modules.import_zip_missing')
+		);
+	}
+
+	$html = '<div class="admin-modules-upload">';
+	$html .= '<div class="admin-modules-upload__visual">';
+	$html .= '<span class="admin-modules-upload__icon"><i class="fas fa-cloud-upload-alt" aria-hidden="true"></i></span>';
+	$html .= '<h3 class="admin-modules-upload__title">' . html_encode(__('admin/modules.header_form')) . '</h3>';
+	$html .= '<p class="admin-modules-upload__hint">' . __('admin/modules.import_desc') . '</p>';
+	$html .= '<p class="admin-modules-upload__meta">' . __('admin/modules.import_hint') . '</p>';
+	$html .= '</div>';
+	$html .= '<form method="post" enctype="multipart/form-data" class="admin-modules-upload__form">';
+	$html .= '<label class="admin-modules-upload__field">';
+	$html .= '<span class="admin-modules-upload__field-label">' . html_encode(__('admin/modules.header_form_btn_upload')) . '</span>';
+	$html .= '<input type="file" name="plugin_file" class="form-control" accept=".zip,application/zip" required>';
+	$html .= '</label>';
+	$html .= '<button type="submit" class="btn btn-primary">';
+	$html .= '<i class="fas fa-upload me-1" aria-hidden="true"></i>' . html_encode(__('admin/modules.header_form_btn_upload'));
+	$html .= '</button></form></div>';
+
+	return $html;
+}
+
+/**
+ * Affiche la vue de configuration d'un module.
+ */
+function admin_modules_config_board(object $plugin): string
+{
+	$info = $plugin->infos;
+
+	$html = '<div class="admin-modules-config__toolbar">';
+	$html .= '<a href="?page=modules" class="btn btn-outline-secondary btn-sm">';
+	$html .= '<i class="fas fa-arrow-left me-1" aria-hidden="true"></i>' . html_encode(__('admin/modules.back_to_list'));
+	$html .= '</a></div>';
+
+	$html .= admin_modules_item_cell($info->name, [
+		'description' => $info->description ?? '',
+		'icon' => 'fa-cogs',
+		'accent' => 'primary',
+	]);
+
+	$meta_rows = [];
+
+	if ($info->getAuthors()) {
+		$meta_rows[] = [
+			html_encode(__('admin/modules.table_author')),
+			admin_modules_meta_cell(implode(', ', array_map('strval', $info->getAuthors()))),
+		];
+	}
+
+	$meta_rows[] = [
+		html_encode(__('admin/modules.table_version_installed')),
+		admin_modules_version_cell($info->version),
+	];
+
+	$html .= admin_modules_table([], $meta_rows, [
+		'variant' => 'info',
+		'caption' => __('admin/modules.config_title') . ' ' . $info->name,
+		'icon' => 'fa fa-cogs',
+		'accent' => 'primary',
+		'class' => 'admin-modules-table-wrap--info',
+		'layout' => 'info',
+	]);
+
+	if ($plugin->settings) {
+		$html .= '<div class="admin-modules-config-form">' . settings_form($plugin->settings) . '</div>';
+	}
+
+	return $html;
+}
+
+/**
+ * Prépare les données d'un composant installé.
+ */
+function admin_modules_installed_item(string $plugin_id, object $module, array $updates): array
+{
+	return [
+		'id' => $plugin_id,
+		'name' => $module->name,
+		'description' => $module->description,
+		'author' => implode(', ', array_map('strval', $module->getAuthors())),
+		'version' => $module->version,
+		'update' => $updates[$plugin_id]['content'] ?? '',
+		'active' => (bool) App::getModule($plugin_id),
+		'has_settings' => (bool) $module->settings,
+		'homepage' => $module->homepage ?? '',
+		'type' => ($module->exports[0] ?? 'plugin') === 'theme' ? 'theme' : 'plugin',
+	];
 }
 
 /**
@@ -986,14 +1852,12 @@ function send_activation_email($username)
 }
 
 
-function settings_form(array $settings, $title = null)
+function settings_form(array $settings, $title = null, array $options = [])
 {
-	foreach($settings as $name => &$description) {
-		$description['default'] = $description['default'] ?? App::getDefaultConfig($name);
-		$description['value'] = App::getConfig($name);
-	}
+	$form_tag = $options['form'] ?? true;
+	$submit = array_key_exists('submit', $options) ? $options['submit'] : __('form.save');
 
-	return Widgets::formBuilder($title, $settings, true, __('form.save'));
+	return Widgets::formBuilder($title, admin_settings_prepare($settings), $form_tag, $submit);
 }
 
 

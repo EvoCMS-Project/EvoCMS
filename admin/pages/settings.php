@@ -169,72 +169,107 @@ $tab = 'config';
 if (IS_POST) {
 	if (App::POST('theme')) {
 		$tab = 'theme';
-	} elseif (preg_match('/^(theme|modules)\|/', key(App::POST()))) {
+	} elseif (preg_match('/^(theme|modules)\|/', key(App::POST()) ?: '')) {
 		$tab = 'themeconfig';
-	} elseif (preg_match('/^(social)\|/', key(App::POST()))) {
-		$tab = 'social';
-	} elseif (!App::POST('url')) {
+	} elseif ($posted_tab = App::POST('admin_settings_tab')) {
+		$tab = $posted_tab;
+	} elseif (App::POST('mail||send-test-mail')) {
 		$tab = 'advanced';
 	}
 }
+
+$settings_tabs = [
+	'config' => ['label' => __('admin/general.tab_site'), 'icon' => 'fa-globe'],
+	'advanced' => ['label' => __('admin/general.tab_advanced'), 'icon' => 'fa-sliders-h'],
+	'social' => ['label' => __('admin/general.tab_social'), 'icon' => 'fa-share-alt'],
+	'theme' => ['label' => __('admin/general.tab_theme'), 'icon' => 'fa-palette'],
+];
+
+if (App::getTheme()->settings) {
+	$settings_tabs['themeconfig'] = ['label' => __('admin/general.tab_tconfig'), 'icon' => 'fa-paint-brush'];
+}
 ?>
 
-<ul class="nav nav-tabs">
-	<li class="nav-item"><a class="nav-link <?= $tab === 'config' ? 'active' : '' ?>" href="#config" data-bs-toggle="tab"><?= __('admin/general.tab_site') ?></a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'advanced' ? 'active' : '' ?>" href="#advanced" data-bs-toggle="tab"><?= __('admin/general.tab_advanced') ?></a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'social' ? 'active' : '' ?>" href="#social" data-bs-toggle="tab"><?= __('admin/general.tab_social') ?></a></li>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'theme' ? 'active' : '' ?>" href="#theme" data-bs-toggle="tab"><?= __('admin/general.tab_theme') ?></a></li>
-	<?php if (App::getTheme()->settings) { ?>
-	<li class="nav-item"><a class="nav-link <?= $tab === 'themeconfig' ? 'active' : '' ?>" href="#themeconfig" data-bs-toggle="tab"><?= __('admin/general.tab_tconfig') ?></a></li>
-	<?php } ?>
-</ul>
+<?= admin_settings_tabs($settings_tabs, $tab) ?>
 
-<div class="tab-content panel">
-	<div class="tab-pane fade <?= $tab === 'config' ? 'show active' : '' ?>" id="config" style="padding: 2em;">
-		<?= settings_form($site_settings) ?>
-	</div>
+<div class="tab-content admin-settings">
+	<?= admin_settings_tab_open('config', $tab === 'config') ?>
+		<?= admin_settings_grouped_form('config', [
+			[
+				'title' => __('admin/settings.section_identity'),
+				'icon' => 'fa-id-card',
+				'settings' => admin_settings_pick($site_settings, ['name', 'subtitle', 'description']),
+			],
+			[
+				'title' => __('admin/settings.section_access'),
+				'icon' => 'fa-link',
+				'settings' => admin_settings_pick($site_settings, ['url', 'url_https', 'url_rewriting', 'frontpage']),
+			],
+			[
+				'title' => __('admin/settings.section_locale'),
+				'icon' => 'fa-language',
+				'settings' => admin_settings_pick($site_settings, ['language', 'timezone']),
+			],
+			[
+				'title' => __('admin/settings.section_members'),
+				'icon' => 'fa-users',
+				'settings' => admin_settings_pick($site_settings, ['open_registration', 'default_user_group', 'articles_per_page', 'editor']),
+			],
+			[
+				'title' => __('admin/settings.section_contact'),
+				'icon' => 'fa-envelope',
+				'settings' => admin_settings_pick($site_settings, ['email']),
+			],
+		]) ?>
+	<?= admin_settings_tab_close() ?>
 
-	<div class="tab-pane fade <?= $tab === 'social' ? 'show active' : '' ?>" id="social" style="padding: 2em;">
-		<?= settings_form($social_settings) ?>
-	</div>
+	<?= admin_settings_tab_open('advanced', $tab === 'advanced') ?>
+		<?= admin_settings_grouped_form('advanced', [
+			[
+				'title' => __('admin/general.adv_cfg_upl'),
+				'icon' => 'fa-upload',
+				'settings' => $upload_settings,
+			],
+			[
+				'title' => __('admin/general.adv_cfg_email'),
+				'icon' => 'fa-at',
+				'settings' => $mail_settings,
+				'extra' => admin_settings_test_mail(),
+			],
+			[
+				'title' => __('admin/general.adv_cfg_profil'),
+				'icon' => 'fa-user-circle',
+				'settings' => $providers_settings,
+				'empty' => __('admin/settings.providers_empty'),
+			],
+		]) ?>
+	<?= admin_settings_tab_close() ?>
 
-	<div class="tab-pane fade <?= $tab === 'advanced' ? 'show active' : '' ?>" id="advanced" style="padding: 2em;">
-		<?= settings_form($upload_settings, __('admin/general.adv_cfg_upl')) ?>
-		<div>&nbsp;</div>
-		<?= settings_form($mail_settings, __('admin/general.adv_cfg_email')) ?>
-		<form method="post">
-			<input type="text" name="mail||send-test-mail" value="<?= App::getCurrentUser()->email ?>" placeholder="adresse@destination.com">
-			<button type="submit">Envoi mail test</button>
-		</form>
-		<div>&nbsp;</div>
-		<?= settings_form($providers_settings, __('admin/general.adv_cfg_profil')) ?>
-	</div>
+	<?= admin_settings_tab_open('social', $tab === 'social') ?>
+		<?php if ($social_settings): ?>
+			<?= admin_settings_grouped_form('social', [
+				[
+					'title' => __('admin/general.tab_social'),
+					'icon' => 'fa-share-alt',
+					'settings' => $social_settings,
+				],
+			]) ?>
+		<?php else: ?>
+			<?= admin_settings_empty(__('admin/settings.social_empty'), 'fa-share-alt') ?>
+		<?php endif; ?>
+	<?= admin_settings_tab_close() ?>
 
-	<div class="tab-pane fade <?= $tab === 'theme' ? 'show active' : '' ?>" id="theme" style="padding: 2em;">
-		<form method="post" class="form-horizontal" enctype="multipart/form-data">
-			<table class="table">
-			<?php
-				foreach($_themes as $dir => [$theme, $preview]) {
-					echo '<tr>';
-					echo '<td style="width:200px"><img alt="preview" src="'.App::getLocalURL($preview).'" style="max-width:100%"></td>';
-					echo '<td><h4>'.html_encode($theme->name).' <small>'.$theme->version.'</small></h4>'.html_encode($theme->description).'</td>';
-					if ($dir === App::getConfig('theme')) {
-						echo __('admin/general.theme_enabled');
-					} else {
-						echo '<td><button class="btn btn-sm btn-primary" name="theme" value="'.$dir.'">'.__('admin/general.theme_active_btn').'</button></td>';
-					}
-					echo '</tr>';
-				}
-			?>
-			</table>
-		</form>
-		<div class="text-center"><?= __('admin/general.theme_tips') ?></div>
-	</div>
+	<?= admin_settings_tab_open('theme', $tab === 'theme') ?>
+		<?= admin_settings_theme_panel($_themes, (string)App::getConfig('theme')) ?>
+	<?= admin_settings_tab_close() ?>
 
-	<div class="tab-pane fade <?= $tab === 'themeconfig' ? 'show active' : '' ?>" id="themeconfig" style="padding: 2em;">
-		<form method="post" class="form-horizontal" enctype="multipart/form-data">
-			<legend><?= __('admin/general.theme_title1') ?></legend>
-			<?= settings_form(App::getTheme()->settings) ?>
-		</form>
-	</div>
+	<?php if (App::getTheme()->settings): ?>
+		<?= admin_settings_tab_open('themeconfig', $tab === 'themeconfig') ?>
+			<?= admin_settings_section(
+				__('admin/general.theme_title1'),
+				settings_form(App::getTheme()->settings),
+				['icon' => 'fa-paint-brush']
+			) ?>
+		<?= admin_settings_tab_close() ?>
+	<?php endif; ?>
 </div>
