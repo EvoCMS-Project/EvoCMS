@@ -311,6 +311,8 @@ function deleteBackup($filename) {
     return false;
 }
 
+$tab = App::GET('tab', 'create');
+
 // Traitement des actions
 if ($_POST) {
     
@@ -331,6 +333,7 @@ if ($_POST) {
             } catch (Exception $e) {
                 App::setNotice(__('admin/system.backup_alert_created_error', ['%error%' => $e->getMessage()]), 'danger');
             }
+            $tab = 'create';
             break;
             
         case 'schedule_backup':
@@ -341,6 +344,7 @@ if ($_POST) {
             
             scheduleBackup($type, $frequency, $time, $retention);
             App::setNotice(__('admin/system.backup_alert_scheduled_success'), 'success');
+            $tab = 'schedule';
             break;
             
         case 'restore_backup':
@@ -352,6 +356,7 @@ if ($_POST) {
             } else {
                 App::setNotice(__('admin/system.backup_alert_restore_error', ['%filename%' => $filename]), 'danger');
             }
+            $tab = 'list';
             break;
             
         case 'delete_backup':
@@ -361,6 +366,7 @@ if ($_POST) {
             } else {
                 App::setNotice(__('admin/system.backup_alert_delete_error', ['%filename%' => $filename]), 'danger');
             }
+            $tab = 'list';
             break;
             
         case 'delete_multiple':
@@ -372,6 +378,7 @@ if ($_POST) {
                 }
             }
             App::setNotice(__('admin/system.backup_alert_deleted_multiple', ['%count%' => $deleted]), 'success');
+            $tab = 'list';
             break;
             
         case 'cleanup_old':
@@ -387,6 +394,7 @@ if ($_POST) {
 
             cleanupOldBackups($days);
             App::setNotice(__('admin/system.backup_alert_cleanup_done', ['%count%' => $to_delete]), 'success');
+            $tab = 'list';
             break;
             
         case 'export_config':
@@ -409,6 +417,7 @@ if ($_POST) {
             $new_status = $enabled ? '0' : '1';
             App::setConfig('backup.auto.enabled', $new_status);
             App::setNotice($new_status ? __('admin/system.backup_alert_auto_enabled') : __('admin/system.backup_alert_auto_disabled'), 'success');
+            $tab = 'schedule';
             break;
             
         case 'test_auto_backup':
@@ -421,6 +430,7 @@ if ($_POST) {
                 App::setNotice(__('admin/system.backup_alert_auto_test_error', ['%error%' => $e->getMessage()]), 'danger');
                 App::logEvent(0, 'admin', 'Erreur test sauvegarde automatique: ' . $e->getMessage());
             }
+            $tab = 'schedule';
             break;
             
         case 'download':
@@ -550,9 +560,18 @@ $backup_type_labels = [
     'config' => __('admin/system.backup_type_config'),
     'unknown' => __('admin/system.backup_table_type'),
 ];
-?>
 
-<?= admin_stat_grid([
+$backup_nav = [
+    'create' => ['label' => __('admin/system.backup_tab_create'), 'icon' => 'fa-plus-circle'],
+    'schedule' => ['label' => __('admin/system.backup_tab_schedule'), 'icon' => 'fa-clock'],
+    'list' => [
+        'label' => __('admin/system.backup_tab_list'),
+        'icon' => 'fa-archive',
+        'badge' => '<span class="badge bg-secondary ms-1">' . count($backups) . '</span>',
+    ],
+];
+
+$backup_stats = [
     [
         'icon' => 'fa fa-archive',
         'value' => (string) count($backups),
@@ -577,232 +596,247 @@ $backup_type_labels = [
         'label' => __('admin/system.backup_stats_last'),
         'variant' => 'info',
     ],
-]) ?>
+];
+?>
 
-<div class="mb-4">
-    <?php if ($schedule_config): ?>
-        <?= admin_status_bar(
-            'success',
-            '<i class="fa fa-check-circle me-1"></i> ' . __('admin/system.backup_auto_enabled'),
-            __('admin/system.backup_auto_type') . ': ' . ($backup_type_labels[$schedule_config['type']] ?? ucfirst($schedule_config['type']))
-                . ' &middot; ' . __('admin/system.backup_auto_frequency') . ': ' . ucfirst($schedule_config['frequency'])
-                . ' &middot; ' . __('admin/system.backup_auto_time') . ': ' . $schedule_config['time']
-                . ' &middot; ' . __('admin/system.backup_auto_retention') . ': ' . $schedule_config['retention'] . ' ' . __('admin/system.backup_auto_days')
-                . '<br><strong>' . __('admin/system.backup_auto_next_run') . '</strong> '
-                . ($schedule_config['next_run'] ? date('d/m/Y H:i', $schedule_config['next_run']) : __('admin/system.backup_auto_not_scheduled'))
-                . ($schedule_config['last_run'] ? '<br><strong>' . __('admin/system.backup_auto_last_run') . '</strong> ' . date('d/m/Y H:i', $schedule_config['last_run']) : ''),
-            [
-                'action' => 'toggle_auto_backup',
-                'label' => __('admin/system.backup_auto_btn_disable'),
-                'icon' => 'fa fa-pause',
-                'variant' => 'danger',
-            ]
-        ) ?>
-    <?php else: ?>
-        <?= admin_status_bar(
-            'info',
-            '<i class="fa fa-info-circle me-1"></i> ' . __('admin/system.backup_auto_disabled'),
-            '',
-            [
-                'action' => 'toggle_auto_backup',
-                'label' => __('admin/system.backup_auto_btn_enable'),
-                'icon' => 'fa fa-play',
-                'variant' => 'primary',
-            ]
-        ) ?>
-    <?php endif; ?>
-</div>
+<div class="admin-dashboard admin-backup">
+    <?= admin_stat_grid($backup_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
 
-<?= admin_card_header(admin_tabs([
-    'backup-create' => ['label' => __('admin/system.backup_tab_create')],
-    'backup-schedule' => ['label' => __('admin/system.backup_tab_schedule')],
-    'backup-list' => [
-        'label' => __('admin/system.backup_tab_list'),
-        'badge' => '<span class="badge bg-secondary ms-1">' . count($backups) . '</span>',
-    ],
-], [
-    'active' => 'backup-create',
-    'class' => 'card-header-tabs',
-    'id' => 'backup-tabs',
-])) ?>
+    <section class="admin-tabs-board admin-backup-board">
+        <?= admin_backup_nav($backup_nav, $tab) ?>
 
-<div class="tab-content admin-tabs-panel" id="backup-tab-content">
-    <div class="tab-pane fade show active p-4" id="backup-create" role="tabpanel" aria-labelledby="backup-create-tab">
-        <div class="row g-4">
-            <div class="col-lg-8">
-                <h6 class="admin-backup-section-title"><i class="fa fa-plus-circle me-2"></i><?= __('admin/system.backup_create_title') ?></h6>
-                <form method="post" id="backupForm">
-                    <input type="hidden" name="action" value="create_backup">
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="backup_type" class="form-label small"><?= __('admin/system.backup_type_label') ?></label>
-                            <select name="backup_type" id="backup_type" class="form-select" required>
-                                <option value="web"><?= __('admin/system.backup_type_web') ?></option>
-                                <option value="sql"><?= __('admin/system.backup_type_sql') ?></option>
-                                <option value="full"><?= __('admin/system.backup_type_full') ?></option>
-                                <option value="config"><?= __('admin/system.backup_type_config') ?></option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="compression_level" class="form-label small"><?= __('admin/system.backup_compression_label') ?></label>
-                            <select name="compression_level" id="compression_level" class="form-select">
-                                <option value="0"><?= __('admin/system.backup_compression_none') ?></option>
-                                <option value="1"><?= __('admin/system.backup_compression_low') ?></option>
-                                <option value="3"><?= __('admin/system.backup_compression_medium') ?></option>
-                                <option value="6" selected><?= __('admin/system.backup_compression_high') ?></option>
-                                <option value="9"><?= __('admin/system.backup_compression_max') ?></option>
-                            </select>
-                        </div>
-                        <div class="col-12">
-                            <label for="backup_name" class="form-label small"><?= __('admin/system.backup_name_label') ?></label>
-                            <input type="text" name="backup_name" id="backup_name" class="form-control" placeholder="<?= __('admin/system.backup_name_placeholder') ?>">
-                        </div>
-                        <div class="col-12">
-                            <label for="exclude_files" class="form-label small"><?= __('admin/system.backup_exclude_label') ?></label>
-                            <textarea name="exclude_files" id="exclude_files" class="form-control" rows="3" placeholder="<?= __('admin/system.backup_exclude_placeholder') ?>"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fa fa-save me-1"></i><?= __('admin/system.backup_btn_create') ?>
-                        </button>
-                    </div>
-                </form>
+        <div class="admin-tabs-board__body admin-backup-board__body admin-tabs-panel admin-backup-board__body--content">
+            <div class="admin-backup-board__notice">
+                <?php if ($schedule_config): ?>
+                    <?= admin_status_bar(
+                        'success',
+                        '<i class="fa fa-check-circle me-1"></i> ' . __('admin/system.backup_auto_enabled'),
+                        __('admin/system.backup_auto_type') . ': ' . ($backup_type_labels[$schedule_config['type']] ?? ucfirst($schedule_config['type']))
+                            . ' &middot; ' . __('admin/system.backup_auto_frequency') . ': ' . ucfirst($schedule_config['frequency'])
+                            . ' &middot; ' . __('admin/system.backup_auto_time') . ': ' . $schedule_config['time']
+                            . ' &middot; ' . __('admin/system.backup_auto_retention') . ': ' . $schedule_config['retention'] . ' ' . __('admin/system.backup_auto_days')
+                            . '<br><strong>' . __('admin/system.backup_auto_next_run') . '</strong> '
+                            . ($schedule_config['next_run'] ? date('d/m/Y H:i', $schedule_config['next_run']) : __('admin/system.backup_auto_not_scheduled'))
+                            . ($schedule_config['last_run'] ? '<br><strong>' . __('admin/system.backup_auto_last_run') . '</strong> ' . date('d/m/Y H:i', $schedule_config['last_run']) : ''),
+                        [
+                            'action' => 'toggle_auto_backup',
+                            'label' => __('admin/system.backup_auto_btn_disable'),
+                            'icon' => 'fa fa-pause',
+                            'variant' => 'danger',
+                        ]
+                    ) ?>
+                <?php else: ?>
+                    <?= admin_status_bar(
+                        'info',
+                        '<i class="fa fa-info-circle me-1"></i> ' . __('admin/system.backup_auto_disabled'),
+                        '',
+                        [
+                            'action' => 'toggle_auto_backup',
+                            'label' => __('admin/system.backup_auto_btn_enable'),
+                            'icon' => 'fa fa-play',
+                            'variant' => 'primary',
+                        ]
+                    ) ?>
+                <?php endif; ?>
             </div>
-            <div class="col-lg-4">
-                <div class="admin-backup-quick-actions h-100">
-                    <h6 class="admin-backup-section-title mb-3"><i class="fa fa-bolt me-2"></i><?= __('admin/system.backup_quick_download') ?></h6>
-                    <p class="small text-muted mb-3"><?= __('admin/system.backup_quick_download_help') ?></p>
-                    <div class="d-grid gap-2">
-                        <a href="?page=backup&type=web" class="btn btn-outline-secondary btn-sm">
-                            <i class="fa fa-folder me-1"></i><?= __('admin/system.backup_btn_files_only') ?>
-                        </a>
-                        <a href="?page=backup&type=sql" class="btn btn-outline-secondary btn-sm">
-                            <i class="fa fa-database me-1"></i><?= __('admin/system.backup_btn_db_only') ?>
-                        </a>
+
+            <?php if ($tab === 'create'): ?>
+                <div class="admin-backup-board__pane">
+                    <div class="row g-4">
+                        <div class="col-lg-8">
+                            <?php ob_start(); ?>
+                            <form method="post" id="backupForm">
+                                <input type="hidden" name="action" value="create_backup">
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="backup_type" class="form-label small"><?= __('admin/system.backup_type_label') ?></label>
+                                        <select name="backup_type" id="backup_type" class="form-select" required>
+                                            <option value="web"><?= __('admin/system.backup_type_web') ?></option>
+                                            <option value="sql"><?= __('admin/system.backup_type_sql') ?></option>
+                                            <option value="full"><?= __('admin/system.backup_type_full') ?></option>
+                                            <option value="config"><?= __('admin/system.backup_type_config') ?></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="compression_level" class="form-label small"><?= __('admin/system.backup_compression_label') ?></label>
+                                        <select name="compression_level" id="compression_level" class="form-select">
+                                            <option value="0"><?= __('admin/system.backup_compression_none') ?></option>
+                                            <option value="1"><?= __('admin/system.backup_compression_low') ?></option>
+                                            <option value="3"><?= __('admin/system.backup_compression_medium') ?></option>
+                                            <option value="6" selected><?= __('admin/system.backup_compression_high') ?></option>
+                                            <option value="9"><?= __('admin/system.backup_compression_max') ?></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="backup_name" class="form-label small"><?= __('admin/system.backup_name_label') ?></label>
+                                        <input type="text" name="backup_name" id="backup_name" class="form-control" placeholder="<?= __('admin/system.backup_name_placeholder') ?>">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="exclude_files" class="form-label small"><?= __('admin/system.backup_exclude_label') ?></label>
+                                        <textarea name="exclude_files" id="exclude_files" class="form-control" rows="3" placeholder="<?= __('admin/system.backup_exclude_placeholder') ?>"></textarea>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fa fa-save me-1"></i><?= __('admin/system.backup_btn_create') ?>
+                                    </button>
+                                </div>
+                            </form>
+                            <?php
+                            echo admin_settings_section(__('admin/system.backup_create_title'), ob_get_clean(), ['icon' => 'fa-plus-circle']);
+                            ?>
+                        </div>
+                        <div class="col-lg-4">
+                            <?php ob_start(); ?>
+                            <div class="d-grid gap-2">
+                                <a href="?page=backup&type=web" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fa fa-folder me-1"></i><?= __('admin/system.backup_btn_files_only') ?>
+                                </a>
+                                <a href="?page=backup&type=sql" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fa fa-database me-1"></i><?= __('admin/system.backup_btn_db_only') ?>
+                                </a>
+                            </div>
+                            <?php
+                            echo admin_settings_section(
+                                __('admin/system.backup_quick_download'),
+                                ob_get_clean(),
+                                [
+                                    'icon' => 'fa-bolt',
+                                    'description' => __('admin/system.backup_quick_download_help'),
+                                ]
+                            );
+                            ?>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            <?php elseif ($tab === 'schedule'): ?>
+                <div class="admin-backup-board__pane">
+                    <div class="row g-4">
+                        <div class="col-lg-6">
+                            <?php ob_start(); ?>
+                            <form method="post">
+                                <input type="hidden" name="action" value="schedule_backup">
 
-    <div class="tab-pane fade p-4" id="backup-schedule" role="tabpanel" aria-labelledby="backup-schedule-tab">
-        <div class="row g-4">
-            <div class="col-lg-6">
-                <h6 class="admin-backup-section-title"><i class="fa-solid fa-timer me-2"></i><?= __('admin/system.backup_auto_title') ?></h6>
-                <form method="post">
-                    <input type="hidden" name="action" value="schedule_backup">
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="schedule_type" class="form-label small"><?= __('admin/system.backup_auto_type') ?></label>
-                            <select name="schedule_type" id="schedule_type" class="form-select">
-                                <option value="web" <?= App::getConfig('backup.auto.type', 'full') == 'web' ? 'selected' : '' ?>><?= __('admin/system.backup_type_web') ?></option>
-                                <option value="sql" <?= App::getConfig('backup.auto.type', 'full') == 'sql' ? 'selected' : '' ?>><?= __('admin/system.backup_type_sql') ?></option>
-                                <option value="full" <?= App::getConfig('backup.auto.type', 'full') == 'full' ? 'selected' : '' ?>><?= __('admin/system.backup_type_full') ?></option>
-                                <option value="config" <?= App::getConfig('backup.auto.type', 'full') == 'config' ? 'selected' : '' ?>><?= __('admin/system.backup_type_config') ?></option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="schedule_frequency" class="form-label small"><?= __('admin/system.backup_auto_frequency') ?></label>
-                            <select name="schedule_frequency" id="schedule_frequency" class="form-select">
-                                <option value="daily" <?= App::getConfig('backup.auto.frequency', 'daily') == 'daily' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_daily') ?></option>
-                                <option value="weekly" <?= App::getConfig('backup.auto.frequency', 'daily') == 'weekly' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_weekly') ?></option>
-                                <option value="monthly" <?= App::getConfig('backup.auto.frequency', 'daily') == 'monthly' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_monthly') ?></option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="schedule_time" class="form-label small"><?= __('admin/system.backup_auto_time') ?></label>
-                            <input type="time" name="schedule_time" id="schedule_time" class="form-control" value="<?= App::getConfig('backup.auto.time', '02:00') ?>">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="schedule_retention" class="form-label small"><?= __('admin/system.backup_auto_retention') ?> (<?= __('admin/system.backup_auto_days') ?>)</label>
-                            <input type="number" name="schedule_retention" id="schedule_retention" class="form-control" value="<?= App::getConfig('backup.auto.retention', '30') ?>" min="1" max="365">
-                        </div>
-                    </div>
-
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-secondary btn-sm">
-                            <i class="fa fa-calendar me-1"></i><?= __('admin/system.backup_auto_btn_schedule') ?>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="tab-pane fade" id="backup-list" role="tabpanel" aria-labelledby="backup-list-tab">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-3 border-bottom bg-light">
-            <h6 class="admin-backup-section-title mb-0"><i class="fa fa-archive me-2"></i><?= __('admin/system.backup_list_title') ?></h6>
-            <div class="btn-group">
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#cleanupModal">
-                    <i class="fa fa-broom me-1"></i><?= __('admin/system.backup_btn_cleanup') ?>
-                </button>
-                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteSelected()" id="deleteSelectedBtn" disabled>
-                    <i class="fa fa-trash me-1"></i><?= __('admin/system.backup_btn_delete_selected') ?>
-                </button>
-            </div>
-        </div>
-
-        <?php if (empty($backups)): ?>
-            <div class="text-center py-5 px-3">
-                <i class="fa fa-archive fa-3x text-muted mb-3"></i>
-                <h6 class="text-muted"><?= __('admin/system.backup_empty_title') ?></h6>
-                <p class="text-muted mb-0"><?= __('admin/system.backup_empty_text') ?></p>
-            </div>
-        <?php else: ?>
-            <div class="table-responsive">
-                <table id="backups-table" class="table table-hover table-sm my-0">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
-                            <th><?= __('admin/system.backup_table_filename') ?></th>
-                            <th><?= __('admin/system.backup_table_type') ?></th>
-                            <th><?= __('admin/system.backup_table_size') ?></th>
-                            <th><?= __('admin/system.backup_table_date') ?></th>
-                            <th><?= __('admin/system.backup_table_age') ?></th>
-                            <th><?= __('admin/system.backup_table_actions') ?></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($backups as $backup): ?>
-                            <tr class="backup-row" data-type="<?= html_encode($backup['type']) ?>" data-age="<?= (int) $backup['age_days'] ?>" data-name="<?= html_encode(strtolower($backup['filename'])) ?>">
-                                <td><input type="checkbox" class="backup-checkbox" value="<?= html_encode($backup['filename']) ?>"></td>
-                                <td>
-                                    <i class="fa-regular fa-file-zipper me-1"></i>
-                                    <strong><?= html_encode($backup['filename']) ?></strong>
-                                </td>
-                                <td><span class="badge bg-secondary admin-backup-type"><?= html_encode(strtoupper($backup['type'])) ?></span></td>
-                                <td><?= formatBytes($backup['size']) ?></td>
-                                <td><?= date('d/m/Y H:i', strtotime($backup['date'])) ?></td>
-                                <td>
-                                    <?= __plural('admin/system.backup_age_days', $backup['age_days'], ['%count%' => $backup['age_days']]) ?>
-                                    <?php if ($backup['age_days'] > 30): ?>
-                                        <span class="badge bg-warning ms-1"><?= __('admin/system.backup_table_old') ?></span>
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a href="?page=backup&action=download&file=<?= urlencode($backup['filename']) ?>" class="btn btn-outline-secondary" title="<?= __('admin/system.backup_btn_download') ?>">
-                                            <i class="fa fa-download"></i>
-                                        </a>
-                                        <button type="button" class="btn btn-outline-secondary" onclick="showRestoreModal(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/system.backup_btn_restore') ?>">
-                                            <i class="fa fa-upload"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-outline-danger" onclick="deleteBackup(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/general.btn_delete') ?>">
-                                            <i class="fa fa-trash"></i>
-                                        </button>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="schedule_type" class="form-label small"><?= __('admin/system.backup_auto_type') ?></label>
+                                        <select name="schedule_type" id="schedule_type" class="form-select">
+                                            <option value="web" <?= App::getConfig('backup.auto.type', 'full') == 'web' ? 'selected' : '' ?>><?= __('admin/system.backup_type_web') ?></option>
+                                            <option value="sql" <?= App::getConfig('backup.auto.type', 'full') == 'sql' ? 'selected' : '' ?>><?= __('admin/system.backup_type_sql') ?></option>
+                                            <option value="full" <?= App::getConfig('backup.auto.type', 'full') == 'full' ? 'selected' : '' ?>><?= __('admin/system.backup_type_full') ?></option>
+                                            <option value="config" <?= App::getConfig('backup.auto.type', 'full') == 'config' ? 'selected' : '' ?>><?= __('admin/system.backup_type_config') ?></option>
+                                        </select>
                                     </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php endif; ?>
-    </div>
+                                    <div class="col-md-6">
+                                        <label for="schedule_frequency" class="form-label small"><?= __('admin/system.backup_auto_frequency') ?></label>
+                                        <select name="schedule_frequency" id="schedule_frequency" class="form-select">
+                                            <option value="daily" <?= App::getConfig('backup.auto.frequency', 'daily') == 'daily' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_daily') ?></option>
+                                            <option value="weekly" <?= App::getConfig('backup.auto.frequency', 'daily') == 'weekly' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_weekly') ?></option>
+                                            <option value="monthly" <?= App::getConfig('backup.auto.frequency', 'daily') == 'monthly' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_monthly') ?></option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="schedule_time" class="form-label small"><?= __('admin/system.backup_auto_time') ?></label>
+                                        <input type="time" name="schedule_time" id="schedule_time" class="form-control" value="<?= App::getConfig('backup.auto.time', '02:00') ?>">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="schedule_retention" class="form-label small"><?= __('admin/system.backup_auto_retention') ?> (<?= __('admin/system.backup_auto_days') ?>)</label>
+                                        <input type="number" name="schedule_retention" id="schedule_retention" class="form-control" value="<?= App::getConfig('backup.auto.retention', '30') ?>" min="1" max="365">
+                                    </div>
+                                </div>
+
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-secondary btn-sm">
+                                        <i class="fa fa-calendar me-1"></i><?= __('admin/system.backup_auto_btn_schedule') ?>
+                                    </button>
+                                </div>
+                            </form>
+                            <?php
+                            echo admin_settings_section(__('admin/system.backup_auto_title'), ob_get_clean(), ['icon' => 'fa-clock']);
+                            ?>
+                        </div>
+                    </div>
+                </div>
+            <?php elseif ($tab === 'list'): ?>
+                <div class="admin-modules-table-wrap">
+                    <div class="admin-modules-table__toolbar">
+                        <div class="admin-modules-table__caption">
+                            <span class="admin-modules-table__caption-icon admin-modules-table__caption-icon--primary">
+                                <i class="fa fa-archive" aria-hidden="true"></i>
+                            </span>
+                            <span class="admin-modules-table__caption-text"><?= __('admin/system.backup_list_title') ?></span>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span class="admin-modules-table__count"><?= count($backups) ?></span>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#cleanupModal">
+                                    <i class="fa fa-broom me-1"></i><?= __('admin/system.backup_btn_cleanup') ?>
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteSelected()" id="deleteSelectedBtn" disabled>
+                                    <i class="fa fa-trash me-1"></i><?= __('admin/system.backup_btn_delete_selected') ?>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <?php if (empty($backups)): ?>
+                        <?= admin_settings_empty(__('admin/system.backup_empty_text'), 'fa-archive') ?>
+                    <?php else: ?>
+                        <div class="table-responsive admin-modules-table-scroll">
+                            <table id="backups-table" class="table admin-modules-table admin-backup-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th scope="col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll()" aria-label="<?= __('admin/general.btn_delete') ?>"></th>
+                                        <th scope="col"><?= __('admin/system.backup_table_filename') ?></th>
+                                        <th scope="col"><?= __('admin/system.backup_table_type') ?></th>
+                                        <th scope="col"><?= __('admin/system.backup_table_size') ?></th>
+                                        <th scope="col"><?= __('admin/system.backup_table_date') ?></th>
+                                        <th scope="col"><?= __('admin/system.backup_table_age') ?></th>
+                                        <th scope="col"><?= __('admin/system.backup_table_actions') ?></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($backups as $backup): ?>
+                                        <tr class="backup-row" data-type="<?= html_encode($backup['type']) ?>" data-age="<?= (int) $backup['age_days'] ?>" data-name="<?= html_encode(strtolower($backup['filename'])) ?>">
+                                            <td><input type="checkbox" class="backup-checkbox" value="<?= html_encode($backup['filename']) ?>"></td>
+                                            <td>
+                                                <i class="fa-regular fa-file-zipper me-1" aria-hidden="true"></i>
+                                                <strong><?= html_encode($backup['filename']) ?></strong>
+                                            </td>
+                                            <td><span class="badge bg-secondary admin-backup-type"><?= html_encode(strtoupper($backup['type'])) ?></span></td>
+                                            <td><?= formatBytes($backup['size']) ?></td>
+                                            <td><?= date('d/m/Y H:i', strtotime($backup['date'])) ?></td>
+                                            <td>
+                                                <?= __plural('admin/system.backup_age_days', $backup['age_days'], ['%count%' => $backup['age_days']]) ?>
+                                                <?php if ($backup['age_days'] > 30): ?>
+                                                    <span class="badge bg-warning ms-1"><?= __('admin/system.backup_table_old') ?></span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="?page=backup&action=download&file=<?= urlencode($backup['filename']) ?>" class="btn btn-outline-secondary" title="<?= __('admin/system.backup_btn_download') ?>">
+                                                        <i class="fa fa-download"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-outline-secondary" onclick="showRestoreModal(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/system.backup_btn_restore') ?>">
+                                                        <i class="fa fa-upload"></i>
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-danger" onclick="deleteBackup(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/general.btn_delete') ?>">
+                                                        <i class="fa fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </section>
 </div>
 
 <div class="modal fade" id="restoreModal" tabindex="-1" aria-labelledby="restoreModalLabel" aria-hidden="true">

@@ -897,6 +897,21 @@ function admin_modules_nav(array $tabs, string $active): string
 	]);
 }
 
+/**
+ * Affiche la navigation de la page sauvegardes admin (style dashboard).
+ *
+ * @param array<string, array{label: string, icon?: string, badge?: string}> $tabs
+ */
+function admin_backup_nav(array $tabs, string $active): string
+{
+	return admin_tabs($tabs, [
+		'active' => $active,
+		'type' => 'link',
+		'page' => 'backup',
+		'aria_label' => __('admin/menu.sub_backup'),
+	]);
+}
+
 function admin_modules_empty(string $message, string $icon = 'fa-box-open'): string
 {
 	return admin_settings_empty($message, $icon);
