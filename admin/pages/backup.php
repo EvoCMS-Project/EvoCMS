@@ -25,22 +25,69 @@ checkAndExecuteAutoBackups();
 // Téléchargement de sauvegarde spécifique
 if ($action = App::GET('action')) {
     if ($action === 'download' && $file = App::GET('file')) {
-        $filepath = $backup_dir . '/' . basename($file);
-        
-        if (file_exists($filepath) && is_file($filepath)) {
-            header('Content-Type: application/zip');
-            header('Content-Disposition: attachment; filename="' . basename($file) . '"');
-            header('Content-Length: ' . filesize($filepath));
-            header('Cache-Control: no-cache, must-revalidate');
-            readfile($filepath);
-            exit;
-        } else {
+        if (!sendBackupDownload($file, $backup_dir)) {
             die(__('admin/system.backup_error_file_not_found', ['%file%' => htmlspecialchars($file)]));
         }
     }
 }
 
 // Fonctions de gestion des sauvegardes
+function backupFilename(string $type, string $name = ''): string {
+    $name = trim($name);
+
+    if ($name !== '') {
+        $name = pathinfo(basename(str_replace('\\', '/', $name)), PATHINFO_FILENAME);
+        $name = preg_replace('/[^A-Za-z0-9._-]+/', '-', $name);
+        $name = trim($name, '.-_');
+
+        if ($name !== '') {
+            return $name . '.zip';
+        }
+    }
+
+    $typeNames = [
+        'web' => 'files',
+        'sql' => 'databases',
+        'full' => 'full',
+        'config' => 'config'
+    ];
+    $dateStr = date('Y-m-d_H-i-s');
+
+    return 'backup-' . $typeNames[$type] . '-' . $dateStr . '.zip';
+}
+
+function backupDefaultExcludes(string $backup_dir, string $filepath): array {
+    return [
+        rtrim(str_replace('\\', '/', $backup_dir), '/'),
+        str_replace('\\', '/', $filepath),
+    ];
+}
+
+function sendBackupDownload(string $file, string $backup_dir): bool {
+    $filename = basename(str_replace('\\', '/', $file));
+    $filepath = $backup_dir . '/' . $filename;
+
+    if ($filename === '' || !is_file($filepath) || !is_readable($filepath)) {
+        return false;
+    }
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
+    header_remove();
+    header('Content-Description: File Transfer');
+    header('Content-Type: application/zip');
+    header('Content-Transfer-Encoding: binary');
+    header('Content-Disposition: attachment; filename="' . addcslashes($filename, '"\\') . '"; filename*=UTF-8\'\'' . rawurlencode($filename));
+    header('Content-Length: ' . filesize($filepath));
+    header('Cache-Control: private, no-store, no-cache, must-revalidate');
+    header('Pragma: public');
+
+    readfile($filepath);
+    exit;
+}
+
 function createBackup($type, $name = '', $compression = 6, $exclude = []) {
     $backup_dir = ROOT_DIR . '/backups';
     
@@ -57,21 +104,9 @@ function createBackup($type, $name = '', $compression = 6, $exclude = []) {
         throw new Exception(__('admin/system.backup_error_dir_writable', ['%dir%' => $backup_dir]));
     }
     
-    // Utiliser le nom personnalisé s'il est fourni, sinon générer automatiquement
-    if ($name && !empty(trim($name))) {
-        $filename = $name . '.zip';
-    } else {
-        $typeNames = [
-            'web' => 'files',
-            'sql' => 'databases', 
-            'full' => 'full',
-            'config' => 'config'
-        ];
-        $dateStr = date('Y-m-d_H-i-s');
-        $filename = 'backup-' . $typeNames[$type] . '-' . $dateStr . '.zip';
-    }
-    
+    $filename = backupFilename($type, $name);
     $filepath = $backup_dir . '/' . $filename;
+    $exclude = array_merge($exclude, backupDefaultExcludes($backup_dir, $filepath));
     
     
     $zip = new Evo\BetterZip();
@@ -435,16 +470,7 @@ if ($_POST) {
             
         case 'download':
             $filename = App::POST('file');
-            $filepath = $backup_dir . '/' . basename($filename);
-            
-            if (file_exists($filepath) && is_file($filepath)) {
-        header('Content-Type: application/zip');
-                header('Content-Disposition: attachment; filename="' . basename($filename) . '"');
-                header('Content-Length: ' . filesize($filepath));
-                header('Cache-Control: no-cache, must-revalidate');
-                readfile($filepath);
-                exit;
-            } else {
+            if (!sendBackupDownload($filename, $backup_dir)) {
                 App::setNotice(__('admin/system.backup_error_file_not_found', ['%file%' => $filename]), 'danger');
             }
             break;
@@ -715,14 +741,14 @@ $backup_stats = [
             <?php elseif ($tab === 'schedule'): ?>
                 <div class="admin-backup-board__pane">
                     <div class="row g-4">
-                        <div class="col-lg-6">
+                        <div class="col-12">
                             <?php ob_start(); ?>
                             <form method="post">
                                 <?= admin_csrf_field() ?>
                                 <input type="hidden" name="action" value="schedule_backup">
 
                                 <div class="row g-3">
-                                    <div class="col-md-6">
+                                    <div class="col-xl-3 col-md-6">
                                         <label for="schedule_type" class="form-label small"><?= __('admin/system.backup_auto_type') ?></label>
                                         <select name="schedule_type" id="schedule_type" class="form-select">
                                             <option value="web" <?= App::getConfig('backup.auto.type', 'full') == 'web' ? 'selected' : '' ?>><?= __('admin/system.backup_type_web') ?></option>
@@ -731,7 +757,7 @@ $backup_stats = [
                                             <option value="config" <?= App::getConfig('backup.auto.type', 'full') == 'config' ? 'selected' : '' ?>><?= __('admin/system.backup_type_config') ?></option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-xl-3 col-md-6">
                                         <label for="schedule_frequency" class="form-label small"><?= __('admin/system.backup_auto_frequency') ?></label>
                                         <select name="schedule_frequency" id="schedule_frequency" class="form-select">
                                             <option value="daily" <?= App::getConfig('backup.auto.frequency', 'daily') == 'daily' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_daily') ?></option>
@@ -739,11 +765,11 @@ $backup_stats = [
                                             <option value="monthly" <?= App::getConfig('backup.auto.frequency', 'daily') == 'monthly' ? 'selected' : '' ?>><?= __('admin/system.backup_auto_frequency_monthly') ?></option>
                                         </select>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-xl-3 col-md-6">
                                         <label for="schedule_time" class="form-label small"><?= __('admin/system.backup_auto_time') ?></label>
                                         <input type="time" name="schedule_time" id="schedule_time" class="form-control" value="<?= App::getConfig('backup.auto.time', '02:00') ?>">
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-xl-3 col-md-6">
                                         <label for="schedule_retention" class="form-label small"><?= __('admin/system.backup_auto_retention') ?> (<?= __('admin/system.backup_auto_days') ?>)</label>
                                         <input type="number" name="schedule_retention" id="schedule_retention" class="form-control" value="<?= App::getConfig('backup.auto.retention', '30') ?>" min="1" max="365">
                                     </div>
@@ -818,13 +844,13 @@ $backup_stats = [
                                             </td>
                                             <td>
                                                 <div class="btn-group btn-group-sm">
-                                                    <a href="?page=backup&action=download&file=<?= urlencode($backup['filename']) ?>" class="btn btn-outline-secondary" title="<?= __('admin/system.backup_btn_download') ?>">
+                                                    <a href="?page=backup&action=download&file=<?= urlencode($backup['filename']) ?>" class="btn btn-outline-secondary js-download-backup" title="<?= __('admin/system.backup_btn_download') ?>">
                                                         <i class="fa-solid fa-download"></i>
                                                     </a>
-                                                    <button type="button" class="btn btn-outline-secondary" onclick="showRestoreModal(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/system.backup_btn_restore') ?>">
+                                                    <button type="button" class="btn btn-outline-secondary js-restore-backup" data-backup-file="<?= html_encode($backup['filename']) ?>" title="<?= __('admin/system.backup_btn_restore') ?>">
                                                         <i class="fa-solid fa-upload"></i>
                                                     </button>
-                                                    <button type="button" class="btn btn-outline-danger" onclick="deleteBackup(<?= json_encode($backup['filename']) ?>)" title="<?= __('admin/general.btn_delete') ?>">
+                                                    <button type="button" class="btn btn-outline-danger js-delete-backup" data-backup-file="<?= html_encode($backup['filename']) ?>" title="<?= __('admin/general.btn_delete') ?>">
                                                         <i class="fa-solid fa-trash-can"></i>
                                                     </button>
                                                 </div>
@@ -1004,6 +1030,18 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    document.querySelectorAll('.js-restore-backup').forEach(button => {
+        button.addEventListener('click', function() {
+            showRestoreModal(this.dataset.backupFile);
+        });
+    });
+
+    document.querySelectorAll('.js-delete-backup').forEach(button => {
+        button.addEventListener('click', function() {
+            deleteBackup(this.dataset.backupFile);
+        });
+    });
+
     document.querySelectorAll('.backup-row').forEach(row => {
         row.addEventListener('click', function(e) {
             if (e.target.type === 'checkbox' || e.target.closest('.btn-group')) {
@@ -1021,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target.type === 'checkbox' || e.target.closest('.btn-group')) {
                 return;
             }
-            this.querySelector('a[title="' + backupI18n.downloadTitle + '"]')?.click();
+            this.querySelector('.js-download-backup')?.click();
         });
     });
 

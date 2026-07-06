@@ -21,82 +21,52 @@ $mails  = Db::QueryAll(
 	 $user_info->id,
 	 $user_info->id
 );
+
+$user_tabs = [
+	'user' => ['label' => __('admin/user_view.tab_profi'), 'icon' => 'fa-user'],
+	'profile' => ['label' => __('admin/user_view.tab_edit'), 'icon' => 'fa-pencil'],
+	'messages' => ['label' => __('admin/user_view.tab_mail'), 'icon' => 'fa-envelope'],
+	'files' => ['label' => __('admin/user_view.tab_file'), 'icon' => 'fa-folder', 'disabled' => true],
+	'history' => ['label' => __('admin/user_view.tab_logs'), 'icon' => 'fa-clock-rotate-left'],
+];
+
+$user_stats = admin_user_view_build_stats($user_info, $mails, $history);
 ?>
-<ul class="nav nav-tabs admin-tabs">
-	<li class="nav-item"><a class="nav-link active" href="#user" data-bs-toggle="tab"><?= __('admin/user_view.tab_profi') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#profile" data-bs-toggle="tab"><?= __('admin/user_view.tab_edit') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#messages" data-bs-toggle="tab"><?= __('admin/user_view.tab_mail') ?></a></li>
-	<li class="nav-item"><a class="nav-link disabled" href="#files" data-bs-toggle="tab"><?= __('admin/user_view.tab_file') ?></a></li>
-	<li class="nav-item"><a class="nav-link" href="#history" data-bs-toggle="tab"><?= __('admin/user_view.tab_logs') ?></a></li>
-</ul>
-<div class="tab-content admin-tabs-panel">
-	<div class="tab-pane fade" id="profile" style="padding: 1em;">
-	<?php if (has_permission('admin.edit_uprofile')): ?>
-		<?php include ROOT_DIR.'/pages/profile.php'; ?>
-	<?php else: ?>
-		<?= __('admin/user_view.tab_denied') ?>
-	<?php endif; ?>
-	</div>
 
-	<div class="tab-pane fade active show" id="user" style="padding: 1em;">
-		<?php include ROOT_DIR.'/pages/user.php'; ?>
-	</div>
+<div class="admin-dashboard admin-user-view">
+	<?= admin_stat_grid($user_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
 
-	<div class="tab-pane fade" id="messages" style="padding: 1em;">
-	<?php if (has_permission('admin.view_user_messages')): ?>
-		<table class="table">
-			<thead>
-				<th><?= __('admin/user_view.tab_send') ?></th>
-				<th><?= __('admin/user_view.tab_from') ?></th>
-				<th><?= __('admin/user_view.tab_to') ?></th>
-				<th><?= __('admin/user_view.tab_subject') ?></th>
-				<th><?= __('admin/user_view.tab_content') ?></th>
-			</thead>
-			<tbody>
-			<?php
-				foreach($mails as $data) {
-					echo '<tr>';
-						echo '<td style="white-space:nowrap;">' . date('Y-m-d H:i', $data['posted']) . '</td>';
-						echo '<td>' . html_encode($data['su']) . '</td>';
-						echo '<td>' . html_encode($data['ru']) . '</td>';
-						echo '<td>' . $data['sujet'] . '</td>';
-						echo '<td>' . nl2br(html_encode($data['message'])) . '</td>';
-					echo "</tr>";
-				}
-			?>
-			</tbody>
-		</table>
-	<?php else: ?>
-		<?= __('admin/user_view.tab_denied') ?>
-	<?php endif; ?>
-	</div>
+	<section class="admin-tabs-board admin-user-view-board">
+		<?= admin_user_view_nav($user_tabs, 'user') ?>
 
-	<div class="tab-pane fade" id="history" style="padding: 1em;">
-	<?php if (has_permission('admin.view_user_history')): ?>
-		<table class="table">
-			<thead>
-				<th><?= __('admin/history.date') ?></th>
-				<th><?= __('admin/history.username') ?></th>
-				<th><?= __('admin/history.affected') ?></th>
-				<th><?= __('admin/history.ip') ?></th>
-				<th><?= __('admin/history.event') ?></th>
-			</thead>
-			<tbody>
-			<?php
-				foreach($history as $data) {
-					echo '<tr>';
-						echo '<td style="white-space:nowrap;">' . date('Y-m-d H:i', $data['timestamp']) . '</td>';
-						echo '<td>' . html_encode($data['username']) . '</td>';
-						echo '<td>' . html_encode($data['ausername']) . '</td>';
-						echo '<td>' . $data['ip'] . '</td>';
-						echo '<td>' . nl2br(html_encode($data['event'])) . '</td>';
-					echo "</tr>";
-				}
-			?>
-			</tbody>
-		</table>
-	<?php else: ?>
-		<?= __('admin/user_view.tab_denied') ?>
-	<?php endif; ?>
-	</div>
+		<div class="tab-content admin-tabs-board__body admin-user-view-board__body admin-tabs-panel admin-user-view-board__body--content">
+			<?= admin_user_view_tab_open('user', true) ?>
+				<?php include ROOT_DIR . '/pages/user.php'; ?>
+			<?= admin_user_view_tab_close() ?>
+
+			<?= admin_user_view_tab_open('profile', false) ?>
+				<?php if (has_permission('admin.edit_uprofile')): ?>
+					<?php include ROOT_DIR . '/pages/profile.php'; ?>
+				<?php else: ?>
+					<?= admin_user_view_denied() ?>
+				<?php endif; ?>
+			<?= admin_user_view_tab_close() ?>
+
+			<?= admin_user_view_tab_open('messages', false) ?>
+				<?php if (has_permission('admin.view_user_messages')): ?>
+					<?= admin_user_view_messages_table($mails) ?>
+				<?php else: ?>
+					<?= admin_user_view_denied() ?>
+				<?php endif; ?>
+			<?= admin_user_view_tab_close() ?>
+
+			<?= admin_user_view_tab_open('history', false) ?>
+				<?php if (has_permission('admin.view_user_history')): ?>
+					<?= admin_user_view_history_table($history) ?>
+				<?php else: ?>
+					<?= admin_user_view_denied() ?>
+				<?php endif; ?>
+			<?= admin_user_view_tab_close() ?>
+		</div>
+	</section>
 </div>

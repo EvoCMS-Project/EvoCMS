@@ -124,7 +124,7 @@ function hashchanged(event) {
 		$('.forum .highlight, .commentaires .highlight').removeClass('highlight');
 		$(hash).addClass('highlight');
 	} else {
-		$('a[href="' + hash + '"][data-bs-toggle="tab"]').click();
+		$('[data-bs-toggle="tab"][href="' + hash + '"], [data-bs-toggle="tab"][data-bs-target="' + hash + '"]').click();
 	}
 	return false;
 }
@@ -1668,10 +1668,140 @@ function adminInitToolbarSearch(context) {
 	});
 }
 
+function adminInitTabsPanelResize() {
+	if (adminInitTabsPanelResize.initialized) {
+		return;
+	}
+
+	adminInitTabsPanelResize.initialized = true;
+
+	function getTabTarget(tab) {
+		var selector = tab.getAttribute('data-bs-target') || tab.getAttribute('href') || '';
+
+		if (!selector || selector.charAt(0) !== '#') {
+			return null;
+		}
+
+		try {
+			return document.querySelector(selector);
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function releasePanel(panel) {
+		window.clearTimeout(panel.adminTabsResizeTimer);
+		panel.style.height = '';
+		panel.classList.remove('admin-tabs-panel--resizing');
+	}
+
+	function shouldResizePanel(panel) {
+		return !panel.classList.contains('admin-modules-board__body--content');
+	}
+
+	function lockPanel(panel) {
+		window.clearTimeout(panel.adminTabsResizeTimer);
+		panel.style.height = panel.getBoundingClientRect().height + 'px';
+		panel.classList.add('admin-tabs-panel--resizing');
+	}
+
+	$(document).on('show.bs.tab', '[data-bs-toggle="tab"]', function () {
+		var target = getTabTarget(this);
+		var panel = target ? target.closest('.admin-tabs-panel') : null;
+
+		if (!panel) {
+			return;
+		}
+
+		if (!shouldResizePanel(panel)) {
+			releasePanel(panel);
+			return;
+		}
+
+		lockPanel(panel);
+	});
+
+	$(document).on('shown.bs.tab', '[data-bs-toggle="tab"]', function () {
+		var target = getTabTarget(this);
+		var panel = target ? target.closest('.admin-tabs-panel') : null;
+
+		if (!panel) {
+			return;
+		}
+
+		if (!shouldResizePanel(panel)) {
+			releasePanel(panel);
+			return;
+		}
+
+		var nextHeight = panel.scrollHeight;
+
+		window.requestAnimationFrame(function () {
+			panel.style.height = nextHeight + 'px';
+		});
+
+		panel.adminTabsResizeTimer = window.setTimeout(function () {
+			releasePanel(panel);
+		}, 260);
+
+		$(panel).one('transitionend.adminTabsResize', function (event) {
+			if (event.originalEvent && event.originalEvent.propertyName === 'height') {
+				releasePanel(panel);
+			}
+		});
+	});
+}
+
+function adminInitTableTextSize(context) {
+	var $scope = context ? $(context) : $(document);
+
+	$scope.find('[data-admin-table-text-size]').each(function () {
+		var $wrap = $(this);
+
+		if ($wrap.data('adminTableTextSizeInit')) {
+			return;
+		}
+
+		$wrap.data('adminTableTextSizeInit', true);
+
+		var storageKey = $wrap.attr('data-admin-table-text-size-key') || 'admin-table-text-size';
+		var minLevel = parseInt($wrap.attr('data-admin-table-text-size-min') || '0', 10);
+		var maxLevel = parseInt($wrap.attr('data-admin-table-text-size-max') || '4', 10);
+		var defaultLevel = parseInt($wrap.attr('data-admin-table-text-size-default') || '1', 10);
+		var storedLevel = parseInt(window.localStorage.getItem(storageKey), 10);
+		var $decrease = $wrap.find('[data-admin-table-text-size-down]');
+		var $increase = $wrap.find('[data-admin-table-text-size-up]');
+
+		function clampLevel(level) {
+			return Math.max(minLevel, Math.min(maxLevel, level));
+		}
+
+		function applyLevel(level) {
+			level = clampLevel(level);
+			$wrap.attr('data-table-text-size', String(level));
+			window.localStorage.setItem(storageKey, String(level));
+			$decrease.prop('disabled', level <= minLevel);
+			$increase.prop('disabled', level >= maxLevel);
+		}
+
+		applyLevel(Number.isFinite(storedLevel) ? storedLevel : defaultLevel);
+
+		$decrease.on('click', function () {
+			applyLevel(parseInt($wrap.attr('data-table-text-size') || String(defaultLevel), 10) - 1);
+		});
+
+		$increase.on('click', function () {
+			applyLevel(parseInt($wrap.attr('data-table-text-size') || String(defaultLevel), 10) + 1);
+		});
+	});
+}
+
 $(function () {
 	adminInitFileDropzones();
 	adminInitImagePreview();
 	adminInitIconSelects();
 	adminInitAvatarsBoard();
 	adminInitToolbarSearch();
+	adminInitTabsPanelResize();
+	adminInitTableTextSize();
 });

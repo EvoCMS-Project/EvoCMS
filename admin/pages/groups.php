@@ -6,8 +6,9 @@ global $_permissions;
 
 if (isset(App::$POST['update_group'])) {
 	if ($group = App::getGroup(App::$POST['update_group'])) {
+		$permissions = [];
 		$group->name = App::$POST['group_name'];
-		$group->role = App::$POST['group_role'];
+		$group->role = App::$POST['group_role'] ?? $group->role;
 		$group->color = App::$POST['color'];
 		$group->save();
 		foreach($_permissions as $perm_group => $perms) {
@@ -57,6 +58,8 @@ elseif (isset(App::$POST['reorder'])) {
 	App::setSuccess(__('admin/groups.alert_menu_success'));
 }
 
+$groups = [];
+
 foreach(Group::select() as $group) {
 	$groups[$group->id] = [
 		'permissions' => $group->getPermissions(),
@@ -66,143 +69,74 @@ foreach(Group::select() as $group) {
 uasort($groups, function($a, $b) { return $a['priority'] <=> $b['priority']; });
 
 $cur_id = isset($groups[App::GET('id')]) ? App::GET('id') : key($groups);
+$group_tabs = [
+	'general' => ['label' => __('admin/groups.tab_general'), 'icon' => 'fa-gear'],
+];
+
+foreach ($_permissions as $id => $perms) {
+	$group_tabs['perms-' . $id] = ['label' => $perms['label'], 'icon' => 'fa-key'];
+}
+
+$groups_stats = admin_groups_build_stats($groups);
 ?>
-<div class="card mb-4">
-	<div class="card-header p-2"><h4><?= __('admin/groups.creation_title') ?></h4></div>
-	<div class="card-body">
-		<form class="form-horizontal" role="form" method="post">
-			<?= admin_csrf_field() ?>
-			<div class="mb-3 row">
-				<label class="col-sm-3 col-form-label text-end"><?= __('admin/groups.creation_name') ?></label>
-				<div class="col-sm-6">
-					<input type="text" class="form-control" name="new_group_name">
-				</div>
-				<button type="submit" class="btn btn-success" style="margin-top: 2px;"><?= __('admin/groups.creation_btn') ?></button>
-			</div>
-		</form>
-	</div>
-</div>
 
-<div class="card">
-	<div class="card-header p-2">
-		<h4 class="card-title"><?= __('admin/groups.management_title') ?> : <em><?=html_encode($groups[$cur_id]['name']) ?></em></h4>
-	</div>
-	<div class="card-body">
-	<form method="post">
-		<?= admin_csrf_field() ?>
-		<div class="mb-3 row">
+<div class="admin-dashboard admin-groups">
+	<?= admin_stat_grid($groups_stats, ['variant' => 'kpi', 'class' => 'mb-0']) ?>
 
-			<div class="col-md-3 order-2">
-				<table id="reorder" class="sortable" cellspacing="0" cellpadding="2" style="width:100%;">
-				<?php
-					foreach($groups as $id => $group) {
-						if ($cur_id == $id) {
-							echo '<tr id="'.$group['id'].'"><td class="group-color-'.$group['color'].'"><strong>'.$group['name'].'</strong></td><td></td><td><small>'.$group['count'].' '. __('admin/groups.management_users') .'</small></td></tr>';
-						} else {
-							echo '<tr id="'.$group['id'].'"><td><a href="?page=groups&id='.$id.'" style="';
-							echo '" class="group-color-'.$group['color'].'">'.$group['name'].'</a></td><td></td><td><small>'.$group['count'].' '. __('admin/groups.management_users') .'</small></td></tr>';
-						}
-					}
-				?>
-				</table>
-			</div>
+	<section class="admin-tabs-board admin-groups-board">
+		<div class="admin-tabs-board__body admin-groups-board__body admin-tabs-panel">
+			<?= admin_groups_create_board() ?>
 
-		  <div class="col-md-9 order-1"  style="border-left:1px solid #ddd;">
-			<ul class="nav nav-tabs admin-tabs">
-			  <li class="nav-item"><a class="nav-link active" href="#general" data-bs-toggle="tab"><?= __('admin/groups.tab_general') ?></a></li>
-				<?php
-				foreach($_permissions as $id => $perms) {
-					echo '<li class="nav-item"><a class="nav-link" href="#perms-'.$id.'" data-bs-toggle="tab">'.$perms['label'].'</a></li>';
-				}
-				?>
-			</ul>
-			<div class="tab-content admin-tabs-panel">
-				<div class="tab-pane fade active show p-3" id="general">
-					<legend><?= __('admin/groups.config_title') ?> </legend>
-					<div class="mb-3 row" style="height: 30px;">
-						<label class="col-sm-5 col_gm col-form-label text-end"><?= __('admin/groups.config_gname') ?></label>
-						<div class="col-sm-6">
-							<input type="text" class="form-control" name="group_name" value="<?= $groups[$cur_id]['name']?>">
+			<?php if (!$groups): ?>
+				<?= admin_groups_empty(__('admin/groups.no_perms')) ?>
+			<?php else: ?>
+				<form method="post" class="admin-groups-form">
+					<?= admin_csrf_field() ?>
+					<div class="admin-groups-layout">
+						<aside class="admin-groups-layout__sidebar">
+							<?= admin_groups_list($groups, (int) $cur_id) ?>
+						</aside>
+
+						<div class="admin-groups-layout__content">
+							<header class="admin-groups-current">
+								<span class="admin-modules-table__caption-icon admin-modules-table__caption-icon--primary"><i class="fa-solid fa-users-gear" aria-hidden="true"></i></span>
+								<span><?= html_encode(__('admin/groups.management_title')) ?> : <strong class="group-color-<?= html_encode((string) $groups[$cur_id]['color']) ?>"><?= html_encode($groups[$cur_id]['name']) ?></strong></span>
+							</header>
+
+							<?= admin_groups_nav($group_tabs, 'general') ?>
+
+							<div class="tab-content admin-tabs-board__body admin-groups-board__body admin-tabs-panel admin-groups-board__body--content">
+								<?= admin_groups_tab_open('general', true) ?>
+									<?= admin_groups_general_board($groups[$cur_id], $groups, (int) $cur_id) ?>
+								<?= admin_groups_tab_close() ?>
+
+								<?php foreach ($_permissions as $id => $perms): ?>
+									<?= admin_groups_tab_open('perms-' . $id, false) ?>
+										<?= admin_groups_permissions_board((string) $id, $perms, (int) $cur_id) ?>
+									<?= admin_groups_tab_close() ?>
+								<?php endforeach; ?>
+
+								<footer class="admin-settings-section__footer">
+									<div class="text-center">
+										<button type="submit" name="update_group" value="<?= (int) $cur_id ?>" class="btn btn-primary">
+											<i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i><?= html_encode(__('admin/groups.save')) ?>
+										</button>
+									</div>
+								</footer>
+							</div>
 						</div>
 					</div>
-					<div class="mb-3 row" style="height: 30px;">
-						<label class="col-sm-5 col_gm col-form-label text-end"><?= __('admin/groups.config_grole') ?></label>
-						<div class="col-sm-6">
-						<?php if ($groups[$cur_id]['internal']) { ?>
-							<input class="form-control" disabled value="<?= $groups[$cur_id]['role'] ?>">
-						<?php } else { ?>
-							<?= Widgets::select('group_role', [''=>''] + array_combine(GROUP_ROLES, GROUP_ROLES), $groups[$cur_id]['role']) ?>
-						<?php } ?>
-						</div>
-					</div>
-					<div class="mb-3 row" style="height: 30px;">
-						<label for="`color`" class="col-sm-5 col_gm col-form-label text-end" ><?= __('admin/groups.config_cname') ?></label>
-						<div class="col-sm-6" style="margin-top:4px">
-							<select class="form-control group-color-<?= $groups[$cur_id]['color'] ?>" name="color"
-								onchange="this.className = 'form-control ' + $(this).find(':selected')[0].className;">
-							<?php
-								for ($i = 0; $i < 16; $i++) {
-									echo '<option '. ($i == $groups[$cur_id]['color'] ? 'selected="selected"' : '').
-										  ' value="'.$i.'" class="group-color-'.$i.'">'.$i.' ██████████</option>';
-								}
-								?>
-							</select>
-						</div>
-					</div>
-					<input type="submit" name="update_group" value="<?php echo $cur_id?>" hidden>
-
-					<legend><?= __('admin/groups.delete_title') ?></legend>
-					<?php if ($groups[$cur_id]['internal']) { ?>
-						<em><?= __('admin/groups.delete_violation',['%gid%' => $groups[$cur_id]['internal']]) ?></em>
-					<?php } else { ?>
-					<div class="mb-3 row text-center" style="display: block">
-						<button type="submit" name="delete_group" class="btn btn-danger" onclick="return confirm('Sur?');" value="<?php echo $cur_id?>"><?= __('admin/groups.delete_btn') ?></button>
-						<?= __('admin/groups.delete_move') ?> :
-						<?php
-							foreach($groups as $_group) {
-								$_options[$_group['id']] = $_group['name'];
-							}
-							echo Widgets::select('delete_new_group', $_options, App::getConfig('default_user_group'), true, '');
-						?>
-					</div>
-					<?php } ?>
-				</div>
-				<?php
-					foreach($_permissions as $id => $perms) {
-						echo '<div class="tab-pane fade p-3" id="perms-'.$id.'">';
-						echo '<label class="float-end">'. __('admin/groups.config_check_all') .' <input type="checkbox" class="check-all" data-group="'.$id.'"></label>';
-							$permissions_count = 0;
-							foreach($perms as $title => $permissions) {
-								if (is_array($permissions)) {
-									echo '<legend>'.$title.'</legend>';
-									foreach($permissions as $pname => $ptag) {
-										$permissions_count++;
-										echo '<div class="checkbox">
-													<label><input type="checkbox" data-group="'.$id.'" autocomplete="off" name="perms['.$id.'.'.$pname.']" '.(App::groupHasPermission($cur_id, "$id.$pname") ? 'checked="checked"' : '').' value="1">'.$ptag.'</label>
-												</div>';
-									}
-								}
-							}
-
-							if ($permissions_count === 0) {
-								echo '<em>'. __('admin/groups.no_perms') .'</em>';
-							}
-						echo '</div>';
-					}
-				?>
-				<div class="mb-3 row text-center" style="display:block">
-					<button type="submit" name="update_group" value="<?php echo $cur_id?>" class="btn btn-success"><?= __('admin/groups.save') ?></button>
-				</div>
-			</div>
+				</form>
+			<?php endif; ?>
 		</div>
-		</div>
-	</form>
-	</div>
+	</section>
 </div>
 <script>
-	$('.check-all').click(function() {
+(function () {
+	$('.check-all').on('click', function() {
 		var g = $(this).attr('data-group');
 		$('[data-group='+g+']').prop('checked', this.checked);
 	})
 	.prop('indeterminate', true);
+})();
 </script>
