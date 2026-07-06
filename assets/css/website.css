@@ -116,6 +116,35 @@
 	margin-bottom: 2px;
 }
 
+#zone_login #user-dropdown {
+	margin-top: 0.5rem;
+}
+
+#zone_login #user-dropdown .user-dropdown__toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.35rem 0.65rem;
+	border: 1px solid rgba(0, 0, 0, 0.1);
+	border-radius: 0.25rem;
+	background: #fff;
+	color: #333;
+	font-size: 0.9rem;
+	text-decoration: none;
+}
+
+#zone_login #user-dropdown .user-dropdown__toggle:hover,
+#zone_login #user-dropdown .user-dropdown__toggle:focus {
+	background: #f8f9fa;
+	color: #333;
+	text-decoration: none;
+}
+
+#zone_login #user-dropdown .user-dropdown__chevron {
+	font-size: 0.65rem;
+	opacity: 0.7;
+}
+
 #sidebar li{
 	margin-top: 8px;
 	list-style-type: none;

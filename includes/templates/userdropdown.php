@@ -7,11 +7,20 @@ $extra_menu_items = [];
 App::trigger('user_menu', [&$extra_menu_items]);
 
 ?><div class="dropdown" id="user-dropdown">
-	<a href="<?=App::getURL('user');?>" class="btn btn-default" data-hover="dropdown"><span class="account"><?= __('userdropdown.account') ?> (</span><strong><?= App::getCurrentUser()->username ?></strong><span class="account">)</span>
-	<?php if ($alerts) echo ' <i class="fa fa-bell"></i> '. $alerts ?></a>
-	<button type="button" class="btn btn-default dropdown-toggle dropdown-toggle-split account" data-hover="dropdown">
-		<span class="visually-hidden">Toggle Dropdown</span>
-	</button>
+	<a href="<?=App::getURL('user');?>" class="user-dropdown__toggle" data-hover="dropdown" aria-haspopup="true">
+		<span class="user-dropdown__label">
+			<span class="account"><?= __('userdropdown.account') ?> (</span>
+			<span class="user-dropdown__name"><?= html_encode(App::getCurrentUser()->username) ?></span>
+			<span class="account">)</span>
+		</span>
+		<?php if ($alerts): ?>
+		<span class="user-dropdown__badge">
+			<i class="fa fa-bell" aria-hidden="true"></i>
+			<span class="user-dropdown__badge-count"><?= (int) $alerts ?></span>
+		</span>
+		<?php endif; ?>
+		<i class="fa fa-chevron-down user-dropdown__chevron" aria-hidden="true"></i>
+	</a>
 	<div id="userdropdown" class="dropdown-menu" role="menu" style="margin-top: -4px;">
 		<?php
 		echo '<a class="dropdown-item" href="'.App::getURL('profile').'"><i class="fa fa-pencil-alt"></i> '.__('userdropdown.profil').'</a>';

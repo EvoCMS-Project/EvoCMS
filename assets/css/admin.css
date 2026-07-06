@@ -141,7 +141,7 @@ a {
 
 
 #UserAcc {
-	padding: 32px 0 32px 0;
+	padding: 24px 0 16px;
 }
 
 #UserAcc .header {
@@ -149,7 +149,7 @@ a {
 }
 
 #UserAcc .header > img {
-	width: 85px !important;
+	width: 64px !important;
 }
 
 #UserAcc .username {
@@ -160,37 +160,96 @@ a {
 }
 
 #UserAcc .avatar {
-	margin: 0px !important;
+	margin: 0 auto !important;
 	border-radius: 0px;
-	width: 3.5em;
-	height: auto;
-	  box-shadow: 0px 0px 3px 1px #666;
+	width: 64px;
+	height: 64px;
+	max-width: 64px;
+	object-fit: cover;
+	transition: width 0.25s ease-in-out, height 0.25s ease-in-out, max-width 0.25s ease-in-out;
+	box-shadow: 0px 0px 3px 1px #666;
 }
 
 #user-dropdown {
 	display: block;
-	margin: .5em auto auto 0;
+	width: 100%;
+	margin: 0.75rem 0 0;
+	box-sizing: border-box;
 }
 
 #user-dropdown .account {
 	display: none;
 }
 
-#user-dropdown .username {
-	display: inline-block !important;
-}
-
-#user-dropdown .btn {
-	float: none;
-	background: inherit;
-	color: #9E9E9E;
-    font-weight: 100;
-	font-size: 1.25em;
-	margin-bottom: 0px;
-	text-transform: capitalize;
+#user-dropdown .user-dropdown__toggle {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	width: 100%;
+	padding: 0.45rem 0.75rem;
+	box-sizing: border-box;
 	border: none;
+	border-radius: 0.25rem;
+	background: transparent;
+	color: #b0bec5;
+	font-family: 'Open Sans', sans-serif;
+	font-size: 0.95rem;
+	font-weight: 300;
+	line-height: 1.2;
+	text-decoration: none;
+	text-transform: capitalize;
 	text-shadow: none;
 	box-shadow: none;
+	transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+#user-dropdown .user-dropdown__toggle:hover,
+#user-dropdown .user-dropdown__toggle:focus {
+	color: #ffc107;
+	background-color: rgba(0, 0, 0, 0.15);
+	text-decoration: none;
+	outline: none;
+}
+
+#user-dropdown .user-dropdown__label {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 0;
+	max-width: 100%;
+	overflow: hidden;
+}
+
+#user-dropdown .user-dropdown__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#user-dropdown .user-dropdown__badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	flex-shrink: 0;
+	padding: 0.1rem 0.4rem;
+	border-radius: 999px;
+	background-color: rgba(255, 193, 7, 0.15);
+	color: #ffc107;
+	font-size: 0.75rem;
+	line-height: 1;
+}
+
+#user-dropdown .user-dropdown__chevron {
+	flex-shrink: 0;
+	font-size: 0.65rem;
+	opacity: 0.85;
+	transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#user-dropdown .user-dropdown__toggle:hover .user-dropdown__chevron,
+#user-dropdown .user-dropdown__toggle:focus .user-dropdown__chevron {
+	opacity: 1;
 }
 
 #user-dropdown ul > li > a {
@@ -698,10 +757,6 @@ div.image_selector  {
 	color: #444 !important;
 }
 
-#user-dropdown .btn {
-	width: 100%;
-}
-
 #diffbox ins, .ins {
 	color: green;
 	background: #dfd;
@@ -733,12 +788,12 @@ div.image_selector  {
 	color: #d1d6e8;
 	position: absolute;
 	right: 0;
-	top: 50%;
+	top: 70%;
 	transform: translateY(-50%);
 	z-index: 0;
 	line-height: 1;
 	opacity: 0.03;
-	font-size: 300px;
+	font-size: 200px;
 	pointer-events: none;
 }
 
@@ -751,7 +806,7 @@ div.image_selector  {
 }
 
 .admin-panel {
-	margin-top: -70px;
+	margin-top: calc(-1 * var(--admin-panel-overlap));
 	border: none;
 	border-radius: 0.5rem;
 	overflow: hidden;
@@ -832,15 +887,29 @@ div.image_selector  {
 	background-color: #273339;
 }
 
+#admin-page {
+	--admin-panel-overlap: 70px;
+	--admin-header-min-height: 250px;
+}
+
 .plugin_header {
-	min-height: 250px;
+	min-height: var(--admin-header-min-height);
 	overflow: visible;
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+}
+
+#admin-page:has(.admin-panel) .plugin_header {
+	padding-bottom: var(--admin-panel-overlap);
 }
 
 .plugin_header .header {
 	position: relative;
-	min-height: 250px;
-	padding-bottom: 70px;
+	flex: 1 1 auto;
+	display: flex;
+	align-items: stretch;
+	min-height: 0;
 	box-sizing: border-box;
 }
 
@@ -849,15 +918,12 @@ div.image_selector  {
 }
 
 .plugin_header .plugin-header-inner {
-	position: absolute;
-	top: 0;
-	left: 0;
-	right: 0;
-	height: 250px;
+	position: static;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	width: 100%;
+	min-height: 100%;
 	overflow: visible;
 }
 
@@ -954,8 +1020,59 @@ div.image_selector  {
 		overflow: hidden;
 	}
 
-	.sidenav #user-dropdown .dropdown-toggle {
+	#UserAcc {
+		padding: 16px 0 10px;
+	}
+
+	#UserAcc .icon.header {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		text-align: center;
+	}
+
+	#UserAcc .avatar {
+		align-self: center;
+	}
+
+	#UserAcc #user-dropdown {
+		width: 100%;
+		padding: 0 6px;
+		box-sizing: border-box;
+	}
+
+	.sidenav:not(:hover) #UserAcc .user-dropdown__label,
+	.sidenav:not(:hover) #UserAcc .user-dropdown__badge {
 		display: none;
+	}
+
+	.sidenav:not(:hover) #UserAcc .user-dropdown__toggle {
+		padding: 0.35rem 0;
+	}
+
+	.sidenav:not(:hover) #UserAcc .user-dropdown__chevron {
+		font-size: 0.75rem;
+	}
+
+	.sidenav:hover #UserAcc .user-dropdown__toggle {
+		justify-content: center;
+	}
+
+	#UserAcc #user-dropdown .user-dropdown__toggle {
+		width: 100%;
+	}
+
+	.sidenav:not(:hover) #UserAcc .avatar {
+		width: 48px !important;
+		height: 48px !important;
+		max-width: 48px;
+		margin: 0 auto !important;
+	}
+
+	.sidenav:hover #UserAcc .avatar {
+		width: 64px !important;
+		height: 64px !important;
+		max-width: 64px;
 	}
 
 	#admin-header nav {
@@ -968,6 +1085,26 @@ div.image_selector  {
 
 	.tpl-admin .admin-footer {
 		margin-left: 95px;
+	}
+}
+
+@media (min-width: 1369px) {
+	#UserAcc .icon.header {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+
+	#UserAcc #user-dropdown {
+		width: 100%;
+		box-sizing: border-box;
+	}
+
+	#UserAcc .avatar {
+		width: 64px;
+		height: 64px;
+		max-width: 64px;
 	}
 }
 
@@ -1087,7 +1224,7 @@ a.admin-stat-card--linked:focus-visible {
 	background: transparent;
 	border: none;
 	box-shadow: none;
-	margin-top: -70px;
+	margin-top: calc(-1 * var(--admin-panel-overlap));
 }
 
 .admin-dashboard {

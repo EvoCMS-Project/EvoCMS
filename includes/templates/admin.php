@@ -21,7 +21,6 @@
 						</a>
 					</li>
 				</ul>
-				<a href="<?= App::getURL('/') ?>"><?= App::getConfig('name') ?></a>
 				<ul class="right hide-on-med-and-down">
 					<?php if ($update_available): ?>
 					<li>
