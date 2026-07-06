@@ -1,0 +1,50 @@
+name: Update Version File
+
+on:
+  push:
+    branches: [ main, master ]
+    paths-ignore:
+      - 'includes/version.php'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update includes/version.php
+        run: |
+          VERSION_FILE="includes/version.php"
+
+          COMMIT_HASH=$(git rev-parse --short HEAD)
+          COMMIT_DATE=$(git log -1 --format="%cd" --date="format:%a %b %d %H:%M:%S %Y %z")
+
+          CURRENT_VERSION=$(grep "define('EVO_VERSION'" "$VERSION_FILE" | cut -d"'" -f4)
+
+          MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
+          MINOR=$(echo "$CURRENT_VERSION" | cut -d. -f2)
+          PATCH=$(echo "$CURRENT_VERSION" | cut -d. -f3)
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+
+          sed -i "s/define('EVO_VERSION', '.*');/define('EVO_VERSION', '$NEW_VERSION');/" "$VERSION_FILE"
+          sed -i "s/define('EVO_BUILD', '.*');/define('EVO_BUILD', '$COMMIT_HASH');/" "$VERSION_FILE"
+          sed -i "s/define('EVO_BUILDDATE', '.*');/define('EVO_BUILDDATE', '$COMMIT_DATE');/" "$VERSION_FILE"
+          sed -i "s/define('EVO_RELEASEDATE', '.*');/define('EVO_RELEASEDATE', '$(date +%Y-%m-%d)');/" "$VERSION_FILE"
+
+          echo "Version updated: $CURRENT_VERSION -> $NEW_VERSION ($COMMIT_HASH)"
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add includes/version.php
+          git diff --staged --quiet || git commit -m "Auto-update version.php [skip ci]"
+          git push
