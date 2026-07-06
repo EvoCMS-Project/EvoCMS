@@ -146,12 +146,43 @@ function fa_icon_html(string $icon, string $style = 'solid', array $extra = [], 
  */
 function fa_icon_label(string $icon): string
 {
-	$classes = fa_icon_classes($icon);
-	if (!preg_match('/fa-([a-z0-9-]+)/', $classes, $matches)) {
-		return $icon;
+	$tokens = preg_split('/\s+/', trim(fa_icon_classes($icon))) ?: [];
+	$ignored = [
+		'fa-solid' => true,
+		'fa-regular' => true,
+		'fa-brands' => true,
+		'fa' => true,
+		'fas' => true,
+		'far' => true,
+		'fab' => true,
+		'fa-fw' => true,
+		'fa-lg' => true,
+		'fa-sm' => true,
+		'fa-xs' => true,
+		'fa-spin' => true,
+		'fa-pulse' => true,
+		'fa-inverse' => true,
+		'fa-stack' => true,
+		'fa-stack-1x' => true,
+		'fa-stack-2x' => true,
+		'fa-pull-left' => true,
+		'fa-pull-right' => true,
+		'fa-border' => true,
+		'fa-li' => true,
+		'fa-classic' => true,
+	];
+
+	foreach ($tokens as $token) {
+		if (isset($ignored[$token]) || preg_match('/^fa-\d+x$/', $token)) {
+			continue;
+		}
+
+		if (preg_match('/^fa-([a-z0-9-]+)$/', $token, $matches)) {
+			return $matches[1];
+		}
 	}
 
-	return $matches[1];
+	return $icon;
 }
 
 
@@ -459,43 +490,26 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 			$html .= '<hr class="admin-settings-subsection__divider">';
 		}
 
-		$html .= '<div class="admin-settings-subsection">';
-
-		if (!empty($group['title'])) {
-			$html .= '<header class="admin-settings-subsection__header">';
-
-			if (!empty($group['icon'])) {
-				$html .= '<span class="admin-settings-subsection__icon"><i class="fa-solid ' . html_encode($group['icon']) . '" aria-hidden="true"></i></span>';
-			}
-
-			$html .= '<div class="admin-settings-subsection__heading">';
-			$html .= '<h3 class="admin-settings-subsection__title">' . html_encode($group['title']) . '</h3>';
-
-			if (!empty($group['description'])) {
-				$html .= '<p class="admin-settings-subsection__desc">' . $group['description'] . '</p>';
-			}
-
-			$html .= '</div></header>';
-		}
-
-		$body_class = trim($group['body_class'] ?? '');
-		$html .= '<div class="admin-settings-subsection__body' . ($body_class !== '' ? ' ' . $body_class : '') . '">';
-
 		$settings = $group['settings'] ?? [];
+		$content = '';
 
 		if (!empty($group['content'])) {
-			$html .= $group['content'];
+			$content = $group['content'];
 		} elseif (!$settings && !empty($group['empty'])) {
-			$html .= admin_settings_empty($group['empty'], $group['icon'] ?? 'fa-inbox');
+			$content = admin_settings_empty($group['empty'], $group['icon'] ?? 'fa-inbox');
 		} else {
-			$html .= Widgets::formBuilder(null, admin_settings_prepare($settings), false, null);
+			$content = Widgets::formBuilder(null, admin_settings_prepare($settings), false, null);
 		}
 
 		if (!empty($group['extra'])) {
-			$html .= $group['extra'];
+			$content .= $group['extra'];
 		}
 
-		$html .= '</div></div>';
+		$html .= admin_settings_subsection($group['title'] ?? '', $content, [
+			'icon' => $group['icon'] ?? '',
+			'description' => $group['description'] ?? '',
+			'body_class' => $group['body_class'] ?? '',
+		]);
 	}
 
 	$html .= '</div>';
@@ -513,6 +527,36 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 	}
 
 	return $html . '</form>';
+}
+
+/**
+ * Affiche une sous-section réutilisable dans les formulaires groupés admin.
+ */
+function admin_settings_subsection(string $title, string $content, array $options = []): string
+{
+	$icon = $options['icon'] ?? '';
+	$description = $options['description'] ?? '';
+	$body_class = trim($options['body_class'] ?? '');
+	$html = '<div class="admin-settings-subsection">';
+
+	if ($title !== '') {
+		$html .= '<header class="admin-settings-subsection__header">';
+
+		if ($icon !== '') {
+			$html .= '<span class="admin-settings-subsection__icon"><i class="fa-solid ' . html_encode($icon) . '" aria-hidden="true"></i></span>';
+		}
+
+		$html .= '<div class="admin-settings-subsection__heading">';
+		$html .= '<h3 class="admin-settings-subsection__title">' . html_encode($title) . '</h3>';
+
+		if ($description !== '') {
+			$html .= '<p class="admin-settings-subsection__desc">' . $description . '</p>';
+		}
+
+		$html .= '</div></header>';
+	}
+
+	return $html . '<div class="admin-settings-subsection__body' . ($body_class !== '' ? ' ' . html_encode($body_class) : '') . '">' . $content . '</div></div>';
 }
 
 /**
@@ -4513,33 +4557,68 @@ function admin_menu_form_board(array $cur_elem, array $parent_list, array $pages
 	$is_edit = !empty($cur_elem['id']);
 	$title = $is_edit ? __('admin/menu.cur_elem_edit', ['%cur%' => $cur_elem['id']]) : __('admin/menu.cur_elem_add');
 	$link_value = $cur_elem['page_name'] ? '' : (string) ($cur_elem['link'] ?? '');
-
-	$html = '<div class="admin-menu-form">';
-	$html .= '<div class="admin-menu-form-panel">';
-	$html .= '<form class="form-horizontal admin-menu-form-panel__form" method="post" action="?page=menu&amp;tab=form">';
-	$html .= admin_csrf_field();
-	$html .= '<input type="hidden" name="add_menu" value="' . html_encode((string) ($cur_elem['id'] ?: 0)) . '">';
-
-	$html .= admin_settings_section(__('admin/menu.form_identity'), admin_form_field_row(__('admin/menu.table_name'), '<input class="form-control" name="name" type="text" value="' . html_encode((string) ($cur_elem['name'] ?? '')) . '" required>') . admin_form_field_row(__('admin/menu.table_ico'), Widgets::iconSelect('icon', (string) ($cur_elem['icon'] ?? ''))), ['icon' => 'fa-id-card', 'description' => __('admin/menu.form_identity_desc')]);
-
-	$html .= admin_settings_section(__('admin/menu.form_placement'), admin_form_field_row(__('admin/menu.table_parent'), Widgets::select('parent', $parent_list, $cur_elem['parent'] ?? 0, false)) . admin_form_field_row(__('admin/menu.table_order'), Widgets::select('priority', array_keys(array_fill(0, 100, '')), $cur_elem['priority'] ?? 0)), ['icon' => 'fa-sitemap', 'description' => __('admin/menu.form_placement_desc')]);
-
-	$link_fields = admin_form_field_row(__('admin/menu.table_link'), '<input class="form-control" name="link" id="admin-menu-link" type="text" value="' . html_encode($link_value) . '">');
-	$link_fields .= '<div class="mb-3 row"><label class="col-sm-3 col-form-label text-end">' . html_encode(__('admin/menu.table_or')) . '</label><div class="col-sm-8 controls">' . Widgets::select('internal_page', $pages, $cur_elem['link'] ?? '') . '</div></div>';
-	$html .= admin_settings_section(__('admin/menu.form_link'), $link_fields, ['icon' => 'fa-link', 'description' => __('admin/menu.form_link_desc')]);
-
 	$visibility = (int) ($cur_elem['visibility'] ?? 0);
+
+	$name_field = admin_form_field_stack(
+		__('admin/menu.table_name'),
+		'<input class="form-control" name="name" id="admin-menu-name" type="text" value="' . html_encode((string) ($cur_elem['name'] ?? '')) . '" required>',
+		['for' => 'admin-menu-name']
+	);
+	$icon_field = admin_form_field_stack(
+		__('admin/menu.table_ico'),
+		'<div class="admin-menu-icon-picker">' . Widgets::iconSelect('icon', (string) ($cur_elem['icon'] ?? '')) . '</div>'
+	);
+	$identity_fields = '<div class="admin-menu-form-grid admin-menu-form-grid--identity">' . $name_field . $icon_field . '</div>';
+
+	$placement_fields = '<div class="admin-menu-form-grid admin-menu-form-grid--placement">';
+	$placement_fields .= admin_form_field_stack(__('admin/menu.table_parent'), Widgets::select('parent', $parent_list, $cur_elem['parent'] ?? 0, false));
+	$placement_fields .= admin_form_field_stack(__('admin/menu.table_order'), Widgets::select('priority', array_keys(array_fill(0, 100, '')), $cur_elem['priority'] ?? 0));
+	$placement_fields .= '</div>';
+
+	$link_fields = '<div class="admin-menu-destination-grid">';
+	$link_fields .= admin_form_field_stack(
+		__('admin/menu.table_link'),
+		'<input class="form-control" name="link" id="admin-menu-link" type="text" value="' . html_encode($link_value) . '">',
+		['for' => 'admin-menu-link']
+	);
+	$link_fields .= '<div class="admin-menu-destination-grid__separator"><span>' . html_encode(__('admin/menu.table_or')) . '</span></div>';
+	$link_fields .= admin_form_field_stack(__('admin/menu.table_addr'), Widgets::select('internal_page', $pages, $cur_elem['link'] ?? ''));
+	$link_fields .= '</div>';
+
 	$visibility_select = '<select class="form-select" name="visibility">';
 	$visibility_select .= '<option value="0"' . ($visibility === 0 ? ' selected' : '') . '>' . html_encode(__('admin/menu.table_everyone')) . '</option>';
 	$visibility_select .= '<option value="1"' . ($visibility === 1 ? ' selected' : '') . '>' . html_encode(__('admin/menu.table_members_only')) . '</option>';
 	$visibility_select .= '<option value="2"' . ($visibility === 2 ? ' selected' : '') . '>' . html_encode(__('admin/menu.table_guess_only')) . '</option>';
 	$visibility_select .= '</select>';
-	$html .= admin_settings_section(__('admin/menu.form_access'), admin_form_field_row(__('admin/menu.table_viewable'), $visibility_select), ['icon' => 'fa-eye', 'description' => __('admin/menu.form_access_desc')]);
+	$access_fields = '<div class="admin-menu-form-grid admin-menu-form-grid--access">' . admin_form_field_stack(__('admin/menu.table_viewable'), $visibility_select) . '</div>';
 
+	$html = '<div class="admin-menu-form admin-settings">';
+	$html .= '<form class="form-horizontal admin-settings-grouped-form admin-menu-form-panel__form" method="post" action="?page=menu&amp;tab=form">';
+	$html .= admin_csrf_field();
+	$html .= '<input type="hidden" name="add_menu" value="' . html_encode((string) ($cur_elem['id'] ?: 0)) . '">';
+	$html .= '<section class="admin-settings-section admin-settings-section--grouped admin-menu-form-panel">';
+	$html .= '<header class="admin-menu-form-panel__header">';
+	$html .= '<div class="admin-menu-form-panel__heading">';
+	$html .= '<span class="admin-menu-form-panel__icon"><i class="fa-solid ' . ($is_edit ? 'fa-pencil' : 'fa-circle-plus') . '" aria-hidden="true"></i></span>';
+	$html .= '<div><h3 class="admin-menu-form-panel__title">' . html_encode($title) . '</h3>';
+	$html .= '<p class="admin-menu-form-panel__desc">' . html_encode(__('admin/menu.form_identity_desc')) . '</p></div>';
+	$html .= '</div>';
+	$html .= '</header>';
+	$html .= '<div class="admin-settings-section__body admin-settings-section__body--grouped admin-menu-form-panel__body">';
+
+	$html .= admin_settings_subsection(__('admin/menu.form_identity'), $identity_fields, ['icon' => 'fa-id-card', 'description' => __('admin/menu.form_identity_desc')]);
+	$html .= '<hr class="admin-settings-subsection__divider">';
+	$html .= admin_settings_subsection(__('admin/menu.form_placement'), $placement_fields, ['icon' => 'fa-sitemap', 'description' => __('admin/menu.form_placement_desc')]);
+	$html .= '<hr class="admin-settings-subsection__divider">';
+	$html .= admin_settings_subsection(__('admin/menu.form_link'), $link_fields, ['icon' => 'fa-link', 'description' => __('admin/menu.form_link_desc')]);
+	$html .= '<hr class="admin-settings-subsection__divider">';
+	$html .= admin_settings_subsection(__('admin/menu.form_access'), $access_fields, ['icon' => 'fa-eye', 'description' => __('admin/menu.form_access_desc')]);
+
+	$html .= '</div><footer class="admin-settings-section__footer admin-menu-form-panel__footer">';
 	$html .= '<div class="admin-menu-form-panel__actions text-center">';
 	$html .= '<button class="btn btn-primary" type="submit"><i class="fa-solid fa-floppy-disk me-1" aria-hidden="true"></i>' . html_encode(__('admin/menu.btn_save')) . '</button> ';
 	$html .= '<a class="btn btn-outline-secondary" href="?page=menu&amp;tab=list">' . html_encode(__('admin/menu.btn_cancel')) . '</a>';
-	$html .= '</div></form></div></div>';
+	$html .= '</div></footer></section></form></div>';
 
 	return $html;
 }
