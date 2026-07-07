@@ -4,7 +4,8 @@ has_permission('admin.manage_media', true);
 
 $dir = ROOT_DIR . '/upload/avatars/';
 $view = App::GET('view') === 'create' ? 'create' : 'library';
-$avatars_ajax = IS_AJAX && IS_POST && (App::POST('delete_avatar') || !empty($_FILES['upload']));
+$avatars_category_removed = false;
+$avatars_ajax = IS_AJAX && IS_POST && (App::POST('delete_avatar') || App::POST('delete_category') || admin_avatars_has_uploads());
 
 if (!IS_POST) {
 
@@ -36,6 +37,7 @@ elseif (App::POST('delete_category'))
 {
 	if (admin_avatars_delete_category($dir, $cat)) {
 		App::setSuccess(__('admin/avatars.alert_fdelete_success', ['%cat%' => $cat]));
+		$avatars_category_removed = true;
 	} else {
 		App::setWarning(__('admin/avatars.alert_fdelete_error', ['%cat%' => $cat]));
 	}
@@ -54,7 +56,7 @@ elseif (App::POST('delete_avatar'))
 
 	$view = 'library';
 }
-elseif (!empty($_FILES['upload']))
+elseif (admin_avatars_has_uploads())
 {
 	admin_avatars_process_uploads($dir, $cat);
 	$view = 'library';
@@ -68,7 +70,7 @@ if ($avatars_ajax) {
 	$post_cat = App::POST('categorie', '');
 
 	if (preg_match('#^[-a-zA-Z0-9_]+$#', $post_cat)) {
-		admin_avatars_json_response($categories, $avatars_stats, $post_cat, $delete_confirm);
+		admin_avatars_json_response($categories, $avatars_stats, $post_cat, $delete_confirm, $avatars_category_removed);
 	}
 
 	http_response_code(400);

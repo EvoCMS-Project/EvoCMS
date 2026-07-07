@@ -1126,6 +1126,24 @@ function adminInitAvatarsBoard(context) {
 			return;
 		}
 
+		if (payload.removed) {
+			if (payload.library) {
+				$root.find('#content').html(payload.library);
+			} else {
+				$article.remove();
+			}
+
+			if (payload.stats) {
+				$root.find('.admin-stat-grid').first().replaceWith(payload.stats);
+			}
+
+			if (typeof payload.alerts === 'string') {
+				adminReplaceAlerts(payload.alerts);
+			}
+
+			return;
+		}
+
 		if (payload.body) {
 			var $body = $article.find('.admin-avatars-category__body');
 			$body.html(payload.body);
@@ -1227,17 +1245,13 @@ function adminInitAvatarsBoard(context) {
 
 	$root.on('submit', '.admin-avatars-category__form', function (event) {
 		var submitter = event.originalEvent && event.originalEvent.submitter;
-
-		if (submitter && submitter.name === 'delete_category') {
-			return;
-		}
-
 		var $form = $(this);
+		var isDeleteCategory = submitter && submitter.name === 'delete_category';
 		var isDelete = submitter && submitter.name === 'delete_avatar';
 		var $fileInput = $form.find('.admin-file-dropzone__input');
 		var isUpload = $fileInput.length && $fileInput[0].files && $fileInput[0].files.length > 0;
 
-		if (!isDelete && !isUpload) {
+		if (!isDeleteCategory && !isDelete && !isUpload) {
 			return;
 		}
 
@@ -1668,14 +1682,7 @@ function adminInitToolbarSearch(context) {
 	});
 }
 
-$(function () {
-	adminInitFileDropzones();
-	adminInitImagePreview();
-	adminInitIconSelects();
-	adminInitAvatarsBoard();
-	adminInitToolbarSearch();
-	adminInitTableTextSize();
-});
+function adminInitTableTextSize(context) {
 	var $scope = context ? $(context) : $(document);
 
 	$scope.find('[data-admin-table-text-size]').each(function () {

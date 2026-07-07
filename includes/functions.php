@@ -7045,6 +7045,49 @@ function admin_avatars_delete_file(string $dir, string $cat, string $filename): 
 	return is_file($real_path) && @unlink($real_path);
 }
 
+function admin_avatars_path_equals(?string $a, ?string $b): bool
+{
+	if ($a === null || $b === null || $a === '' || $b === '') {
+		return false;
+	}
+
+	return strcasecmp(str_replace('\\', '/', $a), str_replace('\\', '/', $b)) === 0;
+}
+
+/**
+ * Supprime récursivement un dossier et son contenu.
+ */
+function admin_avatars_remove_directory(string $dir): bool
+{
+	if (!is_dir($dir)) {
+		return false;
+	}
+
+	$items = scandir($dir);
+
+	if ($items === false) {
+		return false;
+	}
+
+	foreach ($items as $item) {
+		if ($item === '.' || $item === '..') {
+			continue;
+		}
+
+		$path = $dir . DIRECTORY_SEPARATOR . $item;
+
+		if (is_dir($path)) {
+			if (!admin_avatars_remove_directory($path)) {
+				return false;
+			}
+		} elseif (!@unlink($path)) {
+			return false;
+		}
+	}
+
+	return @rmdir($dir);
+}
+
 /**
  * Supprime une catégorie d'avatars et tous les fichiers qu'elle contient.
  */
@@ -7055,14 +7098,18 @@ function admin_avatars_delete_category(string $dir, string $cat): bool
 	}
 
 	$root = realpath(rtrim($dir, '/\\'));
-	$cat_dir = rtrim($dir, '/\\') . '/' . $cat;
+	$cat_dir = rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . $cat;
 	$real_cat = realpath($cat_dir);
 
-	if ($root === false || $real_cat === false || !is_dir($real_cat) || dirname($real_cat) !== $root) {
+	if ($root === false || $real_cat === false || !is_dir($real_cat)) {
 		return false;
 	}
 
-	return rrmdir($real_cat);
+	if (!admin_avatars_path_equals(dirname($real_cat), $root)) {
+		return false;
+	}
+
+	return admin_avatars_remove_directory($real_cat);
 }
 
 function admin_avatars_max_size(): int
@@ -7232,6 +7279,34 @@ function admin_avatars_normalize_upload(array $files): ?array
 }
 
 /**
+ * Indique si la requête contient au moins un fichier réellement envoyé.
+ */
+function admin_avatars_has_uploads(?array $files = null): bool
+{
+	if ($files === null) {
+		if (empty($_FILES['upload'])) {
+			return false;
+		}
+
+		$files = $_FILES['upload'];
+	}
+
+	$normalized = admin_avatars_normalize_upload($files);
+
+	if (!$normalized) {
+		return false;
+	}
+
+	foreach ($normalized['error'] as $error) {
+		if ((int) $error !== UPLOAD_ERR_NO_FILE) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
  * Prépare un nom de fichier d'avatar à partir du nom d'origine ou du fichier temporaire.
  */
 function admin_avatars_resolve_filename(string $original_name, string $tmp_path, int $index = 0): string
@@ -7251,7 +7326,7 @@ function admin_avatars_resolve_filename(string $original_name, string $tmp_path,
  */
 function admin_avatars_process_uploads(string $dir, string $cat): void
 {
-	if (empty($_FILES['upload'])) {
+	if (!admin_avatars_has_uploads()) {
 		return;
 	}
 
@@ -7262,12 +7337,18 @@ function admin_avatars_process_uploads(string $dir, string $cat): void
 	}
 
 	foreach ($files['name'] as $index => $name) {
+		$error = (int) ($files['error'][$index] ?? UPLOAD_ERR_OK);
+
+		if ($error === UPLOAD_ERR_NO_FILE) {
+			continue;
+		}
+
 		$tmp_path = (string) ($files['tmp_name'][$index] ?? '');
 		$display_name = trim((string) $name) !== '' ? (string) $name : admin_avatars_fallback_filename($tmp_path, (int) $index);
 		$filename = admin_avatars_resolve_filename((string) $name, $tmp_path, (int) $index);
 		$path = $dir . $cat . '/' . $filename;
 
-		if ((int) ($files['error'][$index] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+		if ($error !== UPLOAD_ERR_OK) {
 			App::setWarning(__('admin/avatars.alert_upload_error', ['%name%' => $display_name]), true);
 		}
 		elseif (!preg_match('/\.(jpg|gif|png)$/i', $filename) || !in_array(@getimagesize($tmp_path)[2], [1, 2, 3], true)) {
@@ -7354,30 +7435,41 @@ function admin_avatars_category_panel(array $category, string $delete_confirm, b
  * @param array<int, array{name: string, avatars: array<int, array{path: string, url: string, name: string}>, count: int}> $categories
  * @param array<int, array{icon: string, value: string, label: string, variant: string}> $stats
  */
-function admin_avatars_json_response(array $categories, array $stats, string $category_name, string $delete_confirm): void
+function admin_avatars_json_response(array $categories, array $stats, string $category_name, string $delete_confirm, bool $category_removed = false): void
 {
 	$category = null;
 
-	foreach ($categories as $item) {
-		if ($item['name'] === $category_name) {
-			$category = $item;
-			break;
+	if (!$category_removed) {
+		foreach ($categories as $item) {
+			if ($item['name'] === $category_name) {
+				$category = $item;
+				break;
+			}
 		}
 	}
 
-	if (!$category) {
+	if (!$category_removed && !$category) {
 		http_response_code(404);
 	}
 
-	header('Content-Type: application/json; charset=utf-8');
-	echo json_encode([
-		'ok' => $category !== null,
+	$response = [
+		'ok' => $category_removed || $category !== null,
+		'removed' => $category_removed,
 		'category' => $category_name,
 		'body' => $category ? admin_avatars_category_body($category, $delete_confirm) : '',
 		'meta' => $category ? __('admin/avatars.category_count', ['%count%' => (string) $category['count']]) : '',
 		'stats' => admin_stat_grid($stats, ['variant' => 'kpi', 'class' => 'mb-0']),
 		'alerts' => App::renderAlertsHtml(),
-	], JSON_UNESCAPED_UNICODE);
+	];
+
+	if ($category_removed && !$categories) {
+		$response['library'] = '<div class="admin-avatars-content-wrap admin-avatars-content-wrap--empty">'
+			. admin_avatars_empty(__('admin/avatars.empty_library'))
+			. '</div>';
+	}
+
+	header('Content-Type: application/json; charset=utf-8');
+	echo json_encode($response, JSON_UNESCAPED_UNICODE);
 	exit;
 }
 
