@@ -1632,6 +1632,7 @@ body.file-editor-resizing * {
 .admin-panel:has(.admin-backup),
 .admin-panel:has(.admin-reports),
 .admin-panel:has(.admin-servers),
+.admin-panel:has(.admin-user-view),
 .admin-panel:has(.admin-avatars),
 .admin-panel:has(.admin-pages),
 .admin-panel:has(.admin-menu),
@@ -3262,6 +3263,7 @@ a.admin-kpi-card--linked:focus-visible {
 
 .admin-settings .form-horizontal .mb-3.row,
 .admin-servers-form .form-horizontal .mb-3.row,
+.admin-user-view-form .form-horizontal .mb-3.row,
 .admin-avatars-create-form .form-horizontal .mb-3.row,
 .admin-downloads-add-form .form-horizontal .mb-3.row,
 .admin-forums-config-form .mb-3.row,
@@ -3273,6 +3275,7 @@ a.admin-kpi-card--linked:focus-visible {
 
 .admin-settings .form-horizontal .col-form-label,
 .admin-servers-form .form-horizontal .col-form-label,
+.admin-user-view-form .form-horizontal .col-form-label,
 .admin-avatars-create-form .form-horizontal .col-form-label,
 .admin-downloads-add-form .form-horizontal .col-form-label,
 .admin-forums-config-form .col-form-label,
@@ -3286,6 +3289,7 @@ a.admin-kpi-card--linked:focus-visible {
 
 .admin-settings .form-horizontal .col-form-label i,
 .admin-servers-form .form-horizontal .col-form-label i,
+.admin-user-view-form .form-horizontal .col-form-label i,
 .admin-avatars-create-form .form-horizontal .col-form-label i,
 .admin-downloads-add-form .form-horizontal .col-form-label i {
 	vertical-align: middle;
@@ -3295,6 +3299,8 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-settings .form-horizontal .mb-3.row:has(.admin-form-image),
 .admin-servers-form .form-horizontal .mb-3.row:has(textarea),
 .admin-servers-form .form-horizontal .mb-3.row:has(.admin-form-image),
+.admin-user-view-form .form-horizontal .mb-3.row:has(textarea),
+.admin-user-view-form .form-horizontal .mb-3.row:has(.admin-form-image),
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(textarea),
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(.admin-form-image),
 .admin-downloads-add-form .form-horizontal .mb-3.row:has(textarea),
@@ -3307,6 +3313,8 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-settings .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
 .admin-servers-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
 .admin-servers-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
+.admin-user-view-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
+.admin-user-view-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
 .admin-avatars-create-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
 .admin-downloads-add-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
@@ -3870,6 +3878,7 @@ a.admin-kpi-card--linked:focus-visible {
 @media (max-width: 767.98px) {
 	.admin-settings .form-horizontal .col-form-label,
 	.admin-servers-form .form-horizontal .col-form-label,
+	.admin-user-view-form .form-horizontal .col-form-label,
 	.admin-avatars-create-form .form-horizontal .col-form-label,
 	.admin-downloads-add-form .form-horizontal .col-form-label,
 	.admin-forums-config-form .col-form-label,
@@ -3880,6 +3889,7 @@ a.admin-kpi-card--linked:focus-visible {
 
 	.admin-settings .form-horizontal .text-center,
 	.admin-servers-form .form-horizontal .text-center,
+	.admin-user-view-form .form-horizontal .text-center,
 	.admin-avatars-create-form .form-horizontal .text-center,
 	.admin-downloads-add-form .form-horizontal .text-center {
 		justify-content: stretch;
@@ -3887,6 +3897,7 @@ a.admin-kpi-card--linked:focus-visible {
 
 	.admin-settings .form-horizontal .text-center .btn-primary,
 	.admin-servers-form .form-horizontal .text-center .btn-primary,
+	.admin-user-view-form .form-horizontal .text-center .btn-primary,
 	.admin-avatars-create-form .form-horizontal .text-center .btn-primary,
 	.admin-downloads-add-form .form-horizontal .text-center .btn-primary {
 		width: 100%;
@@ -4776,7 +4787,6 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-reports-board__body.admin-tabs-panel,
 .admin-broadcast-board__body.admin-tabs-panel,
 .admin-users-board__body.admin-tabs-panel,
-.admin-user-view-board__body.admin-tabs-panel,
 .admin-groups-board__body.admin-tabs-panel {
 	background: transparent;
 	border: none;
@@ -4790,7 +4800,6 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-reports-board__body,
 .admin-broadcast-board__body,
 .admin-users-board__body,
-.admin-user-view-board__body,
 .admin-groups-board__body {
 	gap: 1rem;
 	padding: 0.25rem 0 0;
@@ -4798,7 +4807,6 @@ a.admin-kpi-card--linked:focus-visible {
 
 .admin-reports-board__body > .admin-settings-empty,
 .admin-users-board__body > .admin-settings-empty,
-.admin-user-view-board__body > .admin-settings-empty,
 .admin-groups-board__body > .admin-settings-empty,
 .admin-menu-board__pane > .admin-settings-empty {
 	margin: 0;
@@ -5817,10 +5825,18 @@ a.admin-kpi-card--linked:focus-visible {
 	margin-bottom: 0;
 }
 
-.admin-user-view-board__body--content,
+.admin-user-view-board > .admin-tabs + .tab-content.admin-tabs-panel {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
 .admin-groups-board__body--content {
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
+}
+
+.admin-user-view-board__body--content > .admin-user-view-board__pane {
+	padding: 0;
 }
 
 .admin-user-view-board__pane,
@@ -5834,13 +5850,22 @@ a.admin-kpi-card--linked:focus-visible {
 	display: flex;
 }
 
-.admin-tabs-panel > .tab-pane.admin-user-view-board__pane,
+.admin-tabs-panel > .tab-pane.admin-user-view-board__pane#user,
+.admin-tabs-panel > .tab-pane.admin-user-view-board__pane#profile {
+	padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.admin-tabs-panel > .tab-pane.admin-user-view-board__pane#messages,
+.admin-tabs-panel > .tab-pane.admin-user-view-board__pane#history {
+	padding: 0;
+}
+
 .admin-tabs-panel > .tab-pane.admin-groups-board__pane {
 	padding: 1.25rem 1.5rem;
 }
 
-.admin-tabs-panel > .tab-pane.admin-user-view-board__pane:has(.admin-user-view-table-wrap) {
-	padding: 0;
+.admin-user-view-board__pane > .admin-settings-empty {
+	margin: 0;
 }
 
 .admin-groups-create {
@@ -6117,6 +6142,52 @@ a.admin-kpi-card--linked:focus-visible {
 
 .admin-servers-form__form {
 	margin: 0;
+}
+
+/* ── Admin user view page ── */
+
+.admin-dashboard.admin-user-view .admin-kpi-card__value {
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1.25;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.admin-dashboard.admin-user-view .admin-kpi-card__label {
+	font-size: 0.6875rem;
+}
+
+.admin-user-view-profile__stats {
+	margin: 0;
+}
+
+.admin-user-view-profile__stats .col {
+	padding: 0.5rem 0.25rem;
+}
+
+.admin-user-view-form {
+	margin: 0;
+}
+
+.admin-user-view-form legend {
+	margin: 1.5rem 0 1rem;
+	padding: 0;
+	border: 0;
+	color: #263238;
+	font-size: 0.9375rem;
+	font-weight: 600;
+	width: 100%;
+}
+
+.admin-user-view-form legend:first-of-type {
+	margin-top: 0;
+}
+
+.admin-user-view-form #avatar_selector_box {
+	margin-top: 0.75rem;
 }
 
 /* ── Admin security page ── */

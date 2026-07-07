@@ -29,7 +29,7 @@
 	</div>
 	<div class="col-sm-5 col-3 text-end">
 		<?php
-		if (has_permission('admin.edit_uprofile')) {
+		if (!defined('EVO_ADMIN') && has_permission('admin.edit_uprofile')) {
 			echo '<a class="btn btn-primary" title="' . __('user.edit') . '" href="'.App::getAdminURL('user_view', ['id' => $user_info->id]).'"><i class="fa-solid fa-pencil fa-2x"></i></a> ';
 		}
 
@@ -48,7 +48,7 @@
 	</div>
 </div>
 <hr>
-<div class="row text-center">
+<div class="row text-center admin-user-view-profile__stats">
 	<div class="col">
         <a title="<?= __('user.forum_posts') ?>" href="<?=App::getURL('forums', ['search'=>'','poster'=>$user_info->username]) ?>"><strong><?= $user_info->num_posts ?></strong> <i class="fa-solid fa-pencil"></i></a>
     </div>
@@ -62,7 +62,7 @@
         <a title="<?= __('user.likes') ?>"><strong>N/A</strong> <i class="fa-solid fa-heart"></i></a>
     </div>
 </div>
-<?php if (!$is_mine): ?>
+<?php if (!$is_mine && !defined('EVO_ADMIN')): ?>
 	<hr>
 	<div class="row">
 		<div class="col-md-6">

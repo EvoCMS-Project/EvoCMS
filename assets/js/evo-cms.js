@@ -1696,7 +1696,8 @@ function adminInitTabsPanelResize() {
 	}
 
 	function shouldResizePanel(panel) {
-		return !panel.classList.contains('admin-modules-board__body--content');
+		return !panel.classList.contains('admin-modules-board__body--content')
+			&& !panel.classList.contains('admin-user-view-board__body--content');
 	}
 
 	function lockPanel(panel) {

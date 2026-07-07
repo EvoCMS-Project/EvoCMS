@@ -854,6 +854,8 @@ function admin_tabs(array $tabs, array $options = []): string
 		} elseif (!empty($tab['external'])) {
 			$href = $tab['href'] ?? '#';
 			$html .= ' href="' . html_encode($href) . '" target="_blank" rel="noopener noreferrer"';
+		} elseif (!empty($tab['disabled'])) {
+			$html .= ' id="' . html_encode($tab_id) . '-tab" tabindex="-1" aria-disabled="true"';
 		} else {
 			$href = $tab['href'] ?? ('#' . $tab_id);
 			$html .= ' id="' . html_encode($tab_id) . '-tab" data-bs-toggle="tab"';
@@ -3836,7 +3838,7 @@ function admin_user_view_nav(array $tabs, string $active): string
 	return admin_tabs($tabs, [
 		'active' => $active,
 		'type' => 'bootstrap',
-		'aria_label' => __('admin/users.table_username'),
+		'aria_label' => __('admin/user_view.page_title_short'),
 		'button_tabs' => true,
 	]);
 }
@@ -3864,13 +3866,44 @@ function admin_user_view_denied(): string
 	);
 }
 
-function admin_user_view_build_stats(object $user, array $mails, array $history): array
+/**
+ * @return array<string, mixed>
+ */
+function admin_user_view_profile_data(object $user_info): array
 {
 	return [
-		['icon' => 'fa-solid fa-user', 'value' => '#' . (int) $user->id, 'label' => __('admin/users.table_username'), 'variant' => 'primary'],
+		'ban_reason'   => Db::Get('select reason from {banlist} where rule = ? and type = "username"', $user_info->username),
+		'num_friends'  => Db::Get('select count(*) from {friends} where u_id = ?', $user_info->id),
+		'num_comments' => Db::Get('select count(*) from {comments} where user_id = ?', $user_info->id),
+		'can_edit'     => has_permission('admin.edit_uprofile'),
+		'can_mod'      => has_permission('moderator'),
+		'is_mine'      => $user_info->id === App::getCurrentUser()->id,
+		'user_info'    => $user_info,
+	];
+}
+
+function admin_user_view_profile_board(object $user_info): string
+{
+	return App::renderTemplate('pages/user.php', admin_user_view_profile_data($user_info), true);
+}
+
+function admin_user_view_edit_board(): string
+{
+	ob_start();
+	include ROOT_DIR . '/pages/profile.php';
+
+	return '<div class="admin-user-view-form">' . ob_get_clean() . '</div>';
+}
+
+function admin_user_view_build_stats(object $user, array $mails, array $history): array
+{
+	$activity = (int) ($user->activity ?? 0);
+
+	return [
+		['icon' => 'fa-solid fa-user', 'value' => html_encode((string) $user->username), 'label' => __('admin/users.table_username'), 'variant' => 'primary'],
 		['icon' => 'fa-solid fa-envelope', 'value' => (string) count($mails), 'label' => __('admin/user_view.stats_messages'), 'variant' => 'info'],
 		['icon' => 'fa-solid fa-clock-rotate-left', 'value' => (string) count($history), 'label' => __('admin/user_view.stats_history'), 'variant' => 'warning'],
-		['icon' => 'fa-solid fa-signal', 'value' => Format::today((int) ($user->activity ?? 0), true), 'label' => __('admin/users.result_life'), 'variant' => 'success'],
+		['icon' => 'fa-solid fa-signal', 'value' => $activity > 0 ? html_encode(date('Y-m-d H:i', $activity)) : '&mdash;', 'label' => __('admin/users.result_life'), 'variant' => 'success'],
 	];
 }
 
