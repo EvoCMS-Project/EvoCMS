@@ -5,7 +5,7 @@
 	<div class="col-sm-5 col-3">
 		<h4><?=ucfirst($user_info->username) ?></h4>
 		<p style="margin: -5px 0 8px; " class="group-color-<?= $user_info->group->color ?>"><?= ucfirst($user_info->group->name) ?></p>
-		<?= html_encode($ban_reason) ? '<span class="badge bg-danger">Membre bannis</span>' : ''?>
+		<?= html_encode($ban_reason) ? '<span class="badge bg-danger">' . html_encode(__('user.banned_badge')) . '</span>' : ''?>
 		<?php if (html_encode($user_info->website)) { ?>
 			<a target="_blank" href="<?= html_encode($user_info->website) ?>">
 				<span class="fa-solid fa-stack fa-lg" title="<?= __('user.website') ?>">

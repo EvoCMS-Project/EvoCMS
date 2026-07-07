@@ -10,10 +10,10 @@ return [
 	'friends.request.body' => "You have received a friend request from %friend%!\n\nConnect to accept or refuse.",
 
 	'account.activation.subject' => 'Activate your account on %sitename%',
-	'account.activation.body' => "Follow the following link to activate your account %activation_url%\nCordially,",
+	'account.activation.body' => "Follow this link to activate your account on %sitename%:\n%activation_url%\nRegards,",
 	
 	'account.reset_password.subject' => 'Forgotten password',
-	'account.reset_password.body' => "Follow the following link to reset your password:\n%resetlink%\nCordially,",
+	'account.reset_password.body' => "Follow this link to reset your password:\n%resetlink%\nRegards,",
 
 	'message.type.0.subject' => "You have received a message",
 	'message.type.0.body' => "You've received a new message from %mailfrom%:\n\n%message%",

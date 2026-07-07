@@ -7011,6 +7011,28 @@ function getCurrentPageInfo($type = 'both')
 			 }
 		 }
 	 }
+
+	 if ($page === 'user_view' && ($user = App::getUser(App::GET('id')))) {
+		 $icon = fa_icon_classes('fa-user');
+		 $title = __('admin/user_view.page_title', ['%user%' => $user->username]);
+		 $description = __('admin/user_view.page_description');
+
+		 switch ($type) {
+			 case 'icon':
+				 return $icon;
+			 case 'title':
+				 return $title;
+			 case 'description':
+				 return $description;
+			 case 'both':
+				 return ['icon' => $icon, 'title' => $title];
+			 case 'all':
+				 return ['icon' => $icon, 'title' => $title, 'description' => $description];
+			 case 'html':
+			 default:
+				 return fa_icon_html('fa-user', 'solid', ['me-3']) . html_encode($title);
+		 }
+	 }
 	 
 	 $pageIcons = [
 		 '' => 'fa-circle-info',
@@ -7028,6 +7050,8 @@ function getCurrentPageInfo($type = 'both')
 		 'comments' => 'fa-comments',
 		 'broadcast' => 'fa-envelope',
 		 'users' => 'fa-users',
+		 'user_view' => 'fa-user',
+		 'user_delete' => 'fa-user-slash',
 		 'groups' => 'fa-layer-group',
 		 'history' => 'fa-user-secret',
 		 'security' => 'fa-user-slash',
@@ -7052,6 +7076,8 @@ function getCurrentPageInfo($type = 'both')
 		 'comments' => __('admin/menu.sub_comments'),
 		 'broadcast' => __('admin/menu.sub_newsletter'),
 		 'users' => __('admin/menu.sub_members'),
+		 'user_view' => __('admin/user_view.page_title_short'),
+		 'user_delete' => __('admin/user_delete.title'),
 		 'groups' => __('admin/menu.sub_groups'),
 		 'history' => __('admin/menu.sub_log_admin'),
 		 'security' => __('admin/menu.sub_security'),
@@ -7061,33 +7087,35 @@ function getCurrentPageInfo($type = 'both')
 	 ];
 	 
 	 $pageDescriptions = [
-		 '' => 'Tableau de bord principal avec les statistiques du site',
-		 'index' => 'Tableau de bord principal avec les statistiques du site',
-		 'settings' => 'Configuration générale du site, paramètres et préférences',
-		 'reports' => 'Gestion des signalements et modération du contenu',
-		 'servers' => 'Configuration et gestion des serveurs de jeu',
-		 'page_edit' => 'Création et édition de nouvelles pages et articles',
-		 'pages' => 'Gestion complète des pages, articles et contenu du site',
-		 'menu' => 'Éditeur de menu pour personnaliser la navigation',
-		 'gallery' => 'Bibliothèque multimédia pour gérer les images et fichiers',
-		 'avatars' => 'Gestion des avatars et images de profil des utilisateurs',
-		 'downloads' => 'Section de téléchargements et fichiers partagés',
-		 'forums' => 'Configuration et modération des forums de discussion',
-		 'comments' => 'Modération des commentaires et interactions utilisateurs',
-		 'broadcast' => 'Envoi de newsletters et communications de masse',
-		 'users' => 'Gestion des membres, profils et comptes utilisateurs',
-		 'groups' => 'Configuration des groupes et permissions utilisateurs',
-		 'history' => 'Historique des actions et logs d\'administration',
-		 'security' => 'Sécurité, bannissements et protection du site',
-		 'modules' => 'Gestion des modules et extensions du CMS',
-		 'backup' => 'Sauvegarde et restauration des données du site',
-		 'file_editor' => 'Éditeur de fichiers pour modifications directes',
+		 '' => __('admin/page_meta.dashboard'),
+		 'index' => __('admin/page_meta.dashboard'),
+		 'settings' => __('admin/page_meta.settings'),
+		 'reports' => __('admin/page_meta.reports'),
+		 'servers' => __('admin/page_meta.servers'),
+		 'page_edit' => __('admin/page_meta.page_edit'),
+		 'pages' => __('admin/page_meta.pages'),
+		 'menu' => __('admin/page_meta.menu'),
+		 'gallery' => __('admin/page_meta.gallery'),
+		 'avatars' => __('admin/page_meta.avatars'),
+		 'downloads' => __('admin/page_meta.downloads'),
+		 'forums' => __('admin/page_meta.forums'),
+		 'comments' => __('admin/page_meta.comments'),
+		 'broadcast' => __('admin/page_meta.broadcast'),
+		 'users' => __('admin/page_meta.users'),
+		 'user_view' => __('admin/page_meta.user_view'),
+		 'user_delete' => __('admin/page_meta.user_delete'),
+		 'groups' => __('admin/page_meta.groups'),
+		 'history' => __('admin/page_meta.history'),
+		 'security' => __('admin/page_meta.security'),
+		 'modules' => __('admin/page_meta.modules'),
+		 'backup' => __('admin/page_meta.backup'),
+		 'file_editor' => __('admin/page_meta.file_editor'),
 	 ];
 	 
 	 $iconRef = $pageIcons[$page] ?? 'fa-gauge-high';
 	 $icon = fa_icon_classes($iconRef);
 	 $title = $pageTitles[$page] ?? ucfirst($page ?: 'Dashboard');
-	 $description = $pageDescriptions[$page] ?? 'Page d\'administration';
+	 $description = $pageDescriptions[$page] ?? __('admin/page_meta.default');
 	 
 	 switch ($type) {
 		 case 'icon':

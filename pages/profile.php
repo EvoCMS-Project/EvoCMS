@@ -122,9 +122,9 @@ if (IS_POST && !IS_AJAX) {
 			|| (is_string($f[0]) && !preg_match($f[0], $value))) // OR if not acceptable string
 			&& ($f[1] === true || $value !== '') // AND if the parameter is optional or not empty
 		) {
-			$warnings[$field] = 'Champ invalide: '.$field;
+			$warnings[$field] = __('profile.field_invalid', ['%field%' => $field]);
 		} elseif ($f[1] === true && $value === '') {
-			$warnings[$field] = 'Champ requis: '.$field;
+			$warnings[$field] = __('profile.field_required', ['%field%' => $field]);
 		} else {
 			$edits[$field] = $value;
 		}
@@ -135,7 +135,7 @@ if (IS_POST && !IS_AJAX) {
 		if ($account === '' || preg_match($validation, $account)) {
 			$social[$network] = $account;
 		} else {
-			$warnings["social.$network"] = 'Champ invalide: '.$name;
+			$warnings["social.$network"] = __('profile.field_invalid', ['%field%' => $name]);
 		}
 	}
 	$edits['social'] = array_filter($social);
