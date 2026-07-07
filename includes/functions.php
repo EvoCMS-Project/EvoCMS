@@ -464,6 +464,7 @@ function admin_settings_group_fields_row(array $settings, int $columns = 2, ?cal
  * Affiche plusieurs sous-sections dans une seule carte avec un bouton Enregistrer.
  *
  * @param array<int, array{title?: string, icon?: string, description?: string, settings?: array, content?: string, class?: string, body_class?: string, empty?: string, extra?: string}> $groups
+ * @param array{submit?: string|false, class?: string, hidden?: array<string, scalar>} $options
  */
 function admin_settings_grouped_form(string $tab_id, array $groups, array $options = []): string
 {
@@ -474,14 +475,21 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 	$has_settings = false;
 
 	foreach ($groups as $group) {
-		if (!empty($group['settings'])) {
+		if (!empty($group['settings']) || !empty($group['content'])) {
 			$has_settings = true;
 			break;
 		}
 	}
 
-	$html = '<form method="post" role="form" class="form-horizontal admin-settings-grouped-form ' . html_encode($class) . '" enctype="multipart/form-data" id="' . html_encode($form_id) . '">';
-	$html .= '<input type="hidden" name="admin_settings_tab" value="' . html_encode($tab_id) . '">';
+	$html = '<form method="post" role="form" class="form-horizontal admin-settings-grouped-form ' . html_encode($class) . '" enctype="multipart/form-data" id="' . html_encode($form_id) . '" autocomplete="off">';
+
+	foreach ($options['hidden'] ?? [] as $hidden_name => $hidden_value) {
+		$html .= '<input type="hidden" name="' . html_encode((string) $hidden_name) . '" value="' . html_encode((string) $hidden_value) . '">';
+	}
+
+	if ($tab_id !== '') {
+		$html .= '<input type="hidden" name="admin_settings_tab" value="' . html_encode($tab_id) . '">';
+	}
 	$html .= '<section class="admin-settings-section admin-settings-section--grouped">';
 	$html .= '<div class="admin-settings-section__body admin-settings-section__body--grouped">';
 
@@ -798,7 +806,7 @@ function admin_filter_chips(array $items, array $selected, string $name, string 
 /**
  * Navigation par onglets réutilisable pour l'administration.
  *
- * @param array<string, array{label: string, icon?: string, badge?: string, disabled?: bool, href?: string}> $tabs
+ * @param array<string, array{label: string, icon?: string, badge?: string, disabled?: bool, href?: string, external?: bool, link?: bool, ms_auto?: bool, class?: string}> $tabs
  * @param array{
  *   active?: string,
  *   type?: 'bootstrap'|'link',
@@ -832,7 +840,16 @@ function admin_tabs(array $tabs, array $options = []): string
 
 	foreach ($tabs as $tab_id => $tab) {
 		$is_active = $active === $tab_id;
-		$link_class = 'nav-link' . ($is_active ? ' active' : '');
+		$is_nav_link = !empty($tab['link']) || !empty($tab['external']);
+		$link_class = 'nav-link';
+
+		if ($is_active && !$is_nav_link) {
+			$link_class .= ' active';
+		}
+
+		if (!empty($tab['class'])) {
+			$link_class .= ' ' . $tab['class'];
+		}
 
 		if (!empty($tab['disabled'])) {
 			$link_class .= ' disabled';
@@ -840,10 +857,17 @@ function admin_tabs(array $tabs, array $options = []): string
 
 		$ms_auto = !empty($tab['ms_auto']) ? ' ms-auto' : '';
 		$html .= '<li class="nav-item' . $ms_auto . '" role="presentation">';
-		$html .= '<a class="' . $link_class . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '"';
+		$html .= '<a class="' . html_encode(trim($link_class)) . '"';
+
+		if (!$is_nav_link) {
+			$html .= ' role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '"';
+		}
 
 		if ($type === 'link') {
 			$href = $tab['href'] ?? ('?page=' . rawurlencode($page) . '&tab=' . rawurlencode((string) $tab_id));
+			$html .= ' href="' . html_encode($href) . '"';
+		} elseif (!empty($tab['link'])) {
+			$href = $tab['href'] ?? '#';
 			$html .= ' href="' . html_encode($href) . '"';
 		} elseif (!empty($tab['external'])) {
 			$href = $tab['href'] ?? '#';
@@ -1012,7 +1036,7 @@ function admin_collapsible_body_close(): string
  */
 function admin_settings_theme_grid(array $themes, string $activeDir): string
 {
-	$html = '<div class="row g-4 admin-settings-themes">';
+	$html = '<div class="container row g-4 admin-settings-themes">';
 
 	foreach ($themes as $dir => [$theme, $preview]) {
 		$is_active = ($dir === $activeDir);
@@ -3836,6 +3860,15 @@ function admin_users_table(array $users): string
 
 function admin_user_view_nav(array $tabs, string $active): string
 {
+	$tabs['back'] = [
+		'label' => __('admin/user_view.back_to_list'),
+		'icon' => 'fa-arrow-left',
+		'href' => '?page=users',
+		'link' => true,
+		'ms_auto' => true,
+		'class' => 'admin-tabs__action',
+	];
+
 	return admin_tabs($tabs, [
 		'active' => $active,
 		'type' => 'bootstrap',
@@ -3867,6 +3900,209 @@ function admin_user_view_denied(): string
 }
 
 /**
+ * @return array<string, HtmlSelectGroup|array<string, string>>
+ */
+function profile_available_avatars(?array $user = null): array
+{
+	$providers = Evo\Avatars::getProviders();
+	$avatars = [];
+
+	$avatars['Base']['file:/img/avatar.png'] = App::getAsset('/img/avatar.png');
+
+	foreach ($providers as $key => $provider) {
+		if ($url = $provider($user, '')) {
+			$avatars['Base'][$key] = $url;
+		}
+	}
+
+	$paths = glob(ROOT_DIR . '/upload/avatars/*/');
+	$paths[] = ROOT_DIR . '/assets/img/avatars/';
+	$paths[] = 'img/avatars/';
+
+	foreach ($paths as $cat_dir) {
+		$cat = ucfirst(basename($cat_dir));
+		$avatars[$cat] = new HtmlSelectGroup();
+
+		if ($pictures = glob($cat_dir . '*.{jpg,jpeg,png,gif}', GLOB_BRACE)) {
+			foreach ($pictures as $avatar_path) {
+				$avatar = ucfirst(basename($avatar_path));
+				$avatar = substr($avatar, 0, strrpos($avatar, '.'));
+				$path = substr($avatar_path, strlen(ROOT_DIR));
+				$avatars[$cat]['file:' . $path] = App::getAsset($path);
+			}
+		}
+	}
+
+	if (!empty($user['id'])) {
+		$my_files = Evo\Models\File::select(
+			'mime_type like ? and origin like ? and poster = ? and size <= 524288',
+			'image/%',
+			'user',
+			$user['id']
+		);
+
+		if ($my_files) {
+			$label_my_files = __('profile.my_files');
+			$avatars[$label_my_files] = new HtmlSelectGroup();
+
+			foreach ($my_files as $file) {
+				if ($meta = @getimagesize(ROOT_DIR . $file->path)) {
+					if ($meta[0] <= 1024 && $meta[1] <= 1024) {
+						$avatars[$label_my_files]['user:' . $file->web_id . '/' . $file->name] = App::getURL('getfile', $file->web_id);
+					}
+				}
+			}
+		}
+	}
+
+	return $avatars;
+}
+
+/**
+ * @return array{0: array<string, HtmlSelectGroup>, 1: array<int, string>}
+ */
+function profile_avatar_select_options(object $user_info): array
+{
+	$avatars = [];
+	$avatar_keys = [];
+
+	foreach (profile_available_avatars($user_info->toArray()) as $category => $avatars_) {
+		$avatars[$category] = new HtmlSelectGroup();
+
+		foreach ($avatars_ as $key => $url) {
+			$avatars[$category][] = [$key, ucfirst(basename($key)), ['data-src-alt' => $url]];
+			$avatar_keys[] = $key;
+		}
+	}
+
+	return [$avatars, $avatar_keys];
+}
+
+function profile_process_user_update(object $user_info, bool $is_admin = false): object
+{
+	if (!IS_POST || IS_AJAX) {
+		return $user_info;
+	}
+
+	$groups = Db::QueryAll('select * from {groups} order by priority asc');
+	$timezones = generate_tz_list();
+	$reset = ['newsletter' => 0, 'discuss' => 0];
+	$warnings = $social = $edits = [];
+	[, $avatar_keys] = profile_avatar_select_options($user_info);
+
+	$fields = [
+		'username' => [PREG_USERNAME, true],
+		'password' => ['/^.{4,512}$/', false],
+		'email' => [PREG_EMAIL, true],
+		'country' => [array_keys(COUNTRIES), false],
+		'timezone' => [array_keys($timezones), false],
+		'avatar' => [$avatar_keys, false],
+		'newsletter' => [[0, 1], true],
+		'discuss' => [[0, 1], true],
+		'ingame' => [PREG_USERNAME, false],
+		'raf' => [PREG_USERNAME, false],
+		'website' => [PREG_URL, false],
+		'about' => ['/^.{0,1024}$/m', false],
+	];
+
+	if (has_permission('admin.edit_ugroup')) {
+		$fields['group_id'] = [array_column($groups, 'id'), true];
+	}
+
+	if (!$is_admin && ($ban = App::checkBanlist(App::POST()))) {
+		$warnings[] = __('profile.edit_cant_mod') . ' ' . html_encode($ban['reason']);
+		unset($fields['username'], $fields['email']);
+	}
+
+	$form_values = array_intersect_key(App::POST(), $fields);
+	$form_values = $form_values + $reset;
+
+	foreach ($form_values as $field => $value) {
+		$f = $fields[$field];
+
+		if (isset($f[2])) {
+			$value = preg_replace($f[2], '', $value);
+		}
+
+		if ((string) $user_info->$field === $value) {
+			continue;
+		}
+
+		if (
+			((is_array($f[0]) && !in_array($value, $f[0], true))
+			|| (is_string($f[0]) && !preg_match($f[0], $value)))
+			&& ($f[1] === true || $value !== '')
+		) {
+			$warnings[$field] = __('profile.field_invalid', ['%field%' => $field]);
+		} elseif ($f[1] === true && $value === '') {
+			$warnings[$field] = __('profile.field_required', ['%field%' => $field]);
+		} else {
+			$edits[$field] = $value;
+		}
+	}
+
+	foreach (Evo\Social::getProviders() as $network => [$name, $icon, $validation]) {
+		$account = App::POST('social')[$network] ?? $user_info->social[$network] ?? '';
+
+		if ($account === '' || preg_match($validation, $account)) {
+			$social[$network] = $account;
+		} else {
+			$warnings['social.' . $network] = __('profile.field_invalid', ['%field%' => $name]);
+		}
+	}
+
+	$edits['social'] = array_filter($social);
+
+	$can_edit_login = $is_admin || $user_info->verifyPassword(App::POST('password_old', ''));
+
+	if (!empty($edits['password'])) {
+		if ($can_edit_login) {
+			$user_info->changePassword($edits['password']);
+		} else {
+			$warnings['password'] = __('profile.edit_password_warning');
+		}
+	}
+	unset($edits['password']);
+
+	if (!empty($edits['email']) && !$can_edit_login) {
+		$warnings['email'] = __('profile.edit_email_warning');
+		unset($edits['email']);
+	}
+
+	if (isset($edits['group_id']) && $group = App::getGroup($edits['group_id'])) {
+		if (App::getCurrentUser()->group->priority > $group->priority) {
+			$warnings['group_id'] = __('profile.edit_group_warning');
+			unset($edits['group_id']);
+		}
+	}
+
+	if (isset($edits['username']) && App::getUser($edits['username'])) {
+		$warnings['username'] = __('profile.edit_username_warning');
+		unset($edits['username']);
+	}
+
+	if ($warnings) {
+		App::setWarning(implode('<br>', $warnings));
+	}
+
+	foreach ($edits as $key => $value) {
+		$user_info->$key = $value;
+	}
+
+	if (!empty($edits) && $user_info->save()) {
+		App::setSuccess($warnings ? __('profile.edit_success1') : __('profile.edit_success2'));
+		App::logEvent($user_info->id, 'user', __('profile.edit_success2') . implode(', ', array_keys($edits)));
+		App::trigger('user_updated', [$user_info, $edits]);
+
+		if ($user_info->id !== App::getCurrentUser()->id) {
+			App::logEvent($user_info->id, 'admin', __('profile.edit_success2') . $user_info->username . ': ' . implode(', ', array_keys($edits)));
+		}
+	}
+
+	return $user_info;
+}
+
+/**
  * @return array<string, mixed>
  */
 function admin_user_view_profile_data(object $user_info): array
@@ -3887,12 +4123,239 @@ function admin_user_view_profile_board(object $user_info): string
 	return App::renderTemplate('pages/user.php', admin_user_view_profile_data($user_info), true);
 }
 
-function admin_user_view_edit_board(): string
+function admin_user_view_rank_field(object $user_info): string
 {
-	ob_start();
-	include ROOT_DIR . '/pages/profile.php';
+	if (has_permission('admin.edit_ugroup')) {
+		$options = [];
 
-	return '<div class="admin-user-view-form">' . ob_get_clean() . '</div>';
+		foreach (Db::QueryAll('select * from {groups} order by priority asc', true) as $group) {
+			$options[] = [
+				$group['id'],
+				$group['name'],
+				['class' => 'group-color-' . $group['color']],
+			];
+		}
+
+		return Widgets::formBuilder(null, [
+			'group_id' => [
+				'type' => 'enum',
+				'label' => __('profile.edit_rank'),
+				'value' => $user_info->group_id,
+				'choices' => $options,
+			],
+		], false, null);
+	}
+
+	return '<div class="mb-3 row">'
+		. '<label class="col-sm-4 col-form-label text-end">' . html_encode(__('profile.edit_rank')) . '</label>'
+		. '<div class="col-sm-6"><span class="col-form-label group-color-' . html_encode((string) $user_info->group->color) . '">' . html_encode($user_info->group->name) . '</span></div>'
+		. '</div>';
+}
+
+function admin_user_view_options_fields(object $user_info): string
+{
+	return '<div class="mb-3 row">'
+		. '<label class="col-sm-4 col-form-label text-end" for="newsletter">' . html_encode(__('profile.edit_options')) . '</label>'
+		. '<div class="col-sm-8">'
+		. '<div class="form-check"><input class="form-check-input" id="newsletter" name="newsletter" type="checkbox" value="1"' . ($user_info->newsletter == 1 ? ' checked' : '') . '>'
+		. '<label class="form-check-label" for="newsletter">' . html_encode(__('profile.edit_newsletter')) . '</label></div>'
+		. '<div class="form-check"><input class="form-check-input" id="discuss" name="discuss" type="checkbox" value="1"' . ($user_info->discuss == 1 ? ' checked' : '') . '>'
+		. '<label class="form-check-label" for="discuss">' . html_encode(__('profile.edit_discuss_mode')) . '</label></div>'
+		. '</div></div>';
+}
+
+function admin_user_view_avatar_field(object $user_info, array $avatars): string
+{
+	$html = '<div class="mb-3 row">'
+		. '<label class="col-sm-4 col-form-label text-end" for="avatar">' . html_encode(__('profile.edit_avatar')) . '</label>'
+		. '<div class="col-sm-8 admin-user-view-avatar-field">'
+		. Widgets::select('avatar', $avatars, $user_info->avatar, true, ['class' => 'avatar_selector form-control'])
+		. '<img id="avatar_selector_preview" class="admin-user-view-avatar-field__preview" title="' . html_encode(__('profile.edit_avatar_now')) . '" width="42" height="42" src="' . html_encode(get_avatar($user_info, 42, true)) . '" alt="">'
+		. '</div></div>';
+	$html .= '<div id="avatar_selector_box" class="admin-user-view-avatar-field__gallery admin-user-view-fields-grid admin-user-view-fields-grid--avatars"></div>';
+
+	return $html;
+}
+
+function admin_user_view_social_fields(object $user_info): string
+{
+	$providers = Evo\Social::getProviders();
+
+	if (!$providers) {
+		return '';
+	}
+
+	$html = '<div class="container admin-user-view-social">';
+	$html .= '<div class="row g-3 admin-user-view-social__grid">';
+
+	foreach ($providers as $network => [$name, $icon]) {
+		$value = (string) ($user_info->social[$network] ?? '');
+		$item_class = 'admin-user-view-social__item';
+
+		if (trim($value) !== '') {
+			$item_class .= ' admin-user-view-social__item--filled';
+		}
+
+		$html .= '<div class="col-12 col-md-6">'
+			. '<div class="' . html_encode($item_class) . '">'
+			. '<label class="admin-user-view-social__label" for="' . html_encode($network) . '">' . html_encode($name) . '</label>'
+			. '<div class="input-group admin-user-view-social__field">'
+			. '<span class="input-group-text admin-user-view-social__icon admin-user-view-social__icon--' . html_encode($network) . '" aria-hidden="true">'
+			. fa_icon_html(fa_icon_label($icon), 'brands')
+			. '</span>'
+			. '<input class="form-control admin-user-view-social__input" id="' . html_encode($network) . '" name="social[' . html_encode($network) . ']" type="text" value="' . html_encode($value) . '" placeholder="' . html_encode(__('profile.edit_social', ['%social%' => $name])) . '" autocomplete="off">'
+			. '</div></div></div>';
+	}
+
+	return $html . '</div></div>';
+}
+
+function admin_user_view_about_field(object $user_info): string
+{
+	return '<div class="container admin-user-view-editor">'
+		. '<textarea id="editor" class="form-control admin-user-view-editor__textarea" name="about" placeholder="' . html_encode(__('profile.edit_aboutme2')) . '" style="height:250px;">' . html_encode($user_info->about) . '</textarea>'
+		. '</div>';
+}
+
+function admin_user_view_edit_form(object $user_info): string
+{
+	[$avatars] = profile_avatar_select_options($user_info);
+	$timezones = generate_tz_list();
+	$groups = [
+		[
+			'title' => __('admin/user_view.section_identity'),
+			'icon' => 'fa-solid fa-id-card',
+			'settings' => [
+				'username' => [
+					'type' => 'text',
+					'label' => __('profile.edit_username'),
+					'value' => $user_info->username,
+				],
+				'email' => [
+					'type' => 'text',
+					'label' => __('profile.edit_email'),
+					'value' => $user_info->email,
+					'attributes' => ['class' => 'form-control password-required', 'data-old-value' => $user_info->email],
+				],
+				'password' => [
+					'type' => 'password',
+					'label' => __('profile.edit_password'),
+					'value' => '',
+					'placeholder' => __('profile.edit_new_password_ph'),
+					'attributes' => ['class' => 'form-control password-required', 'data-old-value' => ''],
+				],
+			],
+		],
+		[
+			'title' => __('admin/user_view.section_profile'),
+			'icon' => 'fa-solid fa-user',
+			'settings' => [
+				'country' => [
+					'type' => 'enum',
+					'label' => __('profile.edit_country'),
+					'value' => $user_info->country,
+					'choices' => COUNTRIES,
+				],
+				'timezone' => [
+					'type' => 'enum',
+					'label' => __('profile.edit_timezone'),
+					'value' => $user_info->timezone,
+					'choices' => $timezones,
+				],
+				'ingame' => [
+					'type' => 'text',
+					'label' => 'In-game name',
+					'value' => $user_info->ingame,
+					'placeholder' => __('profile.edit_gametag'),
+				],
+				'website' => [
+					'type' => 'text',
+					'label' => 'Website',
+					'value' => $user_info->website,
+					'placeholder' => __('profile.edit_website'),
+				],
+				'raf' => [
+					'type' => 'text',
+					'label' => __('profile.edit_raf'),
+					'value' => $user_info->raf,
+					'attributes' => ['data-autocomplete' => 'userlist', 'id' => 'parrain'],
+				],
+			],
+		],
+		[
+			'title' => __('admin/user_view.section_options'),
+			'icon' => 'fa-solid fa-sliders',
+			'content' => admin_user_view_options_fields($user_info),
+		],
+		[
+			'title' => __('admin/user_view.section_rank'),
+			'icon' => 'fa-solid fa-shield-halved',
+			'content' => admin_user_view_rank_field($user_info),
+		],
+		[
+			'title' => __('admin/user_view.section_avatar'),
+			'icon' => 'fa-solid fa-image',
+			'content' => admin_user_view_avatar_field($user_info, $avatars),
+		],
+		[
+			'title' => __('admin/user_view.section_about'),
+			'icon' => 'fa-solid fa-align-left',
+			'body_class' => 'admin-user-view-editor-section',
+			'content' => admin_user_view_about_field($user_info),
+		],
+	];
+
+	if ($social = admin_user_view_social_fields($user_info)) {
+		array_splice($groups, 5, 0, [[
+			'title' => __('admin/user_view.section_social'),
+			'icon' => 'fa-solid fa-share-nodes',
+			'content' => $social,
+		]]);
+	}
+
+	$html = admin_settings_grouped_form('', $groups, [
+		'class' => 'admin-user-view-form',
+		'submit' => __('profile.edit_btn_register'),
+		'hidden' => ['admin_user_view_tab' => 'profile'],
+	]);
+
+	ob_start();
+	include ROOT_DIR . '/includes/Editors/editors.php';
+	$html .= ob_get_clean();
+	$html .= admin_user_view_edit_scripts($user_info);
+
+	return $html;
+}
+
+function admin_user_view_edit_scripts(object $user_info): string
+{
+	$default_avatar = get_avatar(['email' => $user_info->email], 85, true);
+	$ingame_avatar = get_avatar(['email' => $user_info->email, 'ingame' => $user_info->ingame], 85, true);
+
+	return '<script>
+	(function () {
+		$(\'select.avatar_selector option[value=""]\').attr(\'data-src-alt\', ' . json_encode($default_avatar) . ');
+		$(\'select.avatar_selector option[value="ingame"]\').attr(\'data-src-alt\', ' . json_encode($ingame_avatar) . ');
+		$(\'select.avatar_selector\')
+			.after(\'<select class="form-control admin-user-view-avatar-field__category" id="cat_only_selectbox"></select>\')
+			.addClass(\'d-none\');
+		$("select.avatar_selector > optgroup").each(function () {
+			var options = $(this).children(\'option\');
+			if (options.length !== 0) {
+				$(\'#cat_only_selectbox\').append(\'<option value="\' + options[0].value + \'" \' + (options.filter(\':selected\').length ? \'selected\' : \'\') + \'>\' + this.label + \'</option>\');
+			}
+		});
+		$(\'#cat_only_selectbox\').on(\'change keyup\', function () {
+			$(\'select.avatar_selector\').val($(this).val()).trigger(\'change\');
+		});
+		load_editor(\'editor\', \'markdown\');
+	})();
+	</script>';
+}
+
+function admin_user_view_edit_board(object $user_info): string
+{
+	return admin_user_view_edit_form($user_info);
 }
 
 function admin_user_view_build_stats(object $user, array $mails, array $history): array

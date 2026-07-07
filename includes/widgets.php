@@ -459,7 +459,7 @@ class Widgets
 			if ($group['type'] === 'row') {
 				$count = count($group['fields']);
 				$col_class = self::formBuilderRowColClass($count);
-				$buffer .= '<div class="row g-3 admin-settings-fields-row admin-settings-fields-row--' . min($count, 4) . '">';
+				$buffer .= '<div class="container row g-3 admin-settings-fields-row admin-settings-fields-row--' . min($count, 4) . '">';
 
 				foreach ($group['fields'] as [$name, $props]) {
 					$buffer .= self::formBuilderField($form, $name, $props, true, $col_class);
