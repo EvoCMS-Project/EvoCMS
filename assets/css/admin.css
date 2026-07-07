@@ -3068,7 +3068,7 @@ a.admin-kpi-card--linked:focus-visible {
 	cursor: pointer;
 }
 
-.admin-settings__pane {
+.admin-settings__pane.active {
 	display: flex;
 	flex-direction: column;
 	gap: 1.5rem;
@@ -3136,13 +3136,17 @@ a.admin-kpi-card--linked:focus-visible {
 	padding-bottom: 0.25rem;
 }
 
-.admin-settings-subsection__body.container {
+.admin-settings-subsection.container {
 	width: 100%;
-	max-width: 40rem;
+	max-width: none;
 	margin-left: 0;
 	margin-right: auto;
 	padding-left: 0;
 	padding-right: 0;
+}
+
+.admin-settings-subsection.container .admin-settings-subsection__body {
+	min-width: 0;
 }
 
 .admin-settings-section--grouped {
@@ -3232,8 +3236,15 @@ a.admin-kpi-card--linked:focus-visible {
 .admin-settings-section--grouped .admin-settings-section__footer {
 	border-top: none;
 	background: transparent;
-	padding-left: 0;
-	padding-right: 0;
+	padding: 0.625rem 0 0;
+}
+
+.admin-settings-section--grouped .admin-settings-section__body--grouped > .admin-settings-subsection:last-child .form-horizontal .mb-3.row:last-child {
+	margin-bottom: 0 !important;
+}
+
+.admin-tabs-panel > .tab-pane.admin-settings__pane {
+	padding-bottom: 1rem;
 }
 
 .admin-settings-section__footer .text-center {
@@ -3262,6 +3273,7 @@ a.admin-kpi-card--linked:focus-visible {
 }
 
 .admin-settings .form-horizontal .mb-3.row,
+.admin-settings-grouped-form .form-horizontal .mb-3.row,
 .admin-servers-form .form-horizontal .mb-3.row,
 .admin-user-view-form .form-horizontal .mb-3.row,
 .admin-avatars-create-form .form-horizontal .mb-3.row,
@@ -3274,6 +3286,7 @@ a.admin-kpi-card--linked:focus-visible {
 }
 
 .admin-settings .form-horizontal .col-form-label,
+.admin-settings-grouped-form .form-horizontal .col-form-label,
 .admin-servers-form .form-horizontal .col-form-label,
 .admin-user-view-form .form-horizontal .col-form-label,
 .admin-avatars-create-form .form-horizontal .col-form-label,
@@ -3297,6 +3310,8 @@ a.admin-kpi-card--linked:focus-visible {
 
 .admin-settings .form-horizontal .mb-3.row:has(textarea),
 .admin-settings .form-horizontal .mb-3.row:has(.admin-form-image),
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(textarea),
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(.admin-form-image),
 .admin-servers-form .form-horizontal .mb-3.row:has(textarea),
 .admin-servers-form .form-horizontal .mb-3.row:has(.admin-form-image),
 .admin-user-view-form .form-horizontal .mb-3.row:has(textarea),
@@ -3311,6 +3326,8 @@ a.admin-kpi-card--linked:focus-visible {
 
 .admin-settings .form-horizontal .mb-3.row:has(textarea) .col-form-label,
 .admin-settings .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
 .admin-servers-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
 .admin-servers-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
 .admin-user-view-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
@@ -3595,37 +3612,79 @@ a.admin-kpi-card--linked:focus-visible {
 }
 
 .admin-settings-fields-row {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr);
-	gap: 1rem;
 	margin-bottom: 1rem;
-}
-
-@media (min-width: 768px) {
-	.admin-settings-fields-row--2 {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-
-	.admin-settings-fields-row--3 {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
-
-	.admin-settings-fields-row--4 {
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-	}
 }
 
 .admin-settings-fields-row__item {
 	margin-bottom: 0 !important;
+	min-width: 0;
+}
+
+.admin-settings-fields-row__control {
+	min-width: 0;
 }
 
 .admin-settings-fields-row__item .col-form-label {
+	display: block;
 	padding-top: 0;
 	padding-bottom: 0.5rem;
 }
 
 .admin-settings-fields-row__item:has(.admin-form-image) .col-form-label {
 	padding-top: 0;
+}
+
+.admin-settings-grouped-form .form-horizontal .mb-3.row {
+	align-items: center;
+	margin-bottom: 1rem !important;
+}
+
+.admin-settings-grouped-form .form-horizontal .col-form-label {
+	padding-top: 0;
+	padding-bottom: 0;
+	color: #455a64;
+	font-size: 0.875rem;
+}
+
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(textarea),
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(.admin-form-image),
+.admin-settings-grouped-form .form-horizontal .admin-settings-fields-row__item:has(textarea),
+.admin-settings-grouped-form .form-horizontal .admin-settings-fields-row__item:has(.admin-form-image) {
+	align-items: flex-start;
+}
+
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(textarea) .col-form-label,
+.admin-settings-grouped-form .form-horizontal .mb-3.row:has(.admin-form-image) .col-form-label,
+.admin-settings-grouped-form .form-horizontal .admin-settings-fields-row__item:has(textarea) .col-form-label,
+.admin-settings-grouped-form .form-horizontal .admin-settings-fields-row__item:has(.admin-form-image) .col-form-label {
+	padding-top: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+	.admin-settings-subsection.container .mb-3.row > .col-sm-4,
+	.admin-settings-subsection.container .mb-3.row > .col-sm-6,
+	.admin-settings-subsection.container .mb-3.row > .col-sm-8 {
+		flex: 0 0 100%;
+		max-width: 100%;
+	}
+
+	.admin-settings-subsection.container .admin-form-image__controls {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.admin-settings-subsection.container .admin-form-image__select,
+	.admin-settings-subsection.container .admin-form-image__upload {
+		width: 100%;
+	}
+
+	.admin-settings-subsection.container .admin-form-image__upload {
+		justify-content: center;
+	}
+
+	.admin-settings-subsection.container .admin-form-image__separator {
+		align-self: center;
+	}
 }
 
 .admin-settings .form-horizontal .text-center {
@@ -3877,6 +3936,7 @@ a.admin-kpi-card--linked:focus-visible {
 
 @media (max-width: 767.98px) {
 	.admin-settings .form-horizontal .col-form-label,
+	.admin-settings-grouped-form .form-horizontal .col-form-label,
 	.admin-servers-form .form-horizontal .col-form-label,
 	.admin-user-view-form .form-horizontal .col-form-label,
 	.admin-avatars-create-form .form-horizontal .col-form-label,
@@ -3888,6 +3948,7 @@ a.admin-kpi-card--linked:focus-visible {
 	}
 
 	.admin-settings .form-horizontal .text-center,
+	.admin-settings-grouped-form .form-horizontal .text-center,
 	.admin-servers-form .form-horizontal .text-center,
 	.admin-user-view-form .form-horizontal .text-center,
 	.admin-avatars-create-form .form-horizontal .text-center,
@@ -3896,6 +3957,7 @@ a.admin-kpi-card--linked:focus-visible {
 	}
 
 	.admin-settings .form-horizontal .text-center .btn-primary,
+	.admin-settings-grouped-form .form-horizontal .text-center .btn-primary,
 	.admin-servers-form .form-horizontal .text-center .btn-primary,
 	.admin-user-view-form .form-horizontal .text-center .btn-primary,
 	.admin-avatars-create-form .form-horizontal .text-center .btn-primary,
@@ -4040,8 +4102,8 @@ a.admin-kpi-card--linked:focus-visible {
 	padding: 0;
 }
 
-.admin-tabs-panel--resizing {
-	transition: height 0.2s ease;
+.admin-tabs-panel > .tab-pane:not(.active) {
+	display: none;
 }
 
 .admin-tabs-panel > .tab-pane {
@@ -4049,7 +4111,7 @@ a.admin-kpi-card--linked:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.admin-tabs-panel--resizing {
+	.admin-tabs-panel {
 		transition: none;
 	}
 }
@@ -4094,7 +4156,7 @@ a.admin-kpi-card--linked:focus-visible {
 	padding: 0;
 }
 
-.admin-modules-board__pane.show {
+.admin-modules-board__pane.active {
 	display: flex;
 }
 
@@ -5151,7 +5213,7 @@ a.admin-kpi-card--linked:focus-visible {
 	min-width: 0;
 }
 
-.admin-broadcast-board__pane.show.active {
+.admin-broadcast-board__pane.active {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
@@ -5845,8 +5907,8 @@ a.admin-kpi-card--linked:focus-visible {
 	min-width: 0;
 }
 
-.admin-user-view-board__pane.show,
-.admin-groups-board__pane.show {
+.admin-user-view-board__pane.active,
+.admin-groups-board__pane.active {
 	display: flex;
 }
 
@@ -6096,7 +6158,7 @@ a.admin-kpi-card--linked:focus-visible {
 	flex-direction: column;
 }
 
-.admin-servers-board__pane.show {
+.admin-servers-board__pane.active {
 	display: flex;
 }
 
@@ -6192,7 +6254,7 @@ a.admin-kpi-card--linked:focus-visible {
 
 /* ── Admin security page ── */
 
-.admin-security-board__pane {
+.admin-security-board__pane.active {
 	display: flex;
 	flex-direction: column;
 }
@@ -6992,7 +7054,7 @@ a.admin-kpi-card--linked:focus-visible {
 	flex-direction: column;
 }
 
-.admin-page-edit-board__pane.show {
+.admin-page-edit-board__pane.active {
 	display: flex;
 }
 
@@ -7320,7 +7382,7 @@ a.admin-kpi-card--linked:focus-visible {
 	border-top-right-radius: 0;
 }
 
-.admin-avatars-board__pane {
+.admin-avatars-board__pane.active {
 	display: flex;
 	flex-direction: column;
 	min-width: 0;
@@ -8188,7 +8250,7 @@ a.admin-kpi-card--linked:focus-visible {
 	border-top-right-radius: 0;
 }
 
-.admin-menu-board__pane {
+.admin-menu-board__pane.active {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;

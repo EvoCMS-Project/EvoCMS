@@ -1668,92 +1668,14 @@ function adminInitToolbarSearch(context) {
 	});
 }
 
-function adminInitTabsPanelResize() {
-	if (adminInitTabsPanelResize.initialized) {
-		return;
-	}
-
-	adminInitTabsPanelResize.initialized = true;
-
-	function getTabTarget(tab) {
-		var selector = tab.getAttribute('data-bs-target') || tab.getAttribute('href') || '';
-
-		if (!selector || selector.charAt(0) !== '#') {
-			return null;
-		}
-
-		try {
-			return document.querySelector(selector);
-		} catch (e) {
-			return null;
-		}
-	}
-
-	function releasePanel(panel) {
-		window.clearTimeout(panel.adminTabsResizeTimer);
-		panel.style.height = '';
-		panel.classList.remove('admin-tabs-panel--resizing');
-	}
-
-	function shouldResizePanel(panel) {
-		return !panel.classList.contains('admin-modules-board__body--content')
-			&& !panel.classList.contains('admin-user-view-board__body--content');
-	}
-
-	function lockPanel(panel) {
-		window.clearTimeout(panel.adminTabsResizeTimer);
-		panel.style.height = panel.getBoundingClientRect().height + 'px';
-		panel.classList.add('admin-tabs-panel--resizing');
-	}
-
-	$(document).on('show.bs.tab', '[data-bs-toggle="tab"]', function () {
-		var target = getTabTarget(this);
-		var panel = target ? target.closest('.admin-tabs-panel') : null;
-
-		if (!panel) {
-			return;
-		}
-
-		if (!shouldResizePanel(panel)) {
-			releasePanel(panel);
-			return;
-		}
-
-		lockPanel(panel);
-	});
-
-	$(document).on('shown.bs.tab', '[data-bs-toggle="tab"]', function () {
-		var target = getTabTarget(this);
-		var panel = target ? target.closest('.admin-tabs-panel') : null;
-
-		if (!panel) {
-			return;
-		}
-
-		if (!shouldResizePanel(panel)) {
-			releasePanel(panel);
-			return;
-		}
-
-		var nextHeight = panel.scrollHeight;
-
-		window.requestAnimationFrame(function () {
-			panel.style.height = nextHeight + 'px';
-		});
-
-		panel.adminTabsResizeTimer = window.setTimeout(function () {
-			releasePanel(panel);
-		}, 260);
-
-		$(panel).one('transitionend.adminTabsResize', function (event) {
-			if (event.originalEvent && event.originalEvent.propertyName === 'height') {
-				releasePanel(panel);
-			}
-		});
-	});
-}
-
-function adminInitTableTextSize(context) {
+$(function () {
+	adminInitFileDropzones();
+	adminInitImagePreview();
+	adminInitIconSelects();
+	adminInitAvatarsBoard();
+	adminInitToolbarSearch();
+	adminInitTableTextSize();
+});
 	var $scope = context ? $(context) : $(document);
 
 	$scope.find('[data-admin-table-text-size]').each(function () {
@@ -1803,6 +1725,5 @@ $(function () {
 	adminInitIconSelects();
 	adminInitAvatarsBoard();
 	adminInitToolbarSearch();
-	adminInitTabsPanelResize();
 	adminInitTableTextSize();
 });

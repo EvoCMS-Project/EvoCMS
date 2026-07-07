@@ -458,10 +458,11 @@ class Widgets
 		foreach (self::formBuilderGroups($fields) as $group) {
 			if ($group['type'] === 'row') {
 				$count = count($group['fields']);
-				$buffer .= '<div class="admin-settings-fields-row admin-settings-fields-row--' . min($count, 4) . '">';
+				$col_class = self::formBuilderRowColClass($count);
+				$buffer .= '<div class="row g-3 admin-settings-fields-row admin-settings-fields-row--' . min($count, 4) . '">';
 
 				foreach ($group['fields'] as [$name, $props]) {
-					$buffer .= self::formBuilderField($form, $name, $props, true);
+					$buffer .= self::formBuilderField($form, $name, $props, true, $col_class);
 				}
 
 				$buffer .= '</div>';
@@ -529,12 +530,28 @@ class Widgets
 	}
 
 
-	private static function formBuilderField(string $form, string $name, array $props, bool $in_row): string
+	private static function formBuilderRowColClass(int $count): string
+	{
+		$count = max(1, min($count, 4));
+		$span = (int) (12 / $count);
+
+		return 'col-12 col-md-' . $span;
+	}
+
+
+	private static function formBuilderField(string $form, string $name, array $props, bool $in_row, string $col_class = ''): string
 	{
 		$subfields = $props['type'] === 'multiple' ? $props['fields'] : [$name => $props];
-		$row_class = 'mb-3 row' . ($in_row ? ' admin-settings-fields-row__item' : '');
-		$label_class = $in_row ? 'col-12 col-form-label' : 'col-sm-4 col-form-label text-end';
-		$input_class = $in_row ? 'col-12' : 'col-sm-6';
+
+		if ($in_row) {
+			$row_class = trim('admin-settings-fields-row__item mb-3 ' . $col_class);
+			$label_class = 'col-form-label';
+			$input_class = 'admin-settings-fields-row__control';
+		} else {
+			$row_class = 'mb-3 row';
+			$label_class = 'col-sm-4 col-form-label text-end';
+			$input_class = 'col-sm-6';
+		}
 		$buffer = '<div class="' . $row_class . '">';
 		$buffer .= '<label class="' . $label_class . '" for="' . $form . '-' . md5((string) key($subfields)) . '">' . $props['label'] . ' ';
 

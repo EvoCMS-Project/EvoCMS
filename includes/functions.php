@@ -463,7 +463,7 @@ function admin_settings_group_fields_row(array $settings, int $columns = 2, ?cal
 /**
  * Affiche plusieurs sous-sections dans une seule carte avec un bouton Enregistrer.
  *
- * @param array<int, array{title?: string, icon?: string, description?: string, settings?: array, content?: string, body_class?: string, empty?: string, extra?: string}> $groups
+ * @param array<int, array{title?: string, icon?: string, description?: string, settings?: array, content?: string, class?: string, body_class?: string, empty?: string, extra?: string}> $groups
  */
 function admin_settings_grouped_form(string $tab_id, array $groups, array $options = []): string
 {
@@ -508,6 +508,7 @@ function admin_settings_grouped_form(string $tab_id, array $groups, array $optio
 		$html .= admin_settings_subsection($group['title'] ?? '', $content, [
 			'icon' => $group['icon'] ?? '',
 			'description' => $group['description'] ?? '',
+			'class' => $group['class'] ?? '',
 			'body_class' => $group['body_class'] ?? '',
 		]);
 	}
@@ -536,8 +537,9 @@ function admin_settings_subsection(string $title, string $content, array $option
 {
 	$icon = $options['icon'] ?? '';
 	$description = $options['description'] ?? '';
+	$wrapper_class = trim($options['class'] ?? '');
 	$body_class = trim($options['body_class'] ?? '');
-	$html = '<div class="admin-settings-subsection">';
+	$html = '<div class="admin-settings-subsection' . ($wrapper_class !== '' ? ' ' . html_encode($wrapper_class) : '') . '">';
 
 	if ($title !== '') {
 		$html .= '<header class="admin-settings-subsection__header">';
@@ -803,8 +805,7 @@ function admin_filter_chips(array $items, array $selected, string $name, string 
  *   page?: string,
  *   class?: string,
  *   id?: string,
- *   aria_label?: string,
- *   button_tabs?: bool
+ *   aria_label?: string
  * } $options
  */
 function admin_tabs(array $tabs, array $options = []): string
@@ -815,7 +816,6 @@ function admin_tabs(array $tabs, array $options = []): string
 	$extra_class = trim($options['class'] ?? '');
 	$id = $options['id'] ?? '';
 	$aria_label = $options['aria_label'] ?? '';
-	$button_tabs = !empty($options['button_tabs']);
 
 	$classes = trim('nav nav-tabs admin-tabs ' . $extra_class);
 	$html = '<ul class="' . html_encode($classes) . '" role="tablist"';
@@ -840,13 +840,7 @@ function admin_tabs(array $tabs, array $options = []): string
 
 		$ms_auto = !empty($tab['ms_auto']) ? ' ms-auto' : '';
 		$html .= '<li class="nav-item' . $ms_auto . '" role="presentation">';
-		$tag = 'a';
-
-		if ($type === 'bootstrap' && $button_tabs && empty($tab['external'])) {
-			$tag = 'button';
-		}
-
-		$html .= '<' . $tag . ' class="' . $link_class . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '"';
+		$html .= '<a class="' . $link_class . '" role="tab" aria-selected="' . ($is_active ? 'true' : 'false') . '"';
 
 		if ($type === 'link') {
 			$href = $tab['href'] ?? ('?page=' . rawurlencode($page) . '&tab=' . rawurlencode((string) $tab_id));
@@ -858,19 +852,7 @@ function admin_tabs(array $tabs, array $options = []): string
 			$html .= ' id="' . html_encode($tab_id) . '-tab" tabindex="-1" aria-disabled="true"';
 		} else {
 			$href = $tab['href'] ?? ('#' . $tab_id);
-			$html .= ' id="' . html_encode($tab_id) . '-tab" data-bs-toggle="tab"';
-
-			if ($tag === 'button') {
-				$html .= ' type="button" data-bs-target="' . html_encode($href) . '"';
-			} else {
-				$html .= ' href="' . html_encode($href) . '"';
-			}
-
-			$html .= ' aria-controls="' . html_encode($tab_id) . '"';
-		}
-
-		if (!empty($tab['disabled']) && $tag === 'button') {
-			$html .= ' disabled';
+			$html .= ' id="' . html_encode($tab_id) . '-tab" data-bs-toggle="tab" href="' . html_encode($href) . '" aria-controls="' . html_encode($tab_id) . '"';
 		}
 
 		$html .= '>';
@@ -885,7 +867,7 @@ function admin_tabs(array $tabs, array $options = []): string
 			$html .= ' ' . $tab['badge'];
 		}
 
-		$html .= '</' . $tag . '></li>';
+		$html .= '</a></li>';
 	}
 
 	return $html . '</ul>';
@@ -898,12 +880,30 @@ function admin_tabs(array $tabs, array $options = []): string
  */
 function admin_settings_tabs(array $tabs, string $active): string
 {
-	return admin_tabs($tabs, ['active' => $active, 'type' => 'bootstrap', 'button_tabs' => true]);
+	return admin_tabs($tabs, ['active' => $active, 'type' => 'bootstrap']);
+}
+
+/**
+ * Ouvre un panneau d'onglet Bootstrap réutilisable pour l'administration.
+ */
+function admin_tab_pane_open(string $id, bool $active, string $pane_class = ''): string
+{
+	$classes = 'tab-pane';
+
+	if ($pane_class !== '') {
+		$classes .= ' ' . trim($pane_class);
+	}
+
+	if ($active) {
+		$classes .= ' active show';
+	}
+
+	return '<div class="' . html_encode($classes) . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
 }
 
 function admin_settings_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-settings__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-settings__pane');
 }
 
 function admin_settings_tab_close(): string
@@ -1064,7 +1064,7 @@ function admin_settings_theme_tab(array $themes, string $activeDir, ?array $them
 			'title' => __('admin/general.tab_theme'),
 			'icon' => 'fa-palette',
 			'content' => admin_settings_theme_selection($themes, $activeDir),
-			'body_class' => 'container',
+			'class' => 'container',
 		],
 	];
 
@@ -1072,8 +1072,12 @@ function admin_settings_theme_tab(array $themes, string $activeDir, ?array $them
 		$groups[] = [
 			'title' => __('admin/general.theme_title1'),
 			'icon' => 'fa-paintbrush',
-			'settings' => admin_settings_group_fields_row($themeSettings),
-			'body_class' => 'container',
+			'settings' => admin_settings_group_fields_row(
+				$themeSettings,
+				2,
+				static fn(array $field): bool => in_array($field['type'] ?? '', ['image', 'color'], true)
+			),
+			'class' => 'container',
 		];
 	}
 
@@ -1471,13 +1475,12 @@ function admin_modules_nav(array $tabs, string $active): string
 		'active' => $active,
 		'type' => 'bootstrap',
 		'aria_label' => __('admin/modules.main_title'),
-		'button_tabs' => true,
 	]);
 }
 
 function admin_modules_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-modules-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-modules-board__pane');
 }
 
 function admin_modules_tab_close(): string
@@ -2368,13 +2371,12 @@ function admin_servers_nav(array $tabs, string $active): string
 		'active' => $active,
 		'type' => 'bootstrap',
 		'aria_label' => __('admin/servers.main_title'),
-		'button_tabs' => true,
 	]);
 }
 
 function admin_servers_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-servers-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-servers-board__pane');
 }
 
 function admin_servers_tab_close(): string
@@ -2663,13 +2665,12 @@ function admin_security_nav(array $tabs, string $active): string
 		'active' => $active,
 		'type' => 'bootstrap',
 		'aria_label' => __('admin/menu.sub_security'),
-		'button_tabs' => true,
 	]);
 }
 
 function admin_security_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-security-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-security-board__pane');
 }
 
 function admin_security_tab_close(): string
@@ -3839,13 +3840,12 @@ function admin_user_view_nav(array $tabs, string $active): string
 		'active' => $active,
 		'type' => 'bootstrap',
 		'aria_label' => __('admin/user_view.page_title_short'),
-		'button_tabs' => true,
 	]);
 }
 
 function admin_user_view_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-user-view-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-user-view-board__pane');
 }
 
 function admin_user_view_tab_close(): string
@@ -4017,13 +4017,12 @@ function admin_groups_nav(array $tabs, string $active): string
 		'active' => $active,
 		'type' => 'bootstrap',
 		'aria_label' => __('admin/groups.management_title'),
-		'button_tabs' => true,
 	]);
 }
 
 function admin_groups_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-groups-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-groups-board__pane');
 }
 
 function admin_groups_tab_close(): string
@@ -4250,13 +4249,12 @@ function admin_broadcast_nav(array $tabs, string $active): string
 		'active' => $active,
 		'type' => 'bootstrap',
 		'aria_label' => __('admin/broadcast.title'),
-		'button_tabs' => true,
 	]);
 }
 
 function admin_broadcast_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-broadcast-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-broadcast-board__pane');
 }
 
 function admin_broadcast_tab_close(): string
@@ -5689,7 +5687,7 @@ function admin_menu_nav(array $tabs, string $active): string
 
 function admin_menu_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-menu-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-menu-board__pane');
 }
 
 function admin_menu_tab_close(): string
@@ -6089,13 +6087,12 @@ function admin_page_edit_nav(array $tabs, string $active): string
 		'active' => $active,
 		'type' => 'bootstrap',
 		'aria_label' => __('admin/page_edit.nav_edit'),
-		'button_tabs' => true,
 	]);
 }
 
 function admin_page_edit_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-page-edit-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-page-edit-board__pane');
 }
 
 function admin_page_edit_tab_close(): string
@@ -6482,7 +6479,7 @@ function admin_avatars_nav(string $view): string
 
 function admin_avatars_tab_open(string $id, bool $active): string
 {
-	return '<div class="tab-pane admin-avatars-board__pane' . ($active ? ' show active' : '') . '" id="' . html_encode($id) . '" role="tabpanel" aria-labelledby="' . html_encode($id) . '-tab" tabindex="0">';
+	return admin_tab_pane_open($id, $active, 'admin-avatars-board__pane');
 }
 
 function admin_avatars_tab_close(): string
